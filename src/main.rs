@@ -1,3 +1,5 @@
+#![feature(mpsc_select)]
+
 extern crate discord;
 extern crate xivdb;
 extern crate dotenv;
@@ -26,7 +28,7 @@ use std::env::var;
 use std::fs::{File, OpenOptions};
 use std::path::Path;
 use std::sync::{Arc, Mutex};
-use std::sync::atomic::{Ordering, AtomicBool};
+use std::sync::mpsc::{channel, Receiver};
 
 macro_rules! opt_or {
   ($expr: expr, $or: expr) => {{
@@ -63,14 +65,11 @@ fn main() {
     }
   };
 
-  let ctrlc_bot = bot.clone();
-  let location = database_location.clone();
+  let (loop_cancel_tx, loop_cancel_rx) = channel();
+
   ctrlc::set_handler(move || {
-    // println!("Stopping main loop");
-    // ctrlc_bot.stop_loop();
-    println!("Saving database");
-    ctrlc_bot.save_database(&location).unwrap();
-    std::process::exit(0);
+    println!("Stopping main loop");
+    loop_cancel_tx.send(()).unwrap();
   }).expect("could not set interrupt handler");
 
   println!("Starting tasks");
@@ -87,13 +86,13 @@ fn main() {
 
   println!("Spinning up bot");
   let thread_bot = bot.clone();
-  // std::thread::spawn(move || {
-    if let Err(e) = thread_bot.start_loop() {
+  std::thread::spawn(move || {
+    if let Err(e) = LalafellBot::start_loop(thread_bot, loop_cancel_rx) {
       println!("could not start bot loop: {}", e);
     }
-  // });
-  // println!("Saving database");
-  // bot.save_database(&database_location).unwrap();
+  }).join().unwrap();
+  println!("Saving database");
+  bot.save_database(&database_location).unwrap();
   println!("Exiting");
 }
 
@@ -101,8 +100,7 @@ struct LalafellBot {
   discord: Discord,
   xivdb: XivDb,
   state: Mutex<Option<State>>,
-  database: Mutex<Database>,
-  cont: AtomicBool
+  database: Mutex<Database>
 }
 
 impl Drop for LalafellBot {
@@ -120,8 +118,7 @@ impl LalafellBot {
       discord: discord,
       xivdb: XivDb::default(),
       state: Mutex::new(None),
-      database: Mutex::new(database),
-      cont: AtomicBool::new(true)
+      database: Mutex::new(database)
     })
   }
 
@@ -218,37 +215,48 @@ impl LalafellBot {
     serde_json::to_writer(f, &self.database).chain_err(|| "could not serialize database")
   }
 
-  fn start_loop(&self) -> Result<()> {
-    let (mut connection, ready) = self.discord.connect().chain_err(|| "could not connect to discord")?;
+  fn start_loop(s: Arc<LalafellBot>, loop_cancel: Receiver<()>) -> Result<()> {
+    let (mut connection, ready) = s.discord.connect().chain_err(|| "could not connect to discord")?;
     let state = State::new(ready);
-    *self.state.lock().unwrap() = Some(state);
+    *s.state.lock().unwrap() = Some(state);
     connection.set_game_name("with other Lalafell.".to_string());
-    self.cont.store(true, Ordering::Relaxed);
+    let (event_channel_tx, event_channel_rx) = channel();
+    std::thread::spawn(move || {
+      loop {
+        if let Err(e) = event_channel_tx.send(connection.recv_event()) {
+          println!("error sending event: {}", e);
+        }
+      }
+    });
     println!("Starting main loop");
-    while self.cont.load(Ordering::Relaxed) {
-      let event = match connection.recv_event() {
-        Ok(e) => e,
+    loop {
+      let event = select! {
+        _ = loop_cancel.recv() => break,
+        event = event_channel_rx.recv() => event
+      };
+      let event = match event {
+        Ok(Ok(e)) => e,
+        Ok(Err(e)) => {
+          println!("could not receive event from select: {}", e);
+          continue;
+        },
         Err(e) => {
           println!("could not receive discord event: {}", e);
           continue;
         }
       };
       {
-        let mut state_option = self.state.lock().unwrap();
+        let mut state_option = s.state.lock().unwrap();
         let mut state = state_option.as_mut().unwrap();
         state.update(&event);
       }
       if let Event::MessageCreate(m) = event {
-        self.check_command(&m);
+        s.check_command(&m);
       }
     }
     println!("Main loop stopped");
     Ok(())
   }
-
-  // fn stop_loop(&self) {
-  //   self.cont.store(false, Ordering::Relaxed);
-  // }
 
   fn check_command(&self, message: &Message) {
     println!("{:#?}", message);
