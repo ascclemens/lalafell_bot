@@ -21,7 +21,7 @@ use listeners::*;
 use tasks::*;
 
 use discord::{Discord, State};
-use discord::model::{Message, Channel, LiveServer, UserId, Role, ReactionEmoji, ChannelId, MessageId};
+use discord::model::{Message, Channel, LiveServer, UserId, Role, ReactionEmoji, ChannelId};
 use discord::model::permissions;
 
 use xivdb::XivDb;
