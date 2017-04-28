@@ -1,4 +1,4 @@
-#![feature(mpsc_select)]
+#![feature(mpsc_select, box_syntax)]
 
 extern crate discord;
 extern crate xivdb;
@@ -13,18 +13,21 @@ extern crate log;
 extern crate simplelog;
 
 mod database;
+mod listeners;
+mod tasks;
 
 use database::*;
+use listeners::*;
+use tasks::*;
 
 use discord::{Discord, State};
-use discord::model::{Event, Message, Channel, LiveServer, UserId, Role, ReactionEmoji};
+use discord::model::{Message, Channel, LiveServer, UserId, Role, ReactionEmoji, ChannelId, MessageId};
 use discord::model::permissions;
 
 use xivdb::XivDb;
 use xivdb::error::*;
 
 use chrono::prelude::*;
-use chrono::Duration;
 
 use simplelog::{TermLogger, LogLevel, LogLevelFilter, Config};
 
@@ -74,6 +77,12 @@ fn main() {
     }
   };
 
+  {
+    let mut listeners = bot.listeners.lock().unwrap();
+    // listeners.push(box EventDebugger);
+    listeners.push(box CommandListener::new(bot.clone()));
+  }
+
   let (loop_cancel_tx, loop_cancel_rx) = channel();
 
   ctrlc::set_handler(move || {
@@ -83,15 +92,14 @@ fn main() {
 
   info!("Starting tasks");
 
-  {
-    let s = bot.clone();
-    LalafellBot::start_database_save_task(s, database_location.to_string());
-  }
-
-  {
-    let s = bot.clone();
-    LalafellBot::start_autotag_task(s);
-  }
+  let task_manager = TaskManager::new(bot.clone());
+  task_manager.start_task(DatabaseSaveTask::new(&database_location));
+  task_manager.start_task(AutoTagTask::new());
+  task_manager.start_task(DeleteAllMessagesTask::new(
+    ChannelId(307359970096185345),
+    30,
+    vec![MessageId(307367821506117642)]
+  ));
 
   info!("Spinning up bot");
   let thread_bot = bot.clone();
@@ -105,11 +113,12 @@ fn main() {
   info!("Exiting");
 }
 
-struct LalafellBot {
-  discord: Discord,
-  xivdb: XivDb,
-  state: Mutex<Option<State>>,
-  database: Mutex<Database>
+pub struct LalafellBot {
+  pub discord: Discord,
+  pub xivdb: XivDb,
+  pub state: Mutex<Option<State>>,
+  pub database: Mutex<Database>,
+  pub listeners: Mutex<Vec<Box<ReceivesEvents + Send>>>
 }
 
 impl Drop for LalafellBot {
@@ -127,84 +136,9 @@ impl LalafellBot {
       discord: discord,
       xivdb: XivDb::default(),
       state: Mutex::new(None),
-      database: Mutex::new(database)
+      database: Mutex::new(database),
+      listeners: Mutex::new(Vec::new())
     })
-  }
-
-  fn start_autotag_task(s: Arc<LalafellBot>) {
-    std::thread::spawn(move || {
-      info!(target: "autotag", "Autotag task waiting 30 seconds for initial connection.");
-      std::thread::sleep(Duration::seconds(30).to_std().unwrap());
-      loop {
-        info!(target: "autotag", "Autotag task running");
-        let time_to_update = {
-          let database = s.database.lock().unwrap();
-          database.autotags.last_updated + Duration::days(1).num_seconds() < UTC::now().timestamp()
-        };
-        if !time_to_update {
-          info!(target: "autotag", "Not yet time to update, sleeping 30 minutes");
-          std::thread::sleep(Duration::minutes(30).to_std().unwrap());
-          continue;
-        }
-        info!(target: "autotag", "Time to update autotags");
-        let users = {
-          let database = s.database.lock().unwrap();
-          database.autotags.users.clone()
-        };
-        {
-          let option_state = s.state.lock().unwrap();
-          let state = match option_state.as_ref() {
-            Some(st) => st,
-            None => {
-              info!(target: "autotag", "Bot not connected. Will try again later.");
-              continue;
-            }
-          };
-          for user in users {
-            let server = match state.servers().iter().find(|s| s.id.0 == user.server_id) {
-              Some(ser) => ser,
-              None => {
-                info!(target: "autotag", "Couldn't find server for user {:?}", user);
-                continue;
-              }
-            };
-            if let Err(e) = s.tag(UserId(user.user_id), server, &user.server, &user.character) {
-              info!(target: "autotag", "Couldn't update tag for user {:?}: {}", user, e);
-            }
-          }
-        }
-        {
-          let mut database = s.database.lock().unwrap();
-          database.autotags.last_updated = UTC::now().timestamp();
-        };
-        info!(target: "autotag", "Done updating autotags");
-      }
-    });
-  }
-
-  fn start_database_save_task(s: Arc<LalafellBot>, location: String) {
-    std::thread::spawn(move || {
-      loop {
-        info!(target: "database_save", "Database save task running");
-        let time_to_update = {
-          let database = s.database.lock().unwrap();
-          database.last_saved + Duration::hours(1).num_seconds() < UTC::now().timestamp()
-        };
-        if !time_to_update {
-          info!(target: "database_save", "Not yet time to save database. Sleeping for five minutes.");
-          std::thread::sleep(Duration::minutes(5).to_std().unwrap());
-          continue;
-        }
-        if let Err(e) = s.save_database(&location) {
-          info!(target: "database_save", "could not save database: {}", e);
-        }
-        {
-          let mut database = s.database.lock().unwrap();
-          database.last_saved = UTC::now().timestamp();
-        }
-        info!(target: "database_save", "Database save task done");
-      }
-    });
   }
 
   fn load_database(location: &str) -> Result<Database> {
@@ -260,8 +194,11 @@ impl LalafellBot {
         let mut state = state_option.as_mut().unwrap();
         state.update(&event);
       }
-      if let Event::MessageCreate(m) = event {
-        self.check_command(&m);
+      {
+        let listeners = self.listeners.lock().unwrap();
+        for listener in listeners.iter() {
+          listener.receive(&event);
+        }
       }
     }
     info!("Main loop stopped");
