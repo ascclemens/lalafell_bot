@@ -87,7 +87,7 @@ fn main() {
   println!("Spinning up bot");
   let thread_bot = bot.clone();
   std::thread::spawn(move || {
-    if let Err(e) = LalafellBot::start_loop(thread_bot, loop_cancel_rx) {
+    if let Err(e) = thread_bot.start_loop(loop_cancel_rx) {
       println!("could not start bot loop: {}", e);
     }
   }).join().unwrap();
@@ -215,10 +215,10 @@ impl LalafellBot {
     serde_json::to_writer(f, &self.database).chain_err(|| "could not serialize database")
   }
 
-  fn start_loop(s: Arc<LalafellBot>, loop_cancel: Receiver<()>) -> Result<()> {
-    let (mut connection, ready) = s.discord.connect().chain_err(|| "could not connect to discord")?;
+  fn start_loop(&self, loop_cancel: Receiver<()>) -> Result<()> {
+    let (mut connection, ready) = self.discord.connect().chain_err(|| "could not connect to discord")?;
     let state = State::new(ready);
-    *s.state.lock().unwrap() = Some(state);
+    *self.state.lock().unwrap() = Some(state);
     connection.set_game_name("with other Lalafell.".to_string());
     let (event_channel_tx, event_channel_rx) = channel();
     std::thread::spawn(move || {
@@ -246,12 +246,12 @@ impl LalafellBot {
         }
       };
       {
-        let mut state_option = s.state.lock().unwrap();
+        let mut state_option = self.state.lock().unwrap();
         let mut state = state_option.as_mut().unwrap();
         state.update(&event);
       }
       if let Event::MessageCreate(m) = event {
-        s.check_command(&m);
+        self.check_command(&m);
       }
     }
     println!("Main loop stopped");
