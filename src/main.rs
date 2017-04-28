@@ -8,6 +8,9 @@ extern crate serde_derive;
 extern crate serde_json;
 extern crate ctrlc;
 extern crate chrono;
+#[macro_use]
+extern crate log;
+extern crate simplelog;
 
 mod database;
 
@@ -22,6 +25,8 @@ use xivdb::error::*;
 
 use chrono::prelude::*;
 use chrono::Duration;
+
+use simplelog::{TermLogger, LogLevelFilter, Config};
 
 use std::collections::HashMap;
 use std::env::var;
@@ -40,19 +45,21 @@ macro_rules! opt_or {
 }
 
 fn main() {
+  TermLogger::init(LogLevelFilter::Info, Config::default()).unwrap();
+
   dotenv::dotenv().ok();
 
   let bot_token = match var("LB_DISCORD_BOT_TOKEN") {
     Ok(t) => t,
     Err(_) => {
-      println!("No bot token was specified in .env");
+      error!("No bot token was specified in .env");
       return;
     }
   };
   let database_location = match var("LB_DATABASE_LOCATION") {
     Ok(t) => t,
     Err(_) => {
-      println!("No database location was specified in .env");
+      error!("No database location was specified in .env");
       return;
     }
   };
@@ -60,7 +67,7 @@ fn main() {
   let bot = match LalafellBot::new(&bot_token, &database_location) {
     Ok(b) => Arc::new(b),
     Err(e) => {
-      println!("could not create bot: {}", e.iter().map(|err| err.to_string()).collect::<Vec<_>>().join("\n"));
+      error!("could not create bot: {}", e.iter().map(|err| err.to_string()).collect::<Vec<_>>().join("\n"));
       return;
     }
   };
@@ -68,11 +75,11 @@ fn main() {
   let (loop_cancel_tx, loop_cancel_rx) = channel();
 
   ctrlc::set_handler(move || {
-    println!("Stopping main loop");
+    info!("Stopping main loop");
     loop_cancel_tx.send(()).unwrap();
   }).expect("could not set interrupt handler");
 
-  println!("Starting tasks");
+  info!("Starting tasks");
 
   {
     let s = bot.clone();
@@ -84,16 +91,16 @@ fn main() {
     LalafellBot::start_autotag_task(s);
   }
 
-  println!("Spinning up bot");
+  info!("Spinning up bot");
   let thread_bot = bot.clone();
   std::thread::spawn(move || {
     if let Err(e) = thread_bot.start_loop(loop_cancel_rx) {
-      println!("could not start bot loop: {}", e);
+      error!("could not start bot loop: {}", e);
     }
   }).join().unwrap();
-  println!("Saving database");
+  info!("Saving database");
   bot.save_database(&database_location).unwrap();
-  println!("Exiting");
+  info!("Exiting");
 }
 
 struct LalafellBot {
@@ -124,20 +131,20 @@ impl LalafellBot {
 
   fn start_autotag_task(s: Arc<LalafellBot>) {
     std::thread::spawn(move || {
-      println!("Autotag task waiting 30 seconds for initial connection.");
+      info!(target: "autotag", "Autotag task waiting 30 seconds for initial connection.");
       std::thread::sleep(Duration::seconds(30).to_std().unwrap());
       loop {
-        println!("Autotag task running");
+        info!(target: "autotag", "Autotag task running");
         let time_to_update = {
           let database = s.database.lock().unwrap();
           database.autotags.last_updated + Duration::days(1).num_seconds() < UTC::now().timestamp()
         };
         if !time_to_update {
-          println!("Not yet time to update, sleeping 30 minutes");
+          info!(target: "autotag", "Not yet time to update, sleeping 30 minutes");
           std::thread::sleep(Duration::minutes(30).to_std().unwrap());
           continue;
         }
-        println!("Time to update autotags");
+        info!(target: "autotag", "Time to update autotags");
         let users = {
           let database = s.database.lock().unwrap();
           database.autotags.users.clone()
@@ -147,7 +154,7 @@ impl LalafellBot {
           let state = match option_state.as_ref() {
             Some(st) => st,
             None => {
-              println!("Bot not connected. Will try again later.");
+              info!(target: "autotag", "Bot not connected. Will try again later.");
               continue;
             }
           };
@@ -155,12 +162,12 @@ impl LalafellBot {
             let server = match state.servers().iter().find(|s| s.id.0 == user.server_id) {
               Some(ser) => ser,
               None => {
-                println!("Couldn't find server for user {:?}", user);
+                info!(target: "autotag", "Couldn't find server for user {:?}", user);
                 continue;
               }
             };
             if let Err(e) = s.tag(UserId(user.user_id), server, &user.server, &user.character) {
-              println!("Couldn't update tag for user {:?}: {}", user, e);
+              info!(target: "autotag", "Couldn't update tag for user {:?}: {}", user, e);
             }
           }
         }
@@ -168,7 +175,7 @@ impl LalafellBot {
           let mut database = s.database.lock().unwrap();
           database.autotags.last_updated = UTC::now().timestamp();
         };
-        println!("Done updating autotags");
+        info!(target: "autotag", "Done updating autotags");
       }
     });
   }
@@ -176,23 +183,24 @@ impl LalafellBot {
   fn start_database_save_task(s: Arc<LalafellBot>, location: String) {
     std::thread::spawn(move || {
       loop {
-        println!("Database save task running");
+        info!(target: "database_save", "Database save task running");
         let time_to_update = {
           let database = s.database.lock().unwrap();
           database.last_saved + Duration::hours(1).num_seconds() < UTC::now().timestamp()
         };
         if !time_to_update {
-          println!("Not yet time to save database. Sleeping for five minutes.");
+          info!(target: "database_save", "Not yet time to save database. Sleeping for five minutes.");
           std::thread::sleep(Duration::minutes(5).to_std().unwrap());
           continue;
         }
         if let Err(e) = s.save_database(&location) {
-          println!("could not save database: {}", e);
+          info!(target: "database_save", "could not save database: {}", e);
         }
         {
           let mut database = s.database.lock().unwrap();
           database.last_saved = UTC::now().timestamp();
         }
+        info!(target: "database_save", "Database save task done");
       }
     });
   }
@@ -224,11 +232,11 @@ impl LalafellBot {
     std::thread::spawn(move || {
       loop {
         if let Err(e) = event_channel_tx.send(connection.recv_event()) {
-          println!("error sending event: {}", e);
+          error!("error sending event: {}", e);
         }
       }
     });
-    println!("Starting main loop");
+    info!("Starting main loop");
     loop {
       let event = select! {
         _ = loop_cancel.recv() => break,
@@ -237,11 +245,11 @@ impl LalafellBot {
       let event = match event {
         Ok(Ok(e)) => e,
         Ok(Err(e)) => {
-          println!("could not receive event from select: {}", e);
+          warn!("could not receive event from select: {}", e);
           continue;
         },
         Err(e) => {
-          println!("could not receive discord event: {}", e);
+          warn!("could not receive discord event: {}", e);
           continue;
         }
       };
@@ -254,12 +262,11 @@ impl LalafellBot {
         self.check_command(&m);
       }
     }
-    println!("Main loop stopped");
+    info!("Main loop stopped");
     Ok(())
   }
 
   fn check_command(&self, message: &Message) {
-    println!("{:#?}", message);
     let parts: Vec<&str> = message.content.split_whitespace().collect();
     if parts.is_empty() {
       return;
@@ -281,7 +288,7 @@ impl LalafellBot {
       self.discord.send_embed(message.channel_id, "",
         |e| e.description("An internal error happened while processing this command.")).ok();
       for err in e.iter() {
-        println!("error: {:#?}", err);
+        error!("error: {:#?}", err);
       }
     }
   }
