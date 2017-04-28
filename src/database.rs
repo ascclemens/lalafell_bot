@@ -28,15 +28,17 @@ impl Autotags {
 pub struct AutotagUser {
   pub user_id: u64,
   pub server_id: u64,
+  pub character_id: u64,
   pub character: String,
   pub server: String
 }
 
 impl AutotagUser {
-  pub fn new(user_id: u64, server_id: u64, character: &str, server: &str) -> AutotagUser {
+  pub fn new(user_id: u64, server_id: u64, character_id: u64, character: &str, server: &str) -> AutotagUser {
     AutotagUser {
       user_id: user_id,
       server_id: server_id,
+      character_id: character_id,
       character: character.to_string(),
       server: server.to_string()
     }

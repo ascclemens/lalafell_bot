@@ -319,7 +319,7 @@ impl LalafellBot {
     let ff_server = params[0];
     let name = params[1..].join(" ");
 
-    let (msg, emoji) = match self.tag(message.author.id, server, ff_server, &name)? {
+    let (msg, emoji) = match self.search_tag(message.author.id, server, ff_server, &name)? {
       Some(error) => (Some(error), ReactionEmoji::Unicode(String::from("\u{274c}"))),
       None => (None, ReactionEmoji::Unicode(String::from("\u{2705}")))
     };
@@ -376,7 +376,7 @@ impl LalafellBot {
     let ff_server = params[1];
     let name = params[2..].join(" ");
 
-    let (msg, emoji) = match self.tag(who, server, ff_server, &name)? {
+    let (msg, emoji) = match self.search_tag(who, server, ff_server, &name)? {
       Some(error) => (Some(error), ReactionEmoji::Unicode(String::from("\u{274c}"))),
       None => (None, ReactionEmoji::Unicode(String::from("\u{2705}")))
     };
@@ -387,7 +387,7 @@ impl LalafellBot {
     Ok(true)
   }
 
-  fn tag(&self, who: UserId, on: &LiveServer, server: &str, character_name: &str) -> Result<Option<String>> {
+  fn search_tag(&self, who: UserId, on: &LiveServer, server: &str, character_name: &str) -> Result<Option<String>> {
     let mut params = HashMap::new();
     params.insert(String::from("one"), String::from("characters"));
     params.insert(String::from("strict"), String::from("on"));
@@ -404,15 +404,26 @@ impl LalafellBot {
       Some(u) => u,
       None => return Err("character ID was not a u64".into())
     };
-    let character = self.xivdb.character(char_id).chain_err(|| "could not look up character")?;
 
-    if character.name.to_lowercase() != character_name.to_lowercase() {
+    let name = match search_chars[0]["name"].as_str() {
+      Some(s) => s,
+      None => return Err("character name was not a string".into())
+    };
+
+    if name.to_lowercase() != character_name.to_lowercase() {
       return Ok(Some(format!("Could not find any character by the name {} on {}.", character_name, server)));
     }
+
+    self.tag(who, on, char_id)
+  }
+
+  fn tag(&self, who: UserId, on: &LiveServer, char_id: u64) -> Result<Option<String>> {
+    let character = self.xivdb.character(char_id).chain_err(|| "could not look up character")?;
 
     self.database.lock().unwrap().autotags.update_or_remove(AutotagUser::new(
       who.0,
       on.id.0,
+      character.lodestone_id,
       &character.name,
       &character.server
     ));
