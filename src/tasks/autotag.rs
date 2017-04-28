@@ -57,9 +57,9 @@ impl RunsTask for AutoTagTask {
               continue;
             }
           };
-          if let Err(e) = s.tag(UserId(user.user_id), server, user.character_id) {
-            info!(target: "autotag", "Couldn't update tag for user {:?}: {}", user, e);
-          }
+          // if let Err(e) = s.tag(UserId(user.user_id), server, user.character_id) {
+          //   info!(target: "autotag", "Couldn't update tag for user {:?}: {}", user, e);
+          // }
         }
       }
       {
