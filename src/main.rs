@@ -26,7 +26,7 @@ use xivdb::error::*;
 use chrono::prelude::*;
 use chrono::Duration;
 
-use simplelog::{TermLogger, LogLevelFilter, Config};
+use simplelog::{TermLogger, LogLevel, LogLevelFilter, Config};
 
 use std::collections::HashMap;
 use std::env::var;
@@ -45,7 +45,9 @@ macro_rules! opt_or {
 }
 
 fn main() {
-  TermLogger::init(LogLevelFilter::Info, Config::default()).unwrap();
+  let mut config = Config::default();
+  config.target = Some(LogLevel::Error);
+  TermLogger::init(LogLevelFilter::Info, config).unwrap();
 
   dotenv::dotenv().ok();
 
