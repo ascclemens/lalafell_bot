@@ -81,6 +81,7 @@ fn main() {
     let mut listeners = bot.listeners.lock().unwrap();
     // listeners.push(box EventDebugger);
     listeners.push(box CommandListener::new(bot.clone()));
+    listeners.push(box TagInstructions::new(bot.clone()));
   }
 
   let (loop_cancel_tx, loop_cancel_rx) = channel();
@@ -97,7 +98,7 @@ fn main() {
   task_manager.start_task(AutoTagTask::new());
   task_manager.start_task(DeleteAllMessagesTask::new(
     ChannelId(307359970096185345),
-    30,
+    300,
     vec![MessageId(307367821506117642)]
   ));
 
