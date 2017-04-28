@@ -99,7 +99,7 @@ fn main() {
   task_manager.start_task(DeleteAllMessagesTask::new(
     ChannelId(307359970096185345),
     300,
-    vec![MessageId(307367821506117642)]
+    Vec::default()
   ));
 
   info!("Spinning up bot");
