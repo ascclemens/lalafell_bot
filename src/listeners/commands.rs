@@ -53,7 +53,7 @@ impl<'a> CommandListener<'a> {
       },
       Err(CommandFailure::External(info)) => {
         if let Some(embed) = info.message {
-          self.bot.discord.send_embed(message.channel_id, "", |e| embed(e)).ok();
+          self.bot.discord.send_embed(message.channel_id, "", embed).ok();
         }
       }
     }
