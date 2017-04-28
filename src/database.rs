@@ -13,7 +13,7 @@ pub struct Autotags {
 
 impl Autotags {
   pub fn update_or_remove(&mut self, user: AutotagUser) {
-    for u in self.users.iter_mut() {
+    for u in &mut self.users {
       if u.user_id == user.user_id && u.server_id == user.server_id {
         u.character = user.character;
         u.server = user.server;

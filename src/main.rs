@@ -287,7 +287,7 @@ impl LalafellBot {
 
     let user = {
       let database = self.database.lock().unwrap();
-      database.autotags.users.iter().find(|u| u.user_id == who.0 && u.server_id == server_id.0).map(|a| a.clone())
+      database.autotags.users.iter().find(|u| u.user_id == who.0 && u.server_id == server_id.0).cloned()
     };
 
     let msg = match user {
