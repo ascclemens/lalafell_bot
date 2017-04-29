@@ -82,6 +82,7 @@ fn main() {
     commands.insert(vec![String::from("race")], box RaceCommand::new(bot.clone()));
     commands.insert(vec![String::from("tag")], box TagCommand::new(bot.clone()));
     commands.insert(vec![String::from("autotag")], box AutoTagCommand::new(bot.clone()));
+    commands.insert(vec![String::from("viewtag")], box ViewTagCommand::new(bot.clone()));
   }
 
   {

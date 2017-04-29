@@ -1,8 +1,10 @@
 pub mod tag;
 pub mod race;
+pub mod viewtag;
 
 pub use tag::*;
 pub use race::*;
+pub use viewtag::*;
 
 use xivdb::error;
 
