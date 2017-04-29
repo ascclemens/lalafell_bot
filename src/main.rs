@@ -80,6 +80,8 @@ fn main() {
   {
     let mut commands = command_listener.commands();
     commands.insert(vec![String::from("race")], box RaceCommand::new(bot.clone()));
+    commands.insert(vec![String::from("tag")], box TagCommand::new(bot.clone()));
+    commands.insert(vec![String::from("autotag")], box AutoTagCommand::new(bot.clone()));
   }
 
   {

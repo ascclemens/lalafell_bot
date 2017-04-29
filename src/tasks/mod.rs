@@ -13,7 +13,7 @@ pub mod autotag;
 
 pub use delete_all_messages::*;
 pub use database_save::*;
-pub use autotag::*;
+pub use self::autotag::*;
 
 pub struct TaskManager {
   bot: Arc<LalafellBot>

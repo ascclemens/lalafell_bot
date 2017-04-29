@@ -1,56 +1,93 @@
-  fn tag_command(&self, message: &Message, params: &[&str]) -> Result<bool> {
-    let channel = self.discord.get_channel(message.channel_id).chain_err(|| "could not get channel for message")?;
+use LalafellBot;
+use commands::*;
+use commands::tag::Tagger;
+
+use discord::builders::EmbedBuilder;
+use discord::model::{Channel, UserId, Role};
+use discord::model::permissions;
+
+use xivdb::error::*;
+
+use std::sync::Arc;
+
+const USAGE: &'static str = "!tag <who> <server> <character>";
+
+pub struct TagCommand {
+  bot: Arc<LalafellBot>
+}
+
+impl TagCommand {
+  pub fn new(bot: Arc<LalafellBot>) -> TagCommand {
+    TagCommand {
+      bot: bot
+    }
+  }
+}
+
+impl<'a> Command<'a> for TagCommand {
+  fn run(&self, message: &Message, params: &[&str]) -> CommandResult<'a> {
+    let channel = self.bot.discord.get_channel(message.channel_id).chain_err(|| "could not get channel for message")?;
     let server_id = match channel {
       Channel::Public(c) => c.server_id,
-      _ => return Err("channel was not public".into())
+      _ => {
+        let err: error::Error = "channel was not public".into();
+        return Err(err.into());
+      }
     };
-    let user = self.discord.get_member(server_id, message.author.id).chain_err(|| "could not get member for message")?;
-    let mut state_option = self.state.lock().unwrap();
+    let user = self.bot.discord.get_member(server_id, message.author.id).chain_err(|| "could not get member for message")?;
+    let mut state_option = self.bot.state.lock().unwrap();
     let state = state_option.as_mut().unwrap();
     let server = match state.servers().iter().find(|x| x.id == server_id) {
       Some(s) => s,
-      None => return Err("could not find server for channel".into())
+      None => {
+        let err: error::Error = "could not find server for channel".into();
+        return Err(err.into());
+      }
     };
     if server.owner_id != message.author.id {
       let roles = &server.roles;
       let user_roles: Option<Vec<&Role>> = user.roles.iter()
         .map(|r| roles.iter().find(|z| z.id == *r))
         .collect();
-      match user_roles {
-        Some(ur) => {
-          let can_manage_roles = ur.iter()
-            .any(|r| r.permissions.contains(permissions::MANAGE_ROLES));
-          if !can_manage_roles {
-            return Ok(false);
-          }
-        },
-        None => return Ok(false)
+      let can_manage_roles = match user_roles {
+        Some(ur) => ur.iter().any(|r| r.permissions.contains(permissions::MANAGE_ROLES)),
+        None => false
+      };
+      if !can_manage_roles {
+        return Err(ExternalCommandFailure::default()
+          .message(|e: EmbedBuilder| e
+            .title("Not enough permissions.")
+            .description("You don't have enough permissions to use this command."))
+          .wrap());
       }
     }
 
-    if params.len() < 3 {
-      return Ok(false);
+    if params.len() < 4 {
+      return Err(ExternalCommandFailure::default()
+        .message(|e: EmbedBuilder| e
+          .title("Not enough parameters.")
+          .description(USAGE))
+        .wrap());
     }
 
     let who = params[0];
     let who = if !who.starts_with("<@") && !who.ends_with('>') && message.mentions.len() != 1 {
-      match who.parse::<u64>() {
-        Ok(n) => UserId(n),
-        Err(_) => return Ok(false)
-      }
+      who.parse::<u64>().map(UserId).map_err(|_| ExternalCommandFailure::default()
+        .message(|e: EmbedBuilder| e
+          .title("Invalid target.")
+          .description("The target was not a mention, and it was not a user ID."))
+        .wrap())?
     } else {
       message.mentions[0].id
     };
     let ff_server = params[1];
     let name = params[2..].join(" ");
 
-    let (msg, emoji) = match self.search_tag(who, server, ff_server, &name)? {
-      Some(error) => (Some(error), ReactionEmoji::Unicode(String::from("\u{274c}"))),
-      None => (None, ReactionEmoji::Unicode(String::from("\u{2705}")))
-    };
-    if let Some(msg) = msg {
-      self.discord.send_embed(message.channel_id, "", |f| f.description(&msg)).chain_err(|| "could not send embed")?;
+    match Tagger::search_tag(self.bot.clone(), who, server, ff_server, &name)? {
+      Some(error) => Err(ExternalCommandFailure::default()
+        .message(move |e: EmbedBuilder| e.description(&error))
+        .wrap()),
+      None => Ok(CommandSuccess::default())
     }
-    self.discord.add_reaction(message.channel_id, message.id, emoji).chain_err(|| "could not add reaction")?;
-    Ok(true)
   }
+}

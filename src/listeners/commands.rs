@@ -38,6 +38,7 @@ impl<'a> CommandListener<'a> {
       Some(c) => c,
       None => return
     };
+    // FIXME: add reactions
     match command.run(message, params) {
       Ok(info) => {
         if let Some(embed) = info.message {
