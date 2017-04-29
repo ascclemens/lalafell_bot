@@ -1,7 +1,7 @@
 use LalafellBot;
 use listeners::ReceivesEvents;
 use commands::*;
-use discord::model::{Event, Message};
+use discord::model::{Event, Message, ReactionEmoji};
 
 use std::sync::Arc;
 use std::collections::HashMap;
@@ -38,8 +38,10 @@ impl<'a> CommandListener<'a> {
       Some(c) => c,
       None => return
     };
-    // FIXME: add reactions
-    match command.run(message, params) {
+    let run_result = command.run(message, params);
+    let emoji = if run_result.is_ok() { "\u{2705}" } else { "\u{274c}" };
+    self.bot.discord.add_reaction(message.channel_id, message.id, ReactionEmoji::Unicode(emoji.to_string())).ok();
+    match run_result {
       Ok(info) => {
         if let Some(embed) = info.message {
           self.bot.discord.send_embed(message.channel_id, "", embed).ok();
