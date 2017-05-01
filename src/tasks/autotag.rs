@@ -58,7 +58,7 @@ impl RunsTask for AutoTagTask {
               continue;
             }
           };
-          if let Err(e) = Tagger::tag(s.clone(), UserId(user_id), server, character_id) {
+          if let Err(e) = Tagger::tag(s.clone(), UserId(user_id), server, character_id, false) {
             info!(target: "autotag", "Couldn't update tag for user ID {}: {}", user_id, e);
           }
         }

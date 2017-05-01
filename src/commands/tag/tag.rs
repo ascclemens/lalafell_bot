@@ -44,22 +44,24 @@ impl<'a> Command<'a> for TagCommand {
         return Err(err.into());
       }
     };
-    if server.owner_id != message.author.id {
+    let can_manage_roles = if server.owner_id != message.author.id {
+      true
+    } else {
       let roles = &server.roles;
       let user_roles: Option<Vec<&Role>> = user.roles.iter()
         .map(|r| roles.iter().find(|z| z.id == *r))
         .collect();
-      let can_manage_roles = match user_roles {
+      match user_roles {
         Some(ur) => ur.iter().any(|r| r.permissions.contains(permissions::MANAGE_ROLES)),
         None => false
-      };
-      if !can_manage_roles {
-        return Err(ExternalCommandFailure::default()
-          .message(|e: EmbedBuilder| e
-            .title("Not enough permissions.")
-            .description("You don't have enough permissions to use this command."))
-          .wrap());
       }
+    };
+    if !can_manage_roles {
+      return Err(ExternalCommandFailure::default()
+        .message(|e: EmbedBuilder| e
+          .title("Not enough permissions.")
+          .description("You don't have enough permissions to use this command."))
+        .wrap());
     }
 
     if params.len() < 4 {
@@ -83,7 +85,7 @@ impl<'a> Command<'a> for TagCommand {
     let ff_server = params[1];
     let name = params[2..].join(" ");
 
-    match Tagger::search_tag(self.bot.clone(), who, server, ff_server, &name)? {
+    match Tagger::search_tag(self.bot.clone(), who, server, ff_server, &name, can_manage_roles)? {
       Some(error) => Err(ExternalCommandFailure::default()
         .message(move |e: EmbedBuilder| e.description(&error))
         .wrap()),

@@ -19,7 +19,7 @@ use std::collections::HashMap;
 pub struct Tagger;
 
 impl Tagger {
-  pub fn search_tag(bot: Arc<LalafellBot>, who: UserId, on: &LiveServer, server: &str, character_name: &str) -> Result<Option<String>> {
+  pub fn search_tag(bot: Arc<LalafellBot>, who: UserId, on: &LiveServer, server: &str, character_name: &str, ignore_verified: bool) -> Result<Option<String>> {
     let mut params = HashMap::new();
     params.insert(String::from("one"), String::from("characters"));
     params.insert(String::from("strict"), String::from("on"));
@@ -46,10 +46,25 @@ impl Tagger {
       return Ok(Some(format!("Could not find any character by the name {} on {}.", character_name, server)));
     }
 
-    Tagger::tag(bot, who, on, char_id)
+    Tagger::tag(bot, who, on, char_id, ignore_verified)
   }
 
-  pub fn tag(bot: Arc<LalafellBot>, who: UserId, on: &LiveServer, char_id: u64) -> Result<Option<String>> {
+  pub fn tag(bot: Arc<LalafellBot>, who: UserId, on: &LiveServer, char_id: u64, ignore_verified: bool) -> Result<Option<String>> {
+    let database = bot.database.lock().unwrap();
+    let user = database.autotags.users.iter()
+      .find(|u| u.user_id == who.0);
+    let is_verified = user
+      .map(|u| u.verification.verified)
+      .unwrap_or_default();
+
+    let member = bot.discord.get_member(on.id, who).chain_err(|| "could not get member for tagging")?;
+
+    if let Some(u) = user {
+      if is_verified && !ignore_verified && char_id != u.character_id {
+        return Ok(Some(format!("{} are verified as {} on {}, so they cannot switch to another account.", who.mention(), u.character, u.server)));
+      }
+    }
+
     let character = bot.xivdb.character(char_id).chain_err(|| "could not look up character")?;
 
     bot.database.lock().unwrap().autotags.update_or_remove(AutotagUser::new(
@@ -59,19 +74,6 @@ impl Tagger {
       &character.name,
       &character.server
     ));
-
-    let database = bot.database.lock().unwrap();
-    let user = database.autotags.users.iter()
-      .find(|u| u.user_id == who.0);
-    let is_verified = user
-      .map(|u| u.verification.verified)
-      .unwrap_or_default();
-
-    if let Some(u) = user {
-      if is_verified && char_id != u.character_id {
-        return Ok(Some(format!("You are verified as {} on {}, so you cannot switch to another account.", u.character, u.server)));
-      }
-    }
 
     let roles = &on.roles;
     let mut add_roles = Vec::new();
@@ -89,8 +91,6 @@ impl Tagger {
         add_roles.push(r);
       }
     }
-
-    let member = bot.discord.get_member(on.id, who).chain_err(|| "could not get member for tagging")?;
 
     let all_group_roles: Vec<&String> = bot.config.roles.groups.iter().flat_map(|x| x).collect();
     let keep: Vec<&Role> = roles.iter().filter(|x| member.roles.contains(&x.id)).collect();
