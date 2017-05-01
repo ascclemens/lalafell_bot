@@ -83,6 +83,8 @@ fn main() {
     commands.insert(vec![String::from("tag")], box TagCommand::new(bot.clone()));
     commands.insert(vec![String::from("autotag")], box AutoTagCommand::new(bot.clone()));
     commands.insert(vec![String::from("viewtag")], box ViewTagCommand::new(bot.clone()));
+    commands.insert(vec![String::from("updatetags")], box UpdateTagsCommand::new(bot.clone()));
+    commands.insert(vec![String::from("savedatabase")], box SaveDatabaseCommand::new(bot.clone(), database_location.clone()));
   }
 
   {

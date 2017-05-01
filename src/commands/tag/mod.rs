@@ -1,8 +1,10 @@
 pub mod tag;
 pub mod autotag;
+pub mod update_tags;
 
 pub use self::tag::*;
 pub use self::autotag::*;
+pub use self::update_tags::*;
 
 use LalafellBot;
 use database::AutotagUser;
