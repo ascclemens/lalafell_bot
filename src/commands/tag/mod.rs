@@ -61,13 +61,13 @@ impl Tagger {
 
     if let Some(u) = user {
       if is_verified && !ignore_verified && char_id != u.character_id {
-        return Ok(Some(format!("{} are verified as {} on {}, so they cannot switch to another account.", who.mention(), u.character, u.server)));
+        return Ok(Some(format!("{} is verified as {} on {}, so they cannot switch to another account.", who.mention(), u.character, u.server)));
       }
     }
 
     let character = bot.xivdb.character(char_id).chain_err(|| "could not look up character")?;
 
-    bot.database.lock().unwrap().autotags.update_or_remove(AutotagUser::new(
+    database.autotags.update_or_remove(AutotagUser::new(
       who.0,
       on.id.0,
       character.lodestone_id,
