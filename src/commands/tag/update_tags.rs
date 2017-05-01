@@ -48,7 +48,13 @@ impl<'a> Command<'a> for UpdateTagsCommand {
         .wrap());
     }
     let thread_bot = self.bot.clone();
-    ::std::thread::spawn(move || AutoTagTask::new().start(thread_bot));
+    let mut task = AutoTagTask::new();
+    task.next_sleep = 0;
+    {
+      let mut database = self.bot.database.lock().unwrap();
+      database.autotags.last_updated = 0;
+    }
+    ::std::thread::spawn(move || task.start(thread_bot));
     Ok(CommandSuccess::default()
       .message(|e: EmbedBuilder| e.description("Task started.")))
   }

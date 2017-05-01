@@ -9,7 +9,7 @@ use std::sync::Arc;
 use std::thread;
 
 pub struct AutoTagTask {
-  next_sleep: i64
+  pub next_sleep: i64
 }
 
 impl AutoTagTask {
@@ -22,7 +22,7 @@ impl AutoTagTask {
 
 impl RunsTask for AutoTagTask {
   fn start(mut self, s: Arc<LalafellBot>) {
-    info!(target: "autotag", "Autotag task waiting 30 seconds for initial connection.");
+    info!(target: "autotag", "Autotag task waiting {} seconds", self.next_sleep);
     loop {
       thread::sleep(Duration::seconds(self.next_sleep).to_std().unwrap());
       info!(target: "autotag", "Autotag task running");
