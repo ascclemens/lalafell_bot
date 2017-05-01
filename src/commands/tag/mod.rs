@@ -50,7 +50,7 @@ impl Tagger {
   }
 
   pub fn tag(bot: Arc<LalafellBot>, who: UserId, on: &LiveServer, char_id: u64, ignore_verified: bool) -> Result<Option<String>> {
-    let database = bot.database.lock().unwrap();
+    let mut database = bot.database.lock().unwrap();
     let user = database.autotags.users.iter()
       .find(|u| u.user_id == who.0);
     let is_verified = user
