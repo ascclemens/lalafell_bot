@@ -41,6 +41,11 @@ impl<'a> Command<'a> for VerifyCommand {
             .description("Please tag yourself with an account before verifying it."))
           .wrap())
     };
+    if user.verification.verified {
+      return Err(ExternalCommandFailure::default()
+        .message(|e: EmbedBuilder| e.description("You are already verified."))
+        .wrap());
+    }
     let verification_string = match user.verification.verification_string {
       Some(ref v) => v,
       None => {
@@ -67,10 +72,11 @@ impl<'a> Command<'a> for VerifyCommand {
 
       user.verification.verified = true;
       if let Some(r) = server.roles.iter().find(|x| x.name.to_lowercase() == "verified") {
-        let member = self.bot.discord.get_member(server_id, message.author.id).chain_err(|| "could not get member for tagging")?;
+        let mut member = self.bot.discord.get_member(server_id, message.author.id).chain_err(|| "could not get member for tagging")?;
 
         if !member.roles.contains(&r.id) {
-          self.bot.discord.edit_member_roles(server_id, message.author.id, &[r.id]).chain_err(|| "could not add roles")?;
+          member.roles.push(r.id);
+          self.bot.discord.edit_member_roles(server_id, message.author.id, &member.roles).chain_err(|| "could not add roles")?;
         }
       }
       let char_name = user.character.clone();
