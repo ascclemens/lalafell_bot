@@ -60,10 +60,18 @@ impl Tagger {
       &character.server
     ));
 
-    let is_verified = bot.database.lock().unwrap().autotags.users.iter()
-      .find(|u| u.user_id == who.0)
+    let database = bot.database.lock().unwrap();
+    let user = database.autotags.users.iter()
+      .find(|u| u.user_id == who.0);
+    let is_verified = user
       .map(|u| u.verification.verified)
       .unwrap_or_default();
+
+    if let Some(u) = user {
+      if is_verified && char_id != u.character_id {
+        return Ok(Some(format!("You are verified as {} on {}, so you cannot switch to another account.", u.character, u.server)));
+      }
+    }
 
     let roles = &on.roles;
     let mut add_roles = Vec::new();
