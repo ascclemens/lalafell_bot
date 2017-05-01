@@ -50,24 +50,21 @@ impl Tagger {
   }
 
   pub fn tag(bot: Arc<LalafellBot>, who: UserId, on: &LiveServer, char_id: u64, ignore_verified: bool) -> Result<Option<String>> {
-    let mut database = bot.database.lock().unwrap();
-    let user = database.autotags.users.iter()
-      .find(|u| u.user_id == who.0);
-    let is_verified = user
-      .map(|u| u.verification.verified)
-      .unwrap_or_default();
+    let is_verified = match bot.database.lock().unwrap().autotags.users.iter().find(|u| u.user_id == who.0 && u.server_id == on.id.0) {
+      Some(u) => {
+        if u.verification.verified && !ignore_verified && char_id != u.character_id {
+          return Ok(Some(format!("{} is verified as {} on {}, so they cannot switch to another account.", who.mention(), u.character, u.server)));
+        }
+        u.verification.verified
+      },
+      None => false
+    };
 
     let member = bot.discord.get_member(on.id, who).chain_err(|| "could not get member for tagging")?;
 
-    if let Some(u) = user {
-      if is_verified && !ignore_verified && char_id != u.character_id {
-        return Ok(Some(format!("{} is verified as {} on {}, so they cannot switch to another account.", who.mention(), u.character, u.server)));
-      }
-    }
-
     let character = bot.xivdb.character(char_id).chain_err(|| "could not look up character")?;
 
-    database.autotags.update_or_remove(AutotagUser::new(
+    bot.database.lock().unwrap().autotags.update_or_remove(AutotagUser::new(
       who.0,
       on.id.0,
       character.lodestone_id,
