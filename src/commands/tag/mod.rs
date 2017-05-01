@@ -72,9 +72,19 @@ impl Tagger {
       add_roles.push(r.id);
     }
 
-    bot.discord.edit_member_roles(on.id, who, &add_roles).chain_err(|| "could not add roles")?;
+    let member = bot.discord.get_member(on.id, who).chain_err(|| "could not get member for taggin")?;
+
+    if !add_roles.iter().all(|r| member.roles.contains(&r)) {
+      bot.discord.edit_member_roles(on.id, who, &add_roles).chain_err(|| "could not add roles")?;
+    }
+
     // cannot edit nickname of those with a higher role
-    bot.discord.edit_member(on.id, who, |e| e.nickname(&character.name)).ok();
+    match member.nick {
+      Some(ref nick) if *nick != character.name => {
+        bot.discord.edit_member(on.id, who, |e| e.nickname(&character.name)).ok();
+      },
+      _ => {}
+    }
     Ok(None)
   }
 }
