@@ -11,15 +11,22 @@ extern crate chrono;
 #[macro_use]
 extern crate log;
 extern crate simplelog;
+extern crate hyper;
+extern crate scraper;
+extern crate uuid;
+extern crate toml;
 
 mod database;
 mod listeners;
 mod tasks;
 mod commands;
+mod lodestone;
+mod config;
 
 use database::*;
 use listeners::*;
 use tasks::*;
+use config::Config;
 
 use discord::{Discord, State};
 use discord::model::ChannelId;
@@ -29,13 +36,16 @@ use xivdb::error::*;
 
 use chrono::prelude::*;
 
-use simplelog::{TermLogger, LogLevel, LogLevelFilter, Config};
+use simplelog::{TermLogger, LogLevel, LogLevelFilter};
 
 use std::env::var;
 use std::fs::{File, OpenOptions};
 use std::path::Path;
 use std::sync::{Arc, Mutex};
 use std::sync::mpsc::{channel, Receiver};
+use std::io::Read;
+
+// Add verification system with lodestone profile
 
 macro_rules! opt_or {
   ($expr: expr, $or: expr) => {{
@@ -47,9 +57,11 @@ macro_rules! opt_or {
 }
 
 fn main() {
-  let mut config = Config::default();
-  config.target = Some(LogLevel::Error);
-  TermLogger::init(LogLevelFilter::Info, config).unwrap();
+  {
+    let mut config = simplelog::Config::default();
+    config.target = Some(LogLevel::Error);
+    TermLogger::init(LogLevelFilter::Info, config).unwrap();
+  }
 
   dotenv::dotenv().ok();
 
@@ -67,8 +79,24 @@ fn main() {
       return;
     }
   };
+  let config_location = match var("LB_CONFIG_LOCATION") {
+    Ok(t) => t,
+    Err(_) => {
+      error!("No config location was specified in .env");
+      return;
+    }
+  };
 
-  let bot = match LalafellBot::new(&bot_token, &database_location) {
+  let config: Config = match File::open(config_location) {
+    Ok(mut f) => {
+      let mut content = String::new();
+      f.read_to_string(&mut content).unwrap();
+      toml::from_str(&content).unwrap()
+    },
+    Err(_) => Default::default()
+  };
+
+  let bot = match LalafellBot::new(config, &bot_token, &database_location) {
     Ok(b) => Arc::new(b),
     Err(e) => {
       error!("could not create bot: {}", e.iter().map(|err| err.to_string()).collect::<Vec<_>>().join("\n"));
@@ -85,6 +113,7 @@ fn main() {
     commands.insert(vec![String::from("viewtag")], box ViewTagCommand::new(bot.clone()));
     commands.insert(vec![String::from("updatetags")], box UpdateTagsCommand::new(bot.clone()));
     commands.insert(vec![String::from("savedatabase")], box SaveDatabaseCommand::new(bot.clone(), database_location.clone()));
+    commands.insert(vec![String::from("verify")], box commands::verify::VerifyCommand::new(bot.clone()));
   }
 
   {
@@ -125,6 +154,7 @@ fn main() {
 }
 
 pub struct LalafellBot {
+  pub config: Config,
   pub discord: Discord,
   pub xivdb: XivDb,
   pub state: Mutex<Option<State>>,
@@ -139,11 +169,12 @@ impl Drop for LalafellBot {
 }
 
 impl LalafellBot {
-  fn new(bot_token: &str, database_location: &str) -> Result<LalafellBot> {
+  fn new(config: Config, bot_token: &str, database_location: &str) -> Result<LalafellBot> {
     let discord = Discord::from_bot_token(bot_token).chain_err(|| "could not start discord from bot token")?;
     let mut database = LalafellBot::load_database(database_location)?;
     database.last_saved = UTC::now().timestamp();
     Ok(LalafellBot {
+      config: config,
       discord: discord,
       xivdb: XivDb::default(),
       state: Mutex::new(None),

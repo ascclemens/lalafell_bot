@@ -2,11 +2,13 @@ pub mod tag;
 pub mod race;
 pub mod viewtag;
 pub mod save_database;
+pub mod verify;
 
 pub use tag::*;
 pub use race::*;
 pub use viewtag::*;
 pub use save_database::*;
+pub use verify::*;
 
 use xivdb::error;
 

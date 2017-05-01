@@ -36,9 +36,9 @@ impl RunsTask for AutoTagTask {
         continue;
       }
       info!(target: "autotag", "Time to update autotags");
-      let users = {
+      let users: Vec<(u64, u64, u64)> = {
         let database = s.database.lock().unwrap();
-        database.autotags.users.clone()
+        database.autotags.users.iter().map(|u| (u.user_id, u.server_id, u.character_id)).collect()
       };
       {
         let option_state = s.state.lock().unwrap();
@@ -50,16 +50,16 @@ impl RunsTask for AutoTagTask {
             continue;
           }
         };
-        for user in users {
-          let server = match state.servers().iter().find(|s| s.id.0 == user.server_id) {
+        for (user_id, server_id, character_id) in users {
+          let server = match state.servers().iter().find(|s| s.id.0 == server_id) {
             Some(ser) => ser,
             None => {
-              info!(target: "autotag", "Couldn't find server for user {:?}", user);
+              info!(target: "autotag", "Couldn't find server for user ID {}", user_id);
               continue;
             }
           };
-          if let Err(e) = Tagger::tag(s.clone(), UserId(user.user_id), server, user.character_id) {
-            info!(target: "autotag", "Couldn't update tag for user {:?}: {}", user, e);
+          if let Err(e) = Tagger::tag(s.clone(), UserId(user_id), server, character_id) {
+            info!(target: "autotag", "Couldn't update tag for user ID {}: {}", user_id, e);
           }
         }
       }

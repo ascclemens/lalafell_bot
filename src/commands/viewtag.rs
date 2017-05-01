@@ -50,10 +50,8 @@ impl<'a> Command<'a> for ViewTagCommand {
       message.mentions[0].id
     };
 
-    let user = {
-      let database = self.bot.database.lock().unwrap();
-      database.autotags.users.iter().find(|u| u.user_id == who.0 && u.server_id == server_id.0).cloned()
-    };
+    let database = self.bot.database.lock().unwrap();
+    let user = database.autotags.users.iter().find(|u| u.user_id == who.0 && u.server_id == server_id.0);
 
     let msg = match user {
       Some(u) => format!("{} is {} on {}.", who.mention(), u.character, u.server),

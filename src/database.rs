@@ -1,3 +1,5 @@
+use uuid::Uuid;
+
 #[derive(Debug, Default, Serialize, Deserialize)]
 pub struct Database {
   #[serde(skip_serializing, skip_deserializing)]
@@ -24,13 +26,30 @@ impl Autotags {
   }
 }
 
-#[derive(Debug, Default, Clone, Serialize, Deserialize)]
+#[derive(Debug, Default, Serialize, Deserialize)]
 pub struct AutotagUser {
   pub user_id: u64,
   pub server_id: u64,
   pub character_id: u64,
   pub character: String,
-  pub server: String
+  pub server: String,
+  #[serde(default)]
+  pub verification: UserVerification
+}
+
+#[derive(Debug, Default, Serialize, Deserialize)]
+pub struct UserVerification {
+  pub verified: bool,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub verification_string: Option<String>
+}
+
+impl UserVerification {
+  pub fn create_verification_string(&mut self) -> &String {
+    let uuid = Uuid::new_v4().simple().to_string();
+    self.verification_string = Some(uuid);
+    self.verification_string.as_ref().unwrap()
+  }
 }
 
 impl AutotagUser {
@@ -40,7 +59,8 @@ impl AutotagUser {
       server_id: server_id,
       character_id: character_id,
       character: character.to_string(),
-      server: server.to_string()
+      server: server.to_string(),
+      verification: Default::default()
     }
   }
 }

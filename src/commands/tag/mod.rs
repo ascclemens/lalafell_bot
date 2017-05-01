@@ -11,7 +11,7 @@ use database::AutotagUser;
 
 use xivdb::error::*;
 
-use discord::model::{UserId, LiveServer};
+use discord::model::{UserId, LiveServer, Role, RoleId};
 
 use std::sync::Arc;
 use std::collections::HashMap;
@@ -60,22 +60,39 @@ impl Tagger {
       &character.server
     ));
 
+    let is_verified = bot.database.lock().unwrap().autotags.users.iter()
+      .find(|u| u.user_id == who.0)
+      .map(|u| u.verification.verified)
+      .unwrap_or_default();
+
     let roles = &on.roles;
-    let mut add_roles = Vec::with_capacity(2);
+    let mut add_roles = Vec::new();
     if let Some(r) = roles.iter().find(|x| x.name.to_lowercase() == character.data.race.to_lowercase()) {
-      add_roles.push(r.id);
+      add_roles.push(r);
     }
     if let Some(r) = roles.iter().find(|x| x.name.to_lowercase() == character.data.gender.to_lowercase()) {
-      add_roles.push(r.id);
+      add_roles.push(r);
     }
     if let Some(r) = roles.iter().find(|x| x.name.to_lowercase() == character.server.to_lowercase()) {
-      add_roles.push(r.id);
+      add_roles.push(r);
+    }
+    if is_verified {
+      if let Some(r) = roles.iter().find(|x| x.name.to_lowercase() == "verified") {
+        add_roles.push(r);
+      }
     }
 
-    let member = bot.discord.get_member(on.id, who).chain_err(|| "could not get member for taggin")?;
+    let member = bot.discord.get_member(on.id, who).chain_err(|| "could not get member for tagging")?;
 
-    if !add_roles.iter().all(|r| member.roles.contains(&r)) {
-      bot.discord.edit_member_roles(on.id, who, &add_roles).chain_err(|| "could not add roles")?;
+    let all_group_roles: Vec<&String> = bot.config.roles.groups.iter().flat_map(|x| x).collect();
+    let keep: Vec<&Role> = roles.iter().filter(|x| member.roles.contains(&x.id)).collect();
+    let keep: Vec<&Role> = keep.into_iter().filter(|x| !all_group_roles.contains(&&x.name)).collect();
+    let mut role_set: Vec<RoleId> = add_roles.iter().map(|r| r.id).chain(keep.into_iter().map(|r| r.id)).collect();
+    role_set.sort();
+    role_set.dedup();
+
+    if !role_set.iter().all(|r| member.roles.contains(r)) {
+      bot.discord.edit_member_roles(on.id, who, &role_set).chain_err(|| "could not add roles")?;
     }
 
     // cannot edit nickname of those with a higher role

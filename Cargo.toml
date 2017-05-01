@@ -5,7 +5,7 @@ authors = ["Kyle Clemens <me@kyleclemens.com>"]
 
 [dependencies]
 discord = "0.8"
-xivdb = {version = "*", path = "../xivdb-rs"}
+xivdb = { version = "*", path = "../xivdb-rs" }
 dotenv = "0.10"
 serde = "1.0"
 serde_derive = "1.0"
@@ -14,3 +14,7 @@ ctrlc = { version = "3.0", features = ["termination"] }
 chrono = "0.3"
 log = "0.3"
 simplelog = "0.4"
+hyper = "0.10"
+scraper = "0.4"
+uuid = { version = "0.5", features = ["v4"] }
+toml = "0.4"
