@@ -29,7 +29,7 @@ use tasks::*;
 use config::Config;
 
 use discord::{Discord, State};
-use discord::model::ChannelId;
+use discord::model::{ChannelId, MessageId};
 
 use xivdb::XivDb;
 use xivdb::error::*;
@@ -138,7 +138,7 @@ fn main() {
   task_manager.start_task(DeleteAllMessagesTask::new(
     ChannelId(307359970096185345),
     300,
-    Vec::default()
+    bot.config.delete_all_messages_task.except.iter().map(|id| MessageId(*id)).collect()
   ));
 
   info!("Spinning up bot");
