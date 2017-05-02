@@ -101,11 +101,12 @@ impl Tagger {
     }
 
     // cannot edit nickname of those with a higher role
-    match member.nick {
-      Some(ref nick) if *nick != character.name => {
-        bot.discord.edit_member(on.id, who, |e| e.nickname(&character.name)).ok();
-      },
-      _ => {}
+    let nick = match member.nick {
+      Some(n) => n,
+      None => Default::default()
+    };
+    if nick != character.name {
+      bot.discord.edit_member(on.id, who, |e| e.nickname(&character.name)).ok();
     }
     Ok(None)
   }
