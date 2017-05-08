@@ -19,8 +19,12 @@ impl<'a> CommandListener<'a> {
     }
   }
 
-  pub fn commands(&mut self) -> &mut HashMap<Vec<String>, Box<Command<'a> + Send>> {
-    &mut self.commands
+  // pub fn commands(&mut self) -> &mut HashMap<Vec<String>, Box<Command<'a> + Send>> {
+  //   &mut self.commands
+  // }
+
+  pub fn add_command<T: AsRef<str>>(&mut self, names: &[T], command: Box<Command<'a> + Send>) {
+    self.commands.insert(names.iter().map(|t| t.as_ref().to_string()).collect(), command);
   }
 
   fn check_command(&self, message: &Message) {

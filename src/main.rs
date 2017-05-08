@@ -105,16 +105,13 @@ fn main() {
   };
 
   let mut command_listener = listeners::commands::CommandListener::new(bot.clone());
-  {
-    let mut commands = command_listener.commands();
-    commands.insert(vec![String::from("race")], box RaceCommand::new(bot.clone()));
-    commands.insert(vec![String::from("tag")], box TagCommand::new(bot.clone()));
-    commands.insert(vec![String::from("autotag")], box AutoTagCommand::new(bot.clone()));
-    commands.insert(vec![String::from("viewtag")], box ViewTagCommand::new(bot.clone()));
-    commands.insert(vec![String::from("updatetags")], box UpdateTagsCommand::new(bot.clone()));
-    commands.insert(vec![String::from("savedatabase")], box SaveDatabaseCommand::new(bot.clone(), database_location.clone()));
-    commands.insert(vec![String::from("verify")], box commands::verify::VerifyCommand::new(bot.clone()));
-  }
+  command_listener.add_command(&["race"], box RaceCommand::new(bot.clone()));
+  command_listener.add_command(&["tag"], box TagCommand::new(bot.clone()));
+  command_listener.add_command(&["autotag"], box AutoTagCommand::new(bot.clone()));
+  command_listener.add_command(&["viewtag"], box ViewTagCommand::new(bot.clone()));
+  command_listener.add_command(&["updatetags"], box UpdateTagsCommand::new(bot.clone()));
+  command_listener.add_command(&["savedatabase"], box SaveDatabaseCommand::new(bot.clone(), database_location.clone()));
+  command_listener.add_command(&["verify"], box commands::verify::VerifyCommand::new(bot.clone()));
 
   {
     let mut listeners = bot.listeners.lock().unwrap();
