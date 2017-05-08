@@ -53,7 +53,7 @@ impl<'a> CommandListener<'a> {
       },
       Err(CommandFailure::Internal(info)) => {
         self.bot.discord.send_embed(message.channel_id, "",
-          |e| e.description("An internal error happened while processing this command.")).ok();
+                                    |e| e.description("An internal error happened while processing this command.")).ok();
         for err in info.error.iter() {
           error!("error: {:#?}", err);
         }

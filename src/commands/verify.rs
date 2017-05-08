@@ -36,10 +36,10 @@ impl<'a> Command<'a> for VerifyCommand {
     let mut user = match user {
       Some(u) => u,
       None => return Err(ExternalCommandFailure::default()
-          .message(|e: EmbedBuilder| e
-            .title("Not tagged.")
-            .description("Please tag yourself with an account before verifying it."))
-          .wrap())
+        .message(|e: EmbedBuilder| e
+          .title("Not tagged.")
+          .description("Please tag yourself with an account before verifying it."))
+        .wrap())
     };
     if user.verification.verified {
       return Err(ExternalCommandFailure::default()
