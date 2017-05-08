@@ -7,14 +7,12 @@ use std::sync::Arc;
 use std::thread;
 
 pub struct DatabaseSaveTask {
-  location: String,
   next_sleep: i64
 }
 
 impl DatabaseSaveTask {
-  pub fn new(location: &str) -> DatabaseSaveTask {
+  pub fn new() -> DatabaseSaveTask {
     DatabaseSaveTask {
-      location: location.to_string(),
       next_sleep: 0
     }
   }
@@ -34,7 +32,7 @@ impl RunsTask for DatabaseSaveTask {
         self.next_sleep = Duration::minutes(5).num_seconds();
         continue;
       }
-      if let Err(e) = s.save_database(&self.location) {
+      if let Err(e) = s.save_database(None) {
         info!(target: "database_save", "could not save database: {}", e);
       }
       {

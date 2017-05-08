@@ -18,9 +18,9 @@ pub mod delete_all_messages;
 pub mod database_save;
 pub mod autotag;
 
-pub use delete_all_messages::*;
-pub use database_save::*;
-pub use self::autotag::*;
+pub use self::delete_all_messages::DeleteAllMessagesTask;
+pub use self::database_save::DatabaseSaveTask;
+pub use self::autotag::AutoTagTask;
 
 pub struct TaskManager {
   bot: Arc<LalafellBot>
@@ -35,9 +35,7 @@ impl TaskManager {
 
   pub fn start_from_config(&self, task: &Task) -> Result<()> {
     match task.name.to_lowercase().as_ref() {
-      "delete_all_messages" => {
-        self.start_task(DeleteAllMessagesTask::from_config(task)?);
-      },
+      "delete_all_messages" => self.start_task(DeleteAllMessagesTask::from_config(task)?),
       _ => return Err(format!("no task named {}", task.name).into())
     }
     Ok(())

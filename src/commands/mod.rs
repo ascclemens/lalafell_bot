@@ -4,11 +4,11 @@ pub mod viewtag;
 pub mod save_database;
 pub mod verify;
 
-pub use tag::*;
-pub use race::*;
-pub use viewtag::*;
-pub use save_database::*;
-pub use verify::*;
+pub use self::tag::{TagCommand, AutoTagCommand, UpdateTagsCommand};
+pub use self::race::RaceCommand;
+pub use self::viewtag::ViewTagCommand;
+pub use self::save_database::SaveDatabaseCommand;
+pub use self::verify::VerifyCommand;
 
 use xivdb::error;
 

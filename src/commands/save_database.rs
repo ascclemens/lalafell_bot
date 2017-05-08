@@ -9,14 +9,12 @@ use xivdb::error::*;
 use std::sync::Arc;
 
 pub struct SaveDatabaseCommand {
-  bot: Arc<LalafellBot>,
-  location: String
+  bot: Arc<LalafellBot>
 }
 
 impl SaveDatabaseCommand {
-  pub fn new(bot: Arc<LalafellBot>, location: String) -> SaveDatabaseCommand {
+  pub fn new(bot: Arc<LalafellBot>) -> SaveDatabaseCommand {
     SaveDatabaseCommand {
-      location: location,
       bot: bot
     }
   }
@@ -48,10 +46,9 @@ impl<'a> Command<'a> for SaveDatabaseCommand {
           .description("You don't have enough permissions to use this command."))
         .wrap());
     }
-    let thread_location = self.location.clone();
     let thread_bot = self.bot.clone();
     ::std::thread::spawn(move || {
-      if let Err(e) = thread_bot.save_database(&thread_location) {
+      if let Err(e) = thread_bot.save_database(None) {
         error!(target: "save_database_command", "Error saving database: {}", e);
       }
     });
