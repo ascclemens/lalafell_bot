@@ -1,7 +1,14 @@
 use LalafellBot;
+use config::Task;
+use xivdb::error::Result;
 
 use std::sync::Arc;
 use std::thread;
+
+pub trait FromConfig {
+  fn from_config(task: &Task) -> Result<Self>
+    where Self: Sized;
+}
 
 pub trait RunsTask {
   fn start(self, s: Arc<LalafellBot>);
@@ -24,6 +31,16 @@ impl TaskManager {
     TaskManager {
       bot: bot
     }
+  }
+
+  pub fn start_from_config(&self, task: &Task) -> Result<()> {
+    match task.name.to_lowercase().as_ref() {
+      "delete_all_messages" => {
+        self.start_task(DeleteAllMessagesTask::from_config(task)?);
+      },
+      _ => return Err(format!("no task named {}", task.name).into())
+    }
+    Ok(())
   }
 
   pub fn start_task<T: RunsTask + Send + 'static>(&self, task: T) {

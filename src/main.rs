@@ -14,7 +14,6 @@ extern crate simplelog;
 extern crate hyper;
 extern crate scraper;
 extern crate uuid;
-extern crate toml;
 
 mod database;
 mod listeners;
@@ -29,7 +28,6 @@ use tasks::*;
 use config::Config;
 
 use discord::{Discord, State};
-use discord::model::{ChannelId, MessageId};
 
 use xivdb::XivDb;
 use xivdb::error::*;
@@ -43,7 +41,6 @@ use std::fs::{File, OpenOptions};
 use std::path::Path;
 use std::sync::{Arc, Mutex};
 use std::sync::mpsc::{channel, Receiver};
-use std::io::Read;
 
 // Add verification system with lodestone profile
 
@@ -57,6 +54,14 @@ macro_rules! opt_or {
 }
 
 fn main() {
+  if let Err(e) = inner() {
+    for err in e.iter() {
+      error!("{}", err);
+    }
+  }
+}
+
+fn inner() -> Result<()> {
   {
     let mut config = simplelog::Config::default();
     config.target = Some(LogLevel::Error);
@@ -65,44 +70,16 @@ fn main() {
 
   dotenv::dotenv().ok();
 
-  let bot_token = match var("LB_DISCORD_BOT_TOKEN") {
-    Ok(t) => t,
-    Err(_) => {
-      error!("No bot token was specified in .env");
-      return;
-    }
-  };
-  let database_location = match var("LB_DATABASE_LOCATION") {
-    Ok(t) => t,
-    Err(_) => {
-      error!("No database location was specified in .env");
-      return;
-    }
-  };
-  let config_location = match var("LB_CONFIG_LOCATION") {
-    Ok(t) => t,
-    Err(_) => {
-      error!("No config location was specified in .env");
-      return;
-    }
-  };
+  let bot_token = var("LB_DISCORD_BOT_TOKEN").chain_err(|| "No bot token was specified in .env")?;
+  let database_location = var("LB_DATABASE_LOCATION").chain_err(|| "No database location was specified in .env")?;
+  let config_location = var("LB_CONFIG_LOCATION").chain_err(|| "No config location was specified in .env")?;
 
   let config: Config = match File::open(config_location) {
-    Ok(mut f) => {
-      let mut content = String::new();
-      f.read_to_string(&mut content).unwrap();
-      toml::from_str(&content).unwrap()
-    },
+    Ok(f) => serde_json::from_reader(f).chain_err(|| "could not parse config")?,
     Err(_) => Default::default()
   };
 
-  let bot = match LalafellBot::new(config, &bot_token, &database_location) {
-    Ok(b) => Arc::new(b),
-    Err(e) => {
-      error!("could not create bot: {}", e.iter().map(|err| err.to_string()).collect::<Vec<_>>().join("\n"));
-      return;
-    }
-  };
+  let bot = Arc::new(LalafellBot::new(config, &bot_token, &database_location).chain_err(|| "could not create bot")?);
 
   let mut command_listener = listeners::commands::CommandListener::new(bot.clone());
   command_listener.add_command(&["race"], box RaceCommand::new(bot.clone()));
@@ -115,9 +92,11 @@ fn main() {
 
   {
     let mut listeners = bot.listeners.lock().unwrap();
-    // listeners.push(box EventDebugger);
     listeners.push(box command_listener);
-    listeners.push(box TagInstructions::new(bot.clone()));
+    for listener in &bot.config.listeners {
+      let listener = ListenerManager::from_config(bot.clone(), listener).chain_err(|| format!("could not create listener {}", listener.name))?;
+      listeners.push(listener);
+    }
   }
 
   let (loop_cancel_tx, loop_cancel_rx) = channel();
@@ -132,11 +111,9 @@ fn main() {
   let task_manager = TaskManager::new(bot.clone());
   task_manager.start_task(DatabaseSaveTask::new(&database_location));
   task_manager.start_task(AutoTagTask::new());
-  task_manager.start_task(DeleteAllMessagesTask::new(
-    ChannelId(307359970096185345),
-    300,
-    bot.config.delete_all_messages_task.except.iter().map(|id| MessageId(*id)).collect()
-  ));
+  for task in &bot.config.tasks {
+    task_manager.start_from_config(task).chain_err(|| format!("could not create task {}", task.name))?;
+  }
 
   info!("Spinning up bot");
   let thread_bot = bot.clone();
@@ -146,8 +123,9 @@ fn main() {
     }
   }).join().unwrap();
   info!("Saving database");
-  bot.save_database(&database_location).unwrap();
+  bot.save_database(&database_location)?;
   info!("Exiting");
+  Ok(())
 }
 
 pub struct LalafellBot {

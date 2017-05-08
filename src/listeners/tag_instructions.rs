@@ -1,24 +1,35 @@
 use LalafellBot;
+use config::Listener;
 use listeners::ReceivesEvents;
 use discord::model::{Event, Channel, ChannelId};
+
+use xivdb::error::*;
+
+use serde_json;
 
 use std::sync::Arc;
 
 pub struct TagInstructions {
-  bot: Arc<LalafellBot>
+  bot: Arc<LalafellBot>,
+  config: TagInstructionsConfig
 }
 
 impl TagInstructions {
-  pub fn new(bot: Arc<LalafellBot>) -> TagInstructions {
-    TagInstructions {
-      bot: bot
-    }
+  pub fn new(bot: Arc<LalafellBot>, listener: &Listener) -> Result<TagInstructions> {
+    let config = match listener.config {
+      Some(ref c) => serde_json::from_value(c.clone()).chain_err(|| "could not parse tag_instructions configuration")?,
+      None => return Err("missing configuration for tag_instructions listener".into())
+    };
+    Ok(TagInstructions {
+      bot: bot,
+      config: config
+    })
   }
 }
 
 impl ReceivesEvents for TagInstructions {
   fn receive(&self, event: &Event) {
-    let destination = ChannelId(307359970096185345);
+    let destination = ChannelId(self.config.channel);
     let event_data = match *event {
       Event::ServerMemberAdd(_, ref member) => Some(member.clone()),
       Event::MessageCreate(ref m) => {
@@ -49,4 +60,9 @@ impl ReceivesEvents for TagInstructions {
       member.user.mention());
     self.bot.discord.send_embed(destination, "", |e| e.description(&send)).ok();
   }
+}
+
+#[derive(Debug, Deserialize)]
+pub struct TagInstructionsConfig {
+  channel: u64
 }
