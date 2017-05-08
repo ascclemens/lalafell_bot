@@ -6,6 +6,6 @@ pub struct EventDebugger;
 
 impl ReceivesEvents for EventDebugger {
   fn receive(&self, event: &Event) {
-    println!("{:#?}", event);
+    debug!("{:#?}", event);
   }
 }
