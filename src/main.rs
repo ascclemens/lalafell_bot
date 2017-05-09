@@ -10,13 +10,17 @@ extern crate ctrlc;
 extern crate chrono;
 #[macro_use]
 extern crate log;
-extern crate simplelog;
+extern crate fern;
 extern crate hyper;
+extern crate term;
 extern crate scraper;
 extern crate uuid;
+#[macro_use]
+extern crate lazy_static;
 
 // FIXME: Use envy when it upgrades to serde 1.0
 
+mod logging;
 mod bot;
 mod database;
 mod listeners;
@@ -29,8 +33,6 @@ use bot::LalafellBot;
 
 use xivdb::error::*;
 
-use simplelog::{TermLogger, LogLevel, LogLevelFilter};
-
 use std::env::var;
 use std::sync::mpsc::channel;
 
@@ -42,14 +44,14 @@ fn main() {
   }
 }
 
-fn logger() {
-  let mut config = simplelog::Config::default();
-  config.target = Some(LogLevel::Error);
-  TermLogger::init(LogLevelFilter::Info, config).unwrap();
-}
-
 fn inner() -> Result<()> {
-  logger();
+  if let Err(e) = logging::init_logger() {
+    println!("Could not set up logger.");
+    for err in e.iter() {
+      println!("{}", err);
+    }
+    return Ok(());
+  }
 
   info!("Loading .env");
 
