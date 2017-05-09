@@ -14,7 +14,7 @@ fn get_character_id(xivdb: &XivDb, name: &str, server: &str) -> u64 {
   params.insert(String::from("one"), String::from("characters"));
   params.insert(String::from("server|et"), server.to_string());
   params.insert(String::from("strict"), String::from("on"));
-  xivdb.search(name.to_string(), params).unwrap().characters.unwrap().results[0]["id"].as_u64().unwrap()
+  xivdb.search(name, params).unwrap().characters.unwrap().results[0]["id"].as_u64().unwrap()
 }
 
 fn main() {

@@ -25,7 +25,7 @@ impl Tagger {
     params.insert(String::from("strict"), String::from("on"));
     params.insert(String::from("server|et"), server.to_string());
 
-    let res = bot.xivdb.search(character_name.to_string(), params).chain_err(|| "could not query XIVDB")?;
+    let res = bot.xivdb.search(character_name, params).chain_err(|| "could not query XIVDB")?;
 
     let search_chars = res.characters.unwrap().results;
     if search_chars.is_empty() {
