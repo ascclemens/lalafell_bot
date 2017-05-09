@@ -13,7 +13,7 @@ lazy_static! {
 
 fn colored_level(level: LogLevel) -> String {
   let mut t = match *TERM_INFO {
-    Some(ref t) => TerminfoTerminal::new_with_terminfo(vec![0u8, 0], t.clone()),
+    Some(ref t) => TerminfoTerminal::new_with_terminfo(vec![0u8; 0], t.clone()),
     None => return format!("{}", level)
   };
   let color = match level {
@@ -37,7 +37,7 @@ fn colored_target(target: &str) -> String {
   let base = &parts[..parts.len() - 1];
   let target = &parts[parts.len() - 1];
   let mut t = match *TERM_INFO {
-    Some(ref t) => TerminfoTerminal::new_with_terminfo(vec![0u8, 0], t.clone()),
+    Some(ref t) => TerminfoTerminal::new_with_terminfo(vec![0u8; 0], t.clone()),
     None => return target.to_string()
   };
   for part in base {
