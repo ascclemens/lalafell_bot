@@ -49,7 +49,7 @@ impl<'a> Command<'a> for SaveDatabaseCommand {
     let thread_bot = self.bot.clone();
     ::std::thread::spawn(move || {
       if let Err(e) = thread_bot.save_database(None) {
-        error!(target: "save_database_command", "Error saving database: {}", e);
+        error!("Error saving database: {}", e);
       }
     });
     Ok(CommandSuccess::default()
