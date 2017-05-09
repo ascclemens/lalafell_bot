@@ -64,7 +64,7 @@ impl Tagger {
 
     let character = bot.xivdb.character(char_id).chain_err(|| "could not look up character")?;
 
-    bot.database.lock().unwrap().autotags.update_or_remove(AutotagUser::new(
+    bot.database.lock().unwrap().autotags.update_or_add(AutotagUser::new(
       who.0,
       on.id.0,
       character.lodestone_id,
