@@ -74,18 +74,34 @@ impl Tagger {
 
     let roles = &on.roles;
     let mut add_roles = Vec::new();
-    if let Some(r) = roles.iter().find(|x| x.name.to_lowercase() == character.data.race.to_lowercase()) {
-      add_roles.push(r);
+    match roles.iter().find(|x| x.name.to_lowercase() == character.data.race.to_lowercase()) {
+      Some(r) => add_roles.push(r),
+      None => {
+        let role = bot.discord.create_role(on.id, Some(character.data.race), None, None, None, None).chain_err(|| "could not create role");
+        add_roles.push(r);
+      }
     }
-    if let Some(r) = roles.iter().find(|x| x.name.to_lowercase() == character.data.gender.to_lowercase()) {
-      add_roles.push(r);
+    match roles.iter().find(|x| x.name.to_lowercase() == character.data.gender.to_lowercase()) {
+      Some(r) => add_roles.push(r),
+      None => {
+        let role = bot.discord.create_role(on.id, Some(character.data.gender), None, None, None, None).chain_err(|| "could not create role");
+        add_roles.push(r);
+      }
     }
-    if let Some(r) = roles.iter().find(|x| x.name.to_lowercase() == character.server.to_lowercase()) {
-      add_roles.push(r);
+    match roles.iter().find(|x| x.name.to_lowercase() == character.server.to_lowercase()) {
+      Some(r) => add_roles.push(r),
+      None => {
+        let role = bot.discord.create_role(on.id, Some(character.server), None, None, None, None).chain_err(|| "could not create role");
+        add_roles.push(r);
+      }
     }
     if is_verified {
-      if let Some(r) = roles.iter().find(|x| x.name.to_lowercase() == "verified") {
-        add_roles.push(r);
+      match roles.iter().find(|x| x.name.to_lowercase() == "verified") {
+        Some(r) => add_roles.push(r),
+        None => {
+          let role = bot.discord.create_role(on.id, Some("Verified"), None, None, None, None).chain_err(|| "could not create role");
+          add_roles.push(r);
+        }
       }
     }
 
