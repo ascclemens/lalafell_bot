@@ -25,5 +25,6 @@ fn command_listener<'a>(bot: Arc<LalafellBot>) -> CommandListener<'a> {
   command_listener.add_command(&["updatetags"], box UpdateTagsCommand::new(bot.clone()));
   command_listener.add_command(&["savedatabase"], box SaveDatabaseCommand::new(bot.clone()));
   command_listener.add_command(&["verify"], box VerifyCommand::new(bot.clone()));
+  command_listener.add_command(&["referencecount"], box ReferenceCountCommand::new(bot.clone()));
   command_listener
 }
