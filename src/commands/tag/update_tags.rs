@@ -1,6 +1,6 @@
 use LalafellBot;
 use commands::*;
-use tasks::{RunsTask, AutoTagTask};
+use tasks::AutoTagTask;
 
 use discord::builders::EmbedBuilder;
 use discord::model::Channel;
@@ -54,7 +54,7 @@ impl<'a> Command<'a> for UpdateTagsCommand {
       let mut database = self.bot.database.lock().unwrap();
       database.autotags.last_updated = 0;
     }
-    ::std::thread::spawn(move || task.start(thread_bot));
+    ::std::thread::spawn(move || task.run_once(thread_bot));
     Ok(CommandSuccess::default()
       .message(|e: EmbedBuilder| e.description("Task started.")))
   }
