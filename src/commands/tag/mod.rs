@@ -14,16 +14,16 @@ use xivdb::error::*;
 use discord::model::{UserId, LiveServer, Role, RoleId};
 
 use std::sync::Arc;
-use std::collections::HashMap;
 
 pub struct Tagger;
 
 impl Tagger {
   pub fn search_tag(bot: Arc<LalafellBot>, who: UserId, on: &LiveServer, server: &str, character_name: &str, ignore_verified: bool) -> Result<Option<String>> {
-    let mut params = HashMap::new();
-    params.insert(String::from("one"), String::from("characters"));
-    params.insert(String::from("strict"), String::from("on"));
-    params.insert(String::from("server|et"), server.to_string());
+    let params = &[
+      ("one", "characters"),
+      ("strict", "on"),
+      ("server|et", server)
+    ];
 
     let res = bot.xivdb.search(character_name, params).chain_err(|| "could not query XIVDB")?;
 

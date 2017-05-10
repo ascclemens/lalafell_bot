@@ -6,7 +6,6 @@ use discord::builders::EmbedBuilder;
 use xivdb::error::*;
 
 use std::sync::Arc;
-use std::collections::HashMap;
 
 const USAGE: &'static str = "!race <server> <character>";
 
@@ -33,10 +32,11 @@ impl<'a> Command<'a> for RaceCommand {
     }
     let server = params[0];
     let name = params[1..].join(" ");
-    let mut params = HashMap::new();
-    params.insert(String::from("one"), String::from("characters"));
-    params.insert(String::from("strict"), String::from("on"));
-    params.insert(String::from("server|et"), server.to_string());
+    let params = &[
+      ("one", "characters"),
+      ("strict", "on"),
+      ("server|et", server)
+    ];
     let res = self.bot.xivdb.search(&name, params).chain_err(|| "could not search XIVDB")?;
     let search_chars = match res.characters {
       Some(c) => c.results,

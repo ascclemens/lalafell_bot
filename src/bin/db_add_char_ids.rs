@@ -7,13 +7,13 @@ use serde_json::Value;
 
 use std::env::args;
 use std::fs::File;
-use std::collections::HashMap;
 
 fn get_character_id(xivdb: &XivDb, name: &str, server: &str) -> u64 {
-  let mut params = HashMap::new();
-  params.insert(String::from("one"), String::from("characters"));
-  params.insert(String::from("server|et"), server.to_string());
-  params.insert(String::from("strict"), String::from("on"));
+  let params = &[
+    ("one", "characters"),
+    ("strict", "on"),
+    ("server|et", server)
+  ];
   xivdb.search(name, params).unwrap().characters.unwrap().results[0]["id"].as_u64().unwrap()
 }
 
