@@ -3,9 +3,16 @@ use serde_json::Value;
 #[derive(Debug, Default, Deserialize)]
 #[serde(default)]
 pub struct Config {
+  pub bot: Bot,
   pub roles: Roles,
   pub tasks: Vec<Task>,
   pub listeners: Vec<Listener>
+}
+
+#[derive(Debug, Default, Deserialize)]
+#[serde(default)]
+pub struct Bot {
+  pub administrators: Vec<u64>
 }
 
 #[derive(Debug, Default, Deserialize)]
