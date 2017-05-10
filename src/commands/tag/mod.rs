@@ -73,38 +73,40 @@ impl Tagger {
     ));
 
     let roles = &on.roles;
+    let mut created_roles = Vec::new();
     let mut add_roles = Vec::new();
     match roles.iter().find(|x| x.name.to_lowercase() == character.data.race.to_lowercase()) {
       Some(r) => add_roles.push(r),
       None => {
-        let role = bot.discord.create_role(on.id, Some(&character.data.race), None, None, None, None).chain_err(|| "could not create role");
-        add_roles.push(r);
+        let role = bot.discord.create_role(on.id, Some(&character.data.race), None, None, None, None).chain_err(|| "could not create role")?;
+        created_roles.push(role);
       }
     }
     match roles.iter().find(|x| x.name.to_lowercase() == character.data.gender.to_lowercase()) {
       Some(r) => add_roles.push(r),
       None => {
-        let role = bot.discord.create_role(on.id, Some(&character.data.gender), None, None, None, None).chain_err(|| "could not create role");
-        add_roles.push(r);
+        let role = bot.discord.create_role(on.id, Some(&character.data.gender), None, None, None, None).chain_err(|| "could not create role")?;
+        created_roles.push(role);
       }
     }
     match roles.iter().find(|x| x.name.to_lowercase() == character.server.to_lowercase()) {
       Some(r) => add_roles.push(r),
       None => {
-        let role = bot.discord.create_role(on.id, Some(&character.server), None, None, None, None).chain_err(|| "could not create role");
-        add_roles.push(r);
+        let role = bot.discord.create_role(on.id, Some(&character.server), None, None, None, None).chain_err(|| "could not create role")?;
+        created_roles.push(role);
       }
     }
     if is_verified {
       match roles.iter().find(|x| x.name.to_lowercase() == "verified") {
         Some(r) => add_roles.push(r),
         None => {
-          let role = bot.discord.create_role(on.id, Some("Verified"), None, None, None, None).chain_err(|| "could not create role");
-          add_roles.push(r);
+          let role = bot.discord.create_role(on.id, Some("Verified"), None, None, None, None).chain_err(|| "could not create role")?;
+          created_roles.push(role);
         }
       }
     }
 
+    add_roles.extend(created_roles.iter());
     let all_group_roles: Vec<&String> = bot.config.roles.groups.iter().flat_map(|x| x).collect();
     let keep: Vec<&Role> = roles.iter().filter(|x| member.roles.contains(&x.id)).collect();
     let keep: Vec<&Role> = keep.into_iter().filter(|x| !all_group_roles.contains(&&x.name)).collect();
