@@ -56,13 +56,14 @@ impl ReceivesEvents for TagInstructions {
       return;
     }
 
-    let send = format!("Welcome to the lala world linkshell, {}!\nIn order to talk with the rest of us, please tag yourself using the command below.\n`!autotag server character`\nFor example, you might send `!autotag Adamantoise Duvicauroix Priorfaix`",
-                       member.user.mention());
-    self.bot.discord.send_embed(destination, "", |e| e.description(&send)).ok();
+    let message = self.config.message
+      .replace("{mention}", &member.user.mention().to_string());
+    self.bot.discord.send_embed(destination, "", |e| e.description(&message)).ok();
   }
 }
 
 #[derive(Debug, Deserialize)]
 pub struct TagInstructionsConfig {
-  channel: u64
+  channel: u64,
+  message: String
 }
