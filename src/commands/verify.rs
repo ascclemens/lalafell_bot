@@ -3,9 +3,7 @@ use commands::*;
 use lodestone::Lodestone;
 
 use discord::builders::EmbedBuilder;
-use discord::model::Channel;
-
-use xivdb::error::*;
+use discord::model::PublicChannel;
 
 use std::sync::Arc;
 
@@ -21,16 +19,15 @@ impl VerifyCommand {
   }
 }
 
-impl<'a> Command<'a> for VerifyCommand {
-  fn run(&self, message: &Message, _: &[&str]) -> CommandResult<'a> {
-    let channel = self.bot.discord.get_channel(message.channel_id).chain_err(|| "could not get channel for message")?;
-    let server_id = match channel {
-      Channel::Public(c) => c.server_id,
-      _ => {
-        let err: error::Error = "channel was not public".into();
-        return Err(err.into());
-      }
-    };
+impl HasBot for VerifyCommand {
+  fn bot(&self) -> Arc<LalafellBot> {
+    self.bot.clone()
+  }
+}
+
+impl<'a> PublicChannelCommand<'a> for VerifyCommand {
+  fn run(&self, message: &Message, channel: &PublicChannel, _: &[&str]) -> CommandResult<'a> {
+    let server_id = channel.server_id;
     let mut database = self.bot.database.lock().unwrap();
     let user = database.autotags.users.iter_mut().find(|u| u.user_id == message.author.id.0 && u.server_id == server_id.0);
     let mut user = match user {

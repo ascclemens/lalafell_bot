@@ -3,10 +3,8 @@ use commands::*;
 use commands::tag::Tagger;
 
 use discord::builders::EmbedBuilder;
-use discord::model::{Channel, UserId, Role};
+use discord::model::{PublicChannel, UserId, Role};
 use discord::model::permissions;
-
-use xivdb::error::*;
 
 use std::sync::Arc;
 
@@ -24,16 +22,15 @@ impl TagCommand {
   }
 }
 
-impl<'a> Command<'a> for TagCommand {
-  fn run(&self, message: &Message, params: &[&str]) -> CommandResult<'a> {
-    let channel = self.bot.discord.get_channel(message.channel_id).chain_err(|| "could not get channel for message")?;
-    let server_id = match channel {
-      Channel::Public(c) => c.server_id,
-      _ => {
-        let err: error::Error = "channel was not public".into();
-        return Err(err.into());
-      }
-    };
+impl HasBot for TagCommand {
+  fn bot(&self) -> Arc<LalafellBot> {
+    self.bot.clone()
+  }
+}
+
+impl<'a> PublicChannelCommand<'a> for TagCommand {
+  fn run(&self, message: &Message, channel: &PublicChannel, params: &[&str]) -> CommandResult<'a> {
+    let server_id = channel.server_id;
     let user = self.bot.discord.get_member(server_id, message.author.id).chain_err(|| "could not get member for message")?;
     let mut state_option = self.bot.state.lock().unwrap();
     let state = state_option.as_mut().unwrap();

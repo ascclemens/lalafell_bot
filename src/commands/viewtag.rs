@@ -2,9 +2,7 @@ use LalafellBot;
 use commands::*;
 
 use discord::builders::EmbedBuilder;
-use discord::model::{Channel, UserId};
-
-use xivdb::error::*;
+use discord::model::{PublicChannel, UserId};
 
 use std::sync::Arc;
 
@@ -22,8 +20,14 @@ impl ViewTagCommand {
   }
 }
 
-impl<'a> Command<'a> for ViewTagCommand {
-  fn run(&self, message: &Message, params: &[&str]) -> CommandResult<'a> {
+impl HasBot for ViewTagCommand {
+  fn bot(&self) -> Arc<LalafellBot> {
+    self.bot.clone()
+  }
+}
+
+impl<'a> PublicChannelCommand<'a> for ViewTagCommand {
+  fn run(&self, message: &Message, channel: &PublicChannel, params: &[&str]) -> CommandResult<'a> {
     if params.is_empty() {
       return Err(ExternalCommandFailure::default()
         .message(|e: EmbedBuilder| e
@@ -31,14 +35,7 @@ impl<'a> Command<'a> for ViewTagCommand {
           .description(USAGE))
         .wrap());
     }
-    let channel = self.bot.discord.get_channel(message.channel_id).chain_err(|| "could not get channel for message")?;
-    let server_id = match channel {
-      Channel::Public(c) => c.server_id,
-      _ => {
-        let err: error::Error = "channel was not public".into();
-        return Err(err.into());
-      }
-    };
+    let server_id = channel.server_id;
     let who = params[0];
     let who = if !who.starts_with("<@") && !who.ends_with('>') && message.mentions.len() != 1 {
       who.parse::<u64>().map(UserId).map_err(|_| ExternalCommandFailure::default()

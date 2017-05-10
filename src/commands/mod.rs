@@ -12,17 +12,43 @@ pub use self::save_database::SaveDatabaseCommand;
 pub use self::verify::VerifyCommand;
 pub use self::reference_count::ReferenceCountCommand;
 
-use xivdb::error;
+use LalafellBot;
 
-use discord::model::Message;
+use xivdb::error::{self, ResultExt};
+
+use discord::model::{Message, Channel, PublicChannel};
 use discord::builders::EmbedBuilder;
 
 use std::boxed::FnBox;
+use std::sync::Arc;
 
 pub type CommandResult<'a> = Result<CommandSuccess<'a>, CommandFailure<'a>>;
 
 pub trait Command<'a> {
   fn run(&self, message: &Message, params: &[&str]) -> CommandResult<'a>;
+}
+
+pub trait PublicChannelCommand<'a> {
+  fn run(&self, message: &Message, channel: &PublicChannel, params: &[&str]) -> CommandResult<'a>;
+}
+
+pub trait HasBot {
+  fn bot(&self) -> Arc<LalafellBot>;
+}
+
+impl<'a, T> Command<'a> for T
+  where T: PublicChannelCommand<'a> + HasBot
+{
+  fn run(&self, message: &Message, params: &[&str]) -> CommandResult<'a> {
+    let channel = self.bot().discord.get_channel(message.channel_id).chain_err(|| "could not get channel for message")?;
+    let public_channel = match channel {
+      Channel::Public(c) => c,
+      _ => return Err(ExternalCommandFailure::default()
+            .message(|e: EmbedBuilder| e.description("This command must be run in a public channel."))
+            .wrap())
+    };
+    self.run(message, &public_channel, params)
+  }
 }
 
 #[derive(Default)]

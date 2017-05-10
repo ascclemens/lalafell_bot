@@ -3,9 +3,7 @@ use commands::*;
 use commands::tag::Tagger;
 
 use discord::builders::EmbedBuilder;
-use discord::model::Channel;
-
-use xivdb::error::*;
+use discord::model::PublicChannel;
 
 use std::sync::Arc;
 
@@ -23,16 +21,15 @@ impl AutoTagCommand {
   }
 }
 
-impl<'a> Command<'a> for AutoTagCommand {
-  fn run(&self, message: &Message, params: &[&str]) -> CommandResult<'a> {
-    let channel = self.bot.discord.get_channel(message.channel_id).chain_err(|| "could not get channel for message")?;
-    let server_id = match channel {
-      Channel::Public(c) => c.server_id,
-      _ => {
-        let err: error::Error = "channel was not public".into();
-        return Err(err.into());
-      }
-    };
+impl HasBot for AutoTagCommand {
+  fn bot(&self) -> Arc<LalafellBot> {
+    self.bot.clone()
+  }
+}
+
+impl<'a> PublicChannelCommand<'a> for AutoTagCommand {
+  fn run(&self, message: &Message, channel: &PublicChannel, params: &[&str]) -> CommandResult<'a> {
+    let server_id = channel.server_id;
     let mut state_option = self.bot.state.lock().unwrap();
     let state = state_option.as_mut().unwrap();
     let server = match state.servers().iter().find(|x| x.id == server_id) {
