@@ -18,3 +18,4 @@ ansi_term = "0.9"
 hyper = "0.10"
 scraper = "0.4"
 uuid = { version = "0.5", features = ["v4"] }
+lazy_static = "0.2"

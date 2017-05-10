@@ -9,10 +9,11 @@ dependencies = [
  "dotenv 0.10.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "fern 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "hyper 0.10.10 (registry+https://github.com/rust-lang/crates.io-index)",
+ "lazy_static 0.2.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.3.7 (registry+https://github.com/rust-lang/crates.io-index)",
  "scraper 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "serde 1.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "serde_derive 1.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "serde 1.0.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "serde_derive 1.0.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde_json 1.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "uuid 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "xivdb 0.1.0",
@@ -845,12 +846,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "serde"
-version = "1.0.2"
+version = "1.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "serde_derive"
-version = "1.0.2"
+version = "1.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "quote 0.3.15 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -886,7 +887,7 @@ dependencies = [
  "dtoa 0.4.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "itoa 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "num-traits 0.1.37 (registry+https://github.com/rust-lang/crates.io-index)",
- "serde 1.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "serde 1.0.3 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -1164,8 +1165,8 @@ dependencies = [
  "error-chain 0.10.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "hyper 0.10.10 (registry+https://github.com/rust-lang/crates.io-index)",
  "hyper-rustls 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "serde 1.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "serde_derive 1.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "serde 1.0.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "serde_derive 1.0.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde_json 1.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "url 1.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
@@ -1268,8 +1269,8 @@ dependencies = [
 "checksum selectors 0.5.9 (registry+https://github.com/rust-lang/crates.io-index)" = "2d92facb7ec45ccd96ee9ceaf3cc9692d2c9094f147f373d162a5e1b4742a480"
 "checksum semver 0.1.20 (registry+https://github.com/rust-lang/crates.io-index)" = "d4f410fedcf71af0345d7607d246e7ad15faaadd49d240ee3b24e5dc21a820ac"
 "checksum serde 0.8.23 (registry+https://github.com/rust-lang/crates.io-index)" = "9dad3f759919b92c3068c696c15c3d17238234498bbdcc80f2c469606f948ac8"
-"checksum serde 1.0.2 (registry+https://github.com/rust-lang/crates.io-index)" = "3b46a59dd63931010fdb1d88538513f3279090d88b5c22ef4fe8440cfffcc6e3"
-"checksum serde_derive 1.0.2 (registry+https://github.com/rust-lang/crates.io-index)" = "6c06b68790963518008b8ae0152d48be4bbbe77015d2c717f6282eea1824be9a"
+"checksum serde 1.0.3 (registry+https://github.com/rust-lang/crates.io-index)" = "36cdd74a4ac50d70024fb58b204a9892f422cb460d71001bd31a8fa03c79d0e7"
+"checksum serde_derive 1.0.3 (registry+https://github.com/rust-lang/crates.io-index)" = "c5f4ae235c8b37d9d01ba08b3159894e1c6d2a3fc213c1192d41d247ba929cfc"
 "checksum serde_derive_internals 0.15.0 (registry+https://github.com/rust-lang/crates.io-index)" = "021c338d22c7e30f957a6ab7e388cb6098499dda9fd4ba1661ee074ca7a180d1"
 "checksum serde_json 0.8.6 (registry+https://github.com/rust-lang/crates.io-index)" = "67f7d2e9edc3523a9c8ec8cd6ec481b3a27810aafee3e625d311febd3e656b4c"
 "checksum serde_json 1.0.2 (registry+https://github.com/rust-lang/crates.io-index)" = "48b04779552e92037212c3615370f6bd57a40ebba7f20e554ff9f55e41a69a7b"

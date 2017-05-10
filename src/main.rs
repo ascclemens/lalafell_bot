@@ -15,6 +15,8 @@ extern crate hyper;
 extern crate ansi_term;
 extern crate scraper;
 extern crate uuid;
+#[macro_use]
+extern crate lazy_static;
 
 // FIXME: Use envy when it upgrades to serde 1.0
 

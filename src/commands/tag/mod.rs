@@ -13,7 +13,12 @@ use xivdb::error::*;
 
 use discord::model::{UserId, LiveServer, Role, RoleId};
 
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
+
+lazy_static! {
+  // Limbo roles are roles that may or may not be added to the Discord bot state.
+  static ref LIMBO_ROLES: Mutex<Vec<Role>> = Mutex::default();
+}
 
 pub struct Tagger;
 
@@ -72,7 +77,22 @@ impl Tagger {
       &character.server
     ));
 
-    let roles = &on.roles;
+    // Get a copy of the roles on the server.
+    let mut roles = on.roles.clone();
+    // Check for existing limbo roles.
+    {
+      let limbo = &mut *LIMBO_ROLES.lock().unwrap();
+      for role in &roles {
+        // If the server has updated to contain the limbo role, remove it.
+        if let Some(i) = limbo.iter().position(|x| x.id == role.id) {
+          limbo.remove(i);
+        }
+      }
+    }
+    // Get a copy of the limbo roles.
+    let limbo = LIMBO_ROLES.lock().unwrap().clone();
+    // Extend the server roles with the limbo roles.
+    roles.extend(limbo);
     let mut created_roles = Vec::new();
     let mut add_roles = Vec::new();
     match roles.iter().find(|x| x.name.to_lowercase() == character.data.race.to_lowercase()) {
@@ -106,6 +126,16 @@ impl Tagger {
       }
     }
 
+    // If we created any roles, the server may or may not update with them fast enough, so store a copy in the limbo
+    // roles.
+    {
+      let mut limbo = &mut *LIMBO_ROLES.lock().unwrap();
+      for created in &created_roles {
+        limbo.push(created.clone());
+      }
+    }
+
+    // Extend the roles to add with the roles we created.
     add_roles.extend(created_roles.iter());
     let all_group_roles: Vec<&String> = bot.config.roles.groups.iter().flat_map(|x| x).collect();
     let keep: Vec<&Role> = roles.iter().filter(|x| member.roles.contains(&x.id)).collect();
