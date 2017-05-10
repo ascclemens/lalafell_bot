@@ -1,32 +1,20 @@
-use term::{self, Terminal, TerminfoTerminal};
-use term::terminfo::TermInfo;
+use ansi_term::Colour;
 use fern;
 use log::{LogLevel, LogLevelFilter};
-use std::io::{self, Write};
+use std::io;
 use chrono;
 
 use xivdb::error::*;
 
-lazy_static! {
-  static ref TERM_INFO: Option<TermInfo> = TermInfo::from_env().ok();
-}
-
 fn colored_level(level: LogLevel) -> String {
-  let mut t = match *TERM_INFO {
-    Some(ref t) => TerminfoTerminal::new_with_terminfo(vec![0u8; 0], t.clone()),
-    None => return format!("{}", level)
-  };
   let color = match level {
-    LogLevel::Trace => term::color::BRIGHT_BLACK,
-    LogLevel::Info => term::color::BLUE,
-    LogLevel::Warn => term::color::YELLOW,
-    LogLevel::Error => term::color::RED,
-    _ => return format!("{}", level)
+    LogLevel::Trace => Colour::Fixed(8),
+    LogLevel::Info => Colour::Blue,
+    LogLevel::Warn => Colour::Yellow,
+    LogLevel::Error => Colour::Red,
+    _ => return level.to_string()
   };
-  t.fg(color).unwrap();
-  write!(t, "{}", level).unwrap();
-  t.reset().unwrap();
-  String::from_utf8_lossy(&t.into_inner()).to_string()
+  color.paint(level.to_string()).to_string()
 }
 
 fn colored_target(target: &str) -> String {
@@ -36,18 +24,15 @@ fn colored_target(target: &str) -> String {
   }
   let base = &parts[..parts.len() - 1];
   let target = &parts[parts.len() - 1];
-  let mut t = match *TERM_INFO {
-    Some(ref t) => TerminfoTerminal::new_with_terminfo(vec![0u8; 0], t.clone()),
-    None => return target.to_string()
-  };
+
+  let separator = Colour::Fixed(8).paint("::").to_string();
+  let mut colored = Vec::new();
   for part in base {
-    write!(t, "{}", part).unwrap();
-    t.fg(term::color::BRIGHT_BLACK).unwrap();
-    write!(t, "::").unwrap();
-    t.reset().unwrap();
+    colored.push(*part);
+    colored.push(&separator);
   }
-  write!(t, "{}", target).unwrap();
-  String::from_utf8_lossy(&t.into_inner()).to_string()
+  colored.push(*target);
+  colored.join("")
 }
 
 pub fn init_logger() -> Result<()> {

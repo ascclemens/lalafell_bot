@@ -14,8 +14,7 @@ ctrlc = { version = "3.0", features = ["termination"] }
 chrono = "0.3"
 log = "0.3"
 fern = "0.4"
-term = "0.4"
+ansi_term = "0.9"
 hyper = "0.10"
 scraper = "0.4"
 uuid = { version = "0.5", features = ["v4"] }
-lazy_static = "0.2"
