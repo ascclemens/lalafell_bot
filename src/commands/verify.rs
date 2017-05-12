@@ -57,8 +57,8 @@ impl<'a> PublicChannelCommand<'a> for VerifyCommand {
     };
     let profile = Lodestone::new().character_profile(user.character_id)?;
     if profile.contains(verification_string) {
-      let mut state_option = self.bot.state.lock().unwrap();
-      let state = state_option.as_mut().unwrap();
+      let state_option = self.bot.state.read().unwrap();
+      let state = state_option.as_ref().unwrap();
       let server = match state.servers().iter().find(|x| x.id == server_id) {
         Some(s) => s,
         None => {

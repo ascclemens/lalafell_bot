@@ -31,7 +31,16 @@ impl ReceivesEvents for TagInstructions {
   fn receive(&self, event: &Event) {
     let destination = ChannelId(self.config.channel);
     let event_data = match *event {
-      Event::ServerMemberAdd(_, ref member) => Some(member.clone()),
+      Event::ServerMemberAdd(ref server_id, ref member) => {
+        let channel = match self.bot.discord.get_channel(destination) {
+          Ok(Channel::Public(c)) => c,
+          _ => return
+        };
+        if &channel.server_id != server_id {
+          return;
+        }
+        Some(member.clone())
+      },
       Event::MessageCreate(ref m) => {
         let chan = match self.bot.discord.get_channel(m.channel_id) {
           Ok(Channel::Public(c)) => c,

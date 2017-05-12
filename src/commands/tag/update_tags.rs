@@ -28,8 +28,8 @@ impl HasBot for UpdateTagsCommand {
 impl<'a> PublicChannelCommand<'a> for UpdateTagsCommand {
   fn run(&self, message: &Message, channel: &PublicChannel, _: &[&str]) -> CommandResult<'a> {
     let server_id = channel.server_id;
-    let mut state_option = self.bot.state.lock().unwrap();
-    let state = state_option.as_mut().unwrap();
+    let state_option = self.bot.state.read().unwrap();
+    let state = state_option.as_ref().unwrap();
     let server = match state.servers().iter().find(|x| x.id == server_id) {
       Some(s) => s,
       None => {

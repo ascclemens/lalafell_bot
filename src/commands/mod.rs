@@ -1,4 +1,6 @@
 pub mod tag;
+pub mod audio;
+
 pub mod race;
 pub mod viewtag;
 pub mod save_database;
@@ -6,6 +8,8 @@ pub mod verify;
 pub mod reference_count;
 
 pub use self::tag::{TagCommand, AutoTagCommand, UpdateTagsCommand};
+pub use self::audio::{JoinCommand, LeaveCommand, PlayCommand};
+
 pub use self::race::RaceCommand;
 pub use self::viewtag::ViewTagCommand;
 pub use self::save_database::SaveDatabaseCommand;

@@ -37,7 +37,7 @@ impl AutoTagTask {
       database.autotags.users.iter().map(|u| (u.user_id, u.server_id, u.character_id)).collect()
     };
     {
-      let option_state = s.state.lock().unwrap();
+      let option_state = s.state.read().unwrap();
       let state = match option_state.as_ref() {
         Some(st) => st,
         None => {

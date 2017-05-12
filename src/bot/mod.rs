@@ -6,7 +6,7 @@ use listeners::ReceivesEvents;
 use xivdb::XivDb;
 use xivdb::error::*;
 
-use discord::{Discord, State};
+use discord::{Discord, State, Connection};
 
 use serde_json;
 
@@ -14,7 +14,7 @@ use chrono::prelude::*;
 
 use std::fs::{OpenOptions, File};
 use std::path::Path;
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex, RwLock};
 use std::sync::mpsc::{channel, Receiver};
 use std::thread;
 
@@ -26,8 +26,10 @@ pub struct LalafellBot {
   pub environment: Environment,
   pub config: Config,
   pub discord: Discord,
+  pub connection: Arc<Mutex<Connection>>,
+  // TODO: Use RwLock instead of Mutex for multiple reads
+  pub state: RwLock<Option<State>>,
   pub xivdb: XivDb,
-  pub state: Mutex<Option<State>>,
   pub database: Mutex<Database>,
   pub listeners: Mutex<Vec<Box<ReceivesEvents + Send>>>
 }
@@ -43,14 +45,19 @@ impl LalafellBot {
     let discord = Discord::from_bot_token(&environment.discord_bot_token).chain_err(|| "could not start discord from bot token")?;
     let mut database = LalafellBot::load_database(&environment.database_location)?;
     database.last_saved = UTC::now().timestamp();
+
+    let (connection, ready) = discord.connect().chain_err(|| "could not connect to discord")?;
+    let state = State::new(ready);
+
     Ok(LalafellBot {
       environment: environment,
       config: config,
       discord: discord,
+      connection: Arc::new(Mutex::new(connection)),
+      state: RwLock::new(Some(state)),
       xivdb: XivDb::default(),
-      state: Mutex::new(None),
       database: Mutex::new(database),
-      listeners: Mutex::new(Vec::new())
+      listeners: Mutex::default()
     })
   }
 
@@ -73,14 +80,12 @@ impl LalafellBot {
   }
 
   pub fn start_loop(&self, loop_cancel: Receiver<()>) -> Result<()> {
-    let (mut connection, ready) = self.discord.connect().chain_err(|| "could not connect to discord")?;
-    let state = State::new(ready);
-    *self.state.lock().unwrap() = Some(state);
-    connection.set_game_name("with other Lalafell.".to_string());
+    self.connection.lock().unwrap().set_game_name("with other Lalafell.".to_string());
     let (event_channel_tx, event_channel_rx) = channel();
+    let thread_connection = self.connection.clone();
     thread::spawn(move || {
       loop {
-        if let Err(e) = event_channel_tx.send(connection.recv_event()) {
+        if let Err(e) = event_channel_tx.send(thread_connection.lock().unwrap().recv_event()) {
           error!("error sending event: {}", e);
         }
       }
@@ -103,7 +108,7 @@ impl LalafellBot {
         }
       };
       {
-        let mut state_option = self.state.lock().unwrap();
+        let mut state_option = self.state.write().unwrap();
         let mut state = state_option.as_mut().unwrap();
         state.update(&event);
       }

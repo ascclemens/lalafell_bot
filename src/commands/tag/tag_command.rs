@@ -32,8 +32,8 @@ impl<'a> PublicChannelCommand<'a> for TagCommand {
   fn run(&self, message: &Message, channel: &PublicChannel, params: &[&str]) -> CommandResult<'a> {
     let server_id = channel.server_id;
     let user = self.bot.discord.get_member(server_id, message.author.id).chain_err(|| "could not get member for message")?;
-    let mut state_option = self.bot.state.lock().unwrap();
-    let state = state_option.as_mut().unwrap();
+    let state_option = self.bot.state.read().unwrap();
+    let state = state_option.as_ref().unwrap();
     let server = match state.servers().iter().find(|x| x.id == server_id) {
       Some(s) => s,
       None => {
