@@ -27,7 +27,6 @@ pub struct LalafellBot {
   pub config: Config,
   pub discord: Discord,
   pub connection: Arc<Mutex<Connection>>,
-  // TODO: Use RwLock instead of Mutex for multiple reads
   pub state: RwLock<Option<State>>,
   pub xivdb: XivDb,
   pub database: Mutex<Database>,
