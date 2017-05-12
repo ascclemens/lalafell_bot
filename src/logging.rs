@@ -3,6 +3,7 @@ use fern;
 use log::{LogLevel, LogLevelFilter};
 use std::io;
 use chrono;
+use std::env::var;
 
 use xivdb::error::*;
 
@@ -44,7 +45,7 @@ pub fn init_logger() -> Result<()> {
         colored_target(record.target()),
         message))
     })
-    .level(LogLevelFilter::Info)
+    .level(if var("LB_DEBUG").is_ok() { LogLevelFilter::Debug } else { LogLevelFilter::Info })
     .chain(io::stdout())
     .apply()
     .chain_err(|| "could not set up logger")
