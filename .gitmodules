@@ -1,6 +1,0 @@
-[submodule "discord-rs"]
-	path = discord-rs
-	url = https://github.com/SpaceManiac/discord-rs
-[submodule "xivdb-rs"]
-	path = xivdb-rs
-	url = https://github.com/jkcclemens/xivdb-rs
