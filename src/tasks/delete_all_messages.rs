@@ -74,5 +74,6 @@ impl FromConfig for DeleteAllMessagesTask {
 pub struct DeleteAllMessagesTaskConfig {
   pub channel: u64,
   pub after: i64,
+  #[serde(default)]
   pub except: Vec<u64>
 }
