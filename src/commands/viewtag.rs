@@ -47,7 +47,7 @@ impl<'a> PublicChannelCommand<'a> for ViewTagCommand {
       message.mentions[0].id
     };
 
-    let database = self.bot.database.lock().unwrap();
+    let database = self.bot.database.read().unwrap();
     let user = database.autotags.users.iter().find(|u| u.user_id == who.0 && u.server_id == server_id.0);
 
     let msg = match user {

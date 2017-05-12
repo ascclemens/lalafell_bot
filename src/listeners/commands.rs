@@ -8,7 +8,7 @@ use std::collections::HashMap;
 
 pub struct CommandListener<'a> {
   bot: Arc<LalafellBot>,
-  commands: HashMap<Vec<String>, Box<Command<'a> + Send>>
+  commands: HashMap<Vec<String>, Box<Command<'a> + Send + Sync>>
 }
 
 impl<'a> CommandListener<'a> {
@@ -23,7 +23,7 @@ impl<'a> CommandListener<'a> {
   //   &mut self.commands
   // }
 
-  pub fn add_command<T: AsRef<str>>(&mut self, names: &[T], command: Box<Command<'a> + Send>) {
+  pub fn add_command<T: AsRef<str>>(&mut self, names: &[T], command: Box<Command<'a> + Send + Sync>) {
     self.commands.insert(names.iter().map(|t| t.as_ref().to_string()).collect(), command);
   }
 

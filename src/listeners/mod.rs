@@ -22,8 +22,8 @@ pub use self::tag_instructions::TagInstructions;
 pub struct ListenerManager;
 
 impl ListenerManager {
-  pub fn from_config(bot: Arc<LalafellBot>, listener: &Listener) -> Result<Box<ReceivesEvents + Send>> {
-    let listener: Box<ReceivesEvents + Send> = match listener.name.to_lowercase().as_ref() {
+  pub fn from_config(bot: Arc<LalafellBot>, listener: &Listener) -> Result<Box<ReceivesEvents + Send + Sync>> {
+    let listener: Box<ReceivesEvents + Send + Sync> = match listener.name.to_lowercase().as_ref() {
       "tag_instructions" => box TagInstructions::new(bot.clone(), listener)?,
       "event_debugger" => box EventDebugger,
       _ => return Err(format!("no listener called {}", listener.name).into())

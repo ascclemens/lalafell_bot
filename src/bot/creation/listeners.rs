@@ -7,7 +7,7 @@ use xivdb::error::*;
 use std::sync::Arc;
 
 pub fn listeners(bot: Arc<LalafellBot>) -> Result<()> {
-  let mut listeners = bot.listeners.lock().unwrap();
+  let mut listeners = bot.listeners.write().unwrap();
   listeners.push(box command_listener(bot.clone()));
   for listener in &bot.config.listeners {
     let listener = ListenerManager::from_config(bot.clone(), listener).chain_err(|| format!("could not create listener {}", listener.name))?;

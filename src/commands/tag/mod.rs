@@ -55,7 +55,7 @@ impl Tagger {
   }
 
   pub fn tag(bot: Arc<LalafellBot>, who: UserId, on: &LiveServer, char_id: u64, ignore_verified: bool) -> Result<Option<String>> {
-    let is_verified = match bot.database.lock().unwrap().autotags.users.iter().find(|u| u.user_id == who.0 && u.server_id == on.id.0) {
+    let is_verified = match bot.database.read().unwrap().autotags.users.iter().find(|u| u.user_id == who.0 && u.server_id == on.id.0) {
       Some(u) => {
         if u.verification.verified && !ignore_verified && char_id != u.character_id {
           return Ok(Some(format!("{} is verified as {} on {}, so they cannot switch to another account.", who.mention(), u.character, u.server)));
@@ -69,7 +69,7 @@ impl Tagger {
 
     let character = bot.xivdb.character(char_id).chain_err(|| "could not look up character")?;
 
-    bot.database.lock().unwrap().autotags.update_or_add(AutotagUser::new(
+    bot.database.write().unwrap().autotags.update_or_add(AutotagUser::new(
       who.0,
       on.id.0,
       character.lodestone_id,

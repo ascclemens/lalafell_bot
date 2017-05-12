@@ -28,7 +28,7 @@ impl HasBot for VerifyCommand {
 impl<'a> PublicChannelCommand<'a> for VerifyCommand {
   fn run(&self, message: &Message, channel: &PublicChannel, _: &[&str]) -> CommandResult<'a> {
     let server_id = channel.server_id;
-    let mut database = self.bot.database.lock().unwrap();
+    let mut database = self.bot.database.write().unwrap();
     let user = database.autotags.users.iter_mut().find(|u| u.user_id == message.author.id.0 && u.server_id == server_id.0);
     let mut user = match user {
       Some(u) => u,

@@ -14,7 +14,7 @@ use chrono::prelude::*;
 
 use std::fs::{OpenOptions, File};
 use std::path::Path;
-use std::sync::{Mutex, RwLock};
+use std::sync::RwLock;
 use std::sync::mpsc::{channel, Receiver};
 use std::thread;
 
@@ -28,8 +28,8 @@ pub struct LalafellBot {
   pub discord: Discord,
   pub state: RwLock<Option<State>>,
   pub xivdb: XivDb,
-  pub database: Mutex<Database>,
-  pub listeners: Mutex<Vec<Box<ReceivesEvents + Send>>>
+  pub database: RwLock<Database>,
+  pub listeners: RwLock<Vec<Box<ReceivesEvents + Send + Sync>>>
 }
 
 impl Drop for LalafellBot {
@@ -49,8 +49,8 @@ impl LalafellBot {
       discord: discord,
       state: RwLock::default(),
       xivdb: XivDb::default(),
-      database: Mutex::new(database),
-      listeners: Mutex::default()
+      database: RwLock::new(database),
+      listeners: RwLock::default()
     })
   }
 
@@ -109,7 +109,7 @@ impl LalafellBot {
         state.update(&event);
       }
       {
-        let listeners = self.listeners.lock().unwrap();
+        let listeners = self.listeners.read().unwrap();
         for listener in listeners.iter() {
           listener.receive(&event);
         }

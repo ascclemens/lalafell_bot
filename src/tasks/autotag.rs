@@ -23,7 +23,7 @@ impl AutoTagTask {
     thread::sleep(Duration::seconds(self.next_sleep).to_std().unwrap());
     info!("Autotag task running");
     let time_to_update = {
-      let database = s.database.lock().unwrap();
+      let database = s.database.read().unwrap();
       database.autotags.last_updated + Duration::days(1).num_seconds() < UTC::now().timestamp()
     };
     if !time_to_update {
@@ -33,7 +33,7 @@ impl AutoTagTask {
     }
     info!("Time to update autotags");
     let users: Vec<(u64, u64, u64)> = {
-      let database = s.database.lock().unwrap();
+      let database = s.database.read().unwrap();
       database.autotags.users.iter().map(|u| (u.user_id, u.server_id, u.character_id)).collect()
     };
     {
@@ -60,7 +60,7 @@ impl AutoTagTask {
       }
     }
     {
-      let mut database = s.database.lock().unwrap();
+      let mut database = s.database.write().unwrap();
       database.autotags.last_updated = UTC::now().timestamp();
     };
     info!("Done updating autotags");

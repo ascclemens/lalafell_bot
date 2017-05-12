@@ -48,7 +48,7 @@ impl<'a> PublicChannelCommand<'a> for UpdateTagsCommand {
     let mut task = AutoTagTask::new();
     task.next_sleep = 0;
     {
-      let mut database = self.bot.database.lock().unwrap();
+      let mut database = self.bot.database.write().unwrap();
       database.autotags.last_updated = 0;
     }
     ::std::thread::spawn(move || task.run_once(thread_bot));

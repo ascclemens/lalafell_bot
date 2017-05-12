@@ -24,7 +24,7 @@ impl RunsTask for DatabaseSaveTask {
       thread::sleep(Duration::seconds(self.next_sleep).to_std().unwrap());
       info!("Database save task running");
       let time_to_update = {
-        let database = s.database.lock().unwrap();
+        let database = s.database.read().unwrap();
         database.last_saved + Duration::hours(1).num_seconds() < UTC::now().timestamp()
       };
       if !time_to_update {
@@ -36,7 +36,7 @@ impl RunsTask for DatabaseSaveTask {
         info!("could not save database: {}", e);
       }
       {
-        let mut database = s.database.lock().unwrap();
+        let mut database = s.database.write().unwrap();
         database.last_saved = UTC::now().timestamp();
       }
       info!("Database save task done");
