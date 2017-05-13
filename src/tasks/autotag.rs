@@ -50,12 +50,12 @@ impl AutoTagTask {
         let server = match state.servers().iter().find(|s| s.id.0 == server_id) {
           Some(ser) => ser,
           None => {
-            info!("Couldn't find server for user ID {}", user_id);
+            warn!("Couldn't find server for user ID {}", user_id);
             continue;
           }
         };
         if let Err(e) = Tagger::tag(s.clone(), UserId(user_id), server, character_id, false) {
-          info!("Couldn't update tag for user ID {}: {}", user_id, e);
+          warn!("Couldn't update tag for user ID {}: {}", user_id, e);
         }
       }
     }

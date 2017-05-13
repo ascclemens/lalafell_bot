@@ -33,7 +33,7 @@ impl RunsTask for DatabaseSaveTask {
         continue;
       }
       if let Err(e) = s.save_database(None) {
-        info!("could not save database: {}", e);
+        warn!("could not save database: {}", e);
       }
       {
         let mut database = s.database.write().unwrap();
