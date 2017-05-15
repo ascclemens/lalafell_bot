@@ -44,7 +44,7 @@ impl<'a> CommandListener<'a> {
       Ok(info) => {
         match info.message {
           Some(embed) => {
-            let color = if command_success { 1663832 } else { 6494491 };
+            let color = if command_success { 0x196358 } else { 0x63191b };
             self.bot.discord.send_embed(message.channel_id, "", |e| embed(e).color(color)).ok();
           },
           None => {
