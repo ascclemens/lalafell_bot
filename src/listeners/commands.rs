@@ -39,19 +39,10 @@ impl<'a> CommandListener<'a> {
       None => return
     };
     let run_result = command.run(message, params);
-    let command_success = run_result.is_ok();
     match run_result {
-      Ok(info) => {
-        match info.message {
-          Some(embed) => {
-            let color = if command_success { 0x196358 } else { 0x63191b };
-            self.bot.discord.send_embed(message.channel_id, "", |e| embed(e).color(color)).ok();
-          },
-          None => {
-            let emoji = if command_success { "\u{2705}" } else { "\u{274c}" };
-            self.bot.discord.add_reaction(message.channel_id, message.id, ReactionEmoji::Unicode(emoji.to_string())).ok();
-          }
-        }
+      Ok(info) => match info.message {
+        Some(embed) => { self.bot.discord.send_embed(message.channel_id, "", |e| embed(e).color(0x196358)).ok(); },
+        None => { self.bot.discord.add_reaction(message.channel_id, message.id, ReactionEmoji::Unicode("\u{2705}".to_string())).ok(); }
       },
       Err(CommandFailure::Internal(info)) => {
         self.bot.discord.send_embed(message.channel_id, "",
@@ -60,10 +51,9 @@ impl<'a> CommandListener<'a> {
           error!("error: {:#?}", err);
         }
       },
-      Err(CommandFailure::External(info)) => {
-        if let Some(embed) = info.message {
-          self.bot.discord.send_embed(message.channel_id, "", embed).ok();
-        }
+      Err(CommandFailure::External(info)) => match info.message {
+        Some(embed) => { self.bot.discord.send_embed(message.channel_id, "", |e| embed(e).color(0x63191b)).ok(); },
+        None => { self.bot.discord.add_reaction(message.channel_id, message.id, ReactionEmoji::Unicode("\u{274c}".to_string())).ok(); }
       }
     }
   }
