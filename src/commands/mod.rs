@@ -46,8 +46,8 @@ impl<'a, T> Command<'a> for T
     let public_channel = match channel {
       Channel::Public(c) => c,
       _ => return Err(ExternalCommandFailure::default()
-            .message(|e: EmbedBuilder| e.description("This command must be run in a public channel."))
-            .wrap())
+        .message(|e: EmbedBuilder| e.description("This command must be run in a public channel."))
+        .wrap())
     };
     self.run(message, &public_channel, params)
   }

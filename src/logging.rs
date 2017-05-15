@@ -40,10 +40,10 @@ pub fn init_logger() -> Result<()> {
   fern::Dispatch::new()
     .format(|out, message, record| {
       out.finish(format_args!("[{}] [{}] {} – {}",
-        chrono::Local::now().format("%H:%M:%S"),
-        colored_level(record.level()),
-        colored_target(record.target()),
-        message))
+                              chrono::Local::now().format("%H:%M:%S"),
+                              colored_level(record.level()),
+                              colored_target(record.target()),
+                              message))
     })
     .level(if var("LB_DEBUG").is_ok() { LogLevelFilter::Debug } else { LogLevelFilter::Info })
     .chain(io::stdout())

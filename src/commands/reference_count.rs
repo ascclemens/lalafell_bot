@@ -30,7 +30,7 @@ impl<'a> Command<'a> for ReferenceCountCommand {
     let weak_references = Arc::weak_count(&self.bot);
     Ok(CommandSuccess::default()
       .message(move |e: EmbedBuilder| e.description(&format!("There are currently {} strong references and {} weak references.",
-        strong_references,
-        weak_references))))
+                                                             strong_references,
+                                                             weak_references))))
   }
 }
