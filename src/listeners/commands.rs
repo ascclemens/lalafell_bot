@@ -39,12 +39,18 @@ impl<'a> CommandListener<'a> {
       None => return
     };
     let run_result = command.run(message, params);
-    let emoji = if run_result.is_ok() { "\u{2705}" } else { "\u{274c}" };
-    self.bot.discord.add_reaction(message.channel_id, message.id, ReactionEmoji::Unicode(emoji.to_string())).ok();
+    let command_success = run_result.is_ok();
     match run_result {
       Ok(info) => {
-        if let Some(embed) = info.message {
-          self.bot.discord.send_embed(message.channel_id, "", embed).ok();
+        match info.message {
+          Some(embed) => {
+            let color = if command_success { 1663832 } else { 6494491 };
+            self.bot.discord.send_embed(message.channel_id, "", |e| embed(e).color(color)).ok();
+          },
+          None => {
+            let emoji = if command_success { "\u{2705}" } else { "\u{274c}" };
+            self.bot.discord.add_reaction(message.channel_id, message.id, ReactionEmoji::Unicode(emoji.to_string())).ok();
+          }
         }
       },
       Err(CommandFailure::Internal(info)) => {
