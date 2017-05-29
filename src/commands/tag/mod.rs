@@ -98,21 +98,21 @@ impl Tagger {
     match roles.iter().find(|x| x.name.to_lowercase() == character.data.race.to_lowercase()) {
       Some(r) => add_roles.push(r),
       None => {
-        let role = bot.discord.create_role(on.id, Some(&character.data.race), None, None, None, None).chain_err(|| "could not create role")?;
+        let role = bot.discord.create_role(on.id, Some(&character.data.race.to_lowercase()), None, None, None, None).chain_err(|| "could not create role")?;
         created_roles.push(role);
       }
     }
     match roles.iter().find(|x| x.name.to_lowercase() == character.data.gender.to_lowercase()) {
       Some(r) => add_roles.push(r),
       None => {
-        let role = bot.discord.create_role(on.id, Some(&character.data.gender), None, None, None, None).chain_err(|| "could not create role")?;
+        let role = bot.discord.create_role(on.id, Some(&character.data.gender.to_lowercase()), None, None, None, None).chain_err(|| "could not create role")?;
         created_roles.push(role);
       }
     }
     match roles.iter().find(|x| x.name.to_lowercase() == character.server.to_lowercase()) {
       Some(r) => add_roles.push(r),
       None => {
-        let role = bot.discord.create_role(on.id, Some(&character.server), None, None, None, None).chain_err(|| "could not create role")?;
+        let role = bot.discord.create_role(on.id, Some(&character.server.to_lowercase()), None, None, None, None).chain_err(|| "could not create role")?;
         created_roles.push(role);
       }
     }
