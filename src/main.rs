@@ -17,8 +17,7 @@ extern crate scraper;
 extern crate uuid;
 #[macro_use]
 extern crate lazy_static;
-
-// FIXME: Use envy when it upgrades to serde 1.0
+extern crate envy;
 
 mod logging;
 mod bot;
@@ -33,7 +32,6 @@ use bot::LalafellBot;
 
 use xivdb::error::*;
 
-use std::env::var;
 use std::sync::mpsc::channel;
 
 fn main() {
@@ -59,11 +57,7 @@ fn inner() -> Result<()> {
 
   info!("Reading environment variables");
 
-  let environment = Environment {
-    discord_bot_token: var("LB_DISCORD_BOT_TOKEN").chain_err(|| "No bot token was specified in .env")?,
-    database_location: var("LB_DATABASE_LOCATION").chain_err(|| "No database location was specified in .env")?,
-    config_location: var("LB_CONFIG_LOCATION").chain_err(|| "No config location was specified in .env")?
-  };
+  let environment: Environment = envy::from_env().expect("Invalid or missing environment variables");
 
   info!("Creating bot");
 
