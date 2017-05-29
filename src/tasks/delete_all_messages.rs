@@ -32,6 +32,7 @@ impl RunsTask for DeleteAllMessagesTask {
           continue;
         }
       };
+      let mut to_delete = Vec::new();
       for message in messages {
         if self.config.except.contains(&message.id.0) {
           continue;
@@ -46,8 +47,17 @@ impl RunsTask for DeleteAllMessagesTask {
         if timestamp + Duration::seconds(self.config.after) > UTC::now() {
           continue;
         }
-        if let Err(e) = s.discord.delete_message(message.channel_id, message.id) {
-          warn!("Could not delete message {}: {}", message.id, e);
+        to_delete.push(message);
+      }
+      for chunk in to_delete.chunks(100) {
+        let result = if chunk.len() == 1 {
+          s.discord.delete_message(channel, chunk[0].id)
+        } else {
+          let ids: Vec<_> = chunk.iter().map(|m| m.id).collect();
+          s.discord.delete_messages(channel, &ids)
+        };
+        if let Err(e) = result {
+          warn!("Could not delete messages: {}", e);
         }
       }
       self.next_sleep = 60;
