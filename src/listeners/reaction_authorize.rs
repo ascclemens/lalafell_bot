@@ -69,7 +69,7 @@ impl ReceivesEvents for ReactionAuthorize {
       self.bot.discord.remove_user_from_role(channel.server_id, reaction.user_id, role.id)
     };
     if let Err(e) = result {
-      warn!("could not authorize: {}", e);
+      warn!("could not change role: {}", e);
     }
   }
 }
