@@ -1,25 +1,3 @@
-/*
-!poll #announcements Poll text goes here!
-:one: Option one
-:two: Option two
-
-From @Bot in #announcements
-Poll from @jkcclemens:
-Poll text goes here!
-:one: – Option one
-:two: – Option two
-
-@Bot reacts to the message with all the options
-
-!poll #general Some other poll
-Auto-generate options
-No custom emoji
-
-!poll #channel Another custom poll
-:thumbsup: Yes
-:thumbsdown: No
-*/
-
 use LalafellBot;
 use commands::*;
 
@@ -30,7 +8,7 @@ use xivdb::error::*;
 
 use std::sync::Arc;
 
-const USAGE: &'static str = "!poll <channel> <poll text>\n<option>\n<option>...";
+const USAGE: &'static str = "!poll <poll text>\n<option>\n<option>...";
 
 pub struct PollCommand {
   bot: Arc<LalafellBot>
