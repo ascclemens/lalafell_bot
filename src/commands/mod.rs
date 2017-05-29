@@ -1,4 +1,5 @@
 pub mod tag;
+pub mod polling;
 
 pub mod race;
 pub mod viewtag;
@@ -7,6 +8,7 @@ pub mod verify;
 pub mod reference_count;
 
 pub use self::tag::{TagCommand, AutoTagCommand, UpdateTagsCommand};
+pub use self::polling::{PollCommand, PollResultsCommand};
 
 pub use self::race::RaceCommand;
 pub use self::viewtag::ViewTagCommand;
