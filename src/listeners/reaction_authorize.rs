@@ -56,7 +56,7 @@ impl ReceivesEvents for ReactionAuthorize {
         return;
       }
     };
-    let role = match roles.iter().filter(|r| r.name == self.config.role).next() {
+    let role = match roles.iter().find(|r| r.name == self.config.role) {
       Some(r) => r,
       None => {
         warn!("couldn't find role for name \"{}\"", self.config.role);
