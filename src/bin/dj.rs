@@ -48,7 +48,7 @@ fn main() {
 
     state.update(&event);
 
-    let valid_commands = &["!play", "!stop", "!clear", "!pause", "!resume"];
+    let valid_commands = &["play", "stop", "clear", "pause", "resume"];
 
     match event {
       Event::MessageCreate(message) => {
