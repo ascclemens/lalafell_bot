@@ -58,7 +58,7 @@ fn main() {
         }
 
         let command: String = params[0].to_lowercase().chars().skip(1).collect();
-        if !params[0].starts_with('!') && !valid_commands.contains(&command.as_ref()) {
+        if !params[0].starts_with('!') || !valid_commands.contains(&command.as_ref()) {
           continue;
         }
 
@@ -151,15 +151,10 @@ fn main() {
           Some(c) => c,
           None => continue
         };
-        match server_id {
-          Some(server_id) => if let Some(srv) = state.servers().iter().find(|srv| srv.id == server_id) {
+        if let Some(server_id) = server_id {
+          if let Some(srv) = state.servers().iter().find(|srv| srv.id == server_id) {
             if srv.voice_states.iter().filter(|vs| vs.channel_id == Some(chan)).count() <= 1 {
               connection.voice(Some(server_id)).disconnect();
-            }
-          },
-          None => if let Some(call) = state.calls().get(&chan) {
-            if call.voice_states.len() <= 1 {
-              connection.voice(server_id).disconnect();
             }
           }
         }
