@@ -58,7 +58,7 @@ fn main() {
         }
 
         let command: String = params[0].to_lowercase().chars().skip(1).collect();
-        if !params[0].starts_with('!') || !valid_commands.contains(&command.as_ref()) {
+        if !valid_commands.contains(&command.as_ref()) {
           continue;
         }
 
