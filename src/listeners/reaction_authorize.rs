@@ -34,6 +34,9 @@ impl ReceivesEvents for ReactionAuthorize {
       Event::ReactionRemove(ref reaction) => (false, reaction),
       _ => return
     };
+    if reaction.message_id.0 != self.config.message {
+      return;
+    }
     let channel = match self.bot.discord.get_channel(reaction.channel_id) {
       Ok(Channel::Public(c)) => c,
       Ok(_) => {
