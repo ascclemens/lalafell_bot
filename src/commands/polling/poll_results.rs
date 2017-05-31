@@ -91,14 +91,7 @@ impl<'a> Command<'a> for PollResultsCommand {
     };
     let mut reactions: Vec<(&String, u64)> = message.reactions.iter()
       .map(|r| match r.emoji {
-        ReactionEmoji::Unicode(ref s) if VALID_EMOJI.contains(&s.as_str()) => {
-          let count = if r.me {
-            r.count - 1
-          } else {
-            r.count
-          };
-          Some((s, count))
-        },
+        ReactionEmoji::Unicode(ref s) if VALID_EMOJI.contains(&s.as_str()) && r.me => Some((s, r.count - 1)),
         _ => None
       })
       .filter(|x| x.is_some())
