@@ -118,29 +118,29 @@ fn main() {
         "embeds": [embed]
       });
       println!("{:#?}", item);
-      // scraper.database.items.insert(id, item);
-      // let res = scraper.client.post(&webhook_url)
-      //   .header(hyper::header::ContentType::json())
-      //   .body(&data.to_string())
-      //   .send();
-      // let mut data = match res {
-      //   Ok(r) => r,
-      //   Err(e) => {
-      //     println!("error sending webhook: {}", e);
-      //     continue;
-      //   }
-      // };
-      // let mut content = String::new();
-      // if let Err(e) = data.read_to_string(&mut content) {
-      //   println!("could not read webhook response: {}", e);
-      //   continue;
-      // }
-      // if data.status.class() != hyper::status::StatusClass::Success {
-      //   println!("discord says no");
-      //   println!("{}", content);
-      // } else {
-      //   println!("webhook sent");
-      // }
+      scraper.database.items.insert(id, item);
+      let res = scraper.client.post(&webhook_url)
+        .header(hyper::header::ContentType::json())
+        .body(&data.to_string())
+        .send();
+      let mut data = match res {
+        Ok(r) => r,
+        Err(e) => {
+          println!("error sending webhook: {}", e);
+          continue;
+        }
+      };
+      let mut content = String::new();
+      if let Err(e) = data.read_to_string(&mut content) {
+        println!("could not read webhook response: {}", e);
+        continue;
+      }
+      if data.status.class() != hyper::status::StatusClass::Success {
+        println!("discord says no");
+        println!("{}", content);
+      } else {
+        println!("webhook sent");
+      }
     }
   }
   if scraper.database.save().is_none() {
