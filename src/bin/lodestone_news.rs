@@ -134,10 +134,10 @@ fn main() {
         continue;
       }
       if data.status.class() != hyper::status::StatusClass::Success {
-        println!("discord says no");
+        println!("discord says no to {}", item.title);
         println!("{}", content);
       } else {
-        println!("webhook sent");
+        println!("webhook sent: {}", item.title);
         scraper.database.items.insert(id, item);
       }
     }
