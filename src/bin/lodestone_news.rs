@@ -88,7 +88,6 @@ fn main() {
       let mut embed = json!({
         "type": "rich",
         "timestamp": UTC.timestamp(item.time, 0).to_rfc3339(),
-        // "url": item.url,
         "fields": [
           {
             "name": "Title",
