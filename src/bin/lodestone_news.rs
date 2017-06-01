@@ -117,29 +117,30 @@ fn main() {
       let data = json!({
         "embeds": [embed]
       });
-      scraper.database.items.insert(id, item);
-      let res = scraper.client.post(&webhook_url)
-        .header(hyper::header::ContentType::json())
-        .body(&data.to_string())
-        .send();
-      let mut data = match res {
-        Ok(r) => r,
-        Err(e) => {
-          println!("error sending webhook: {}", e);
-          continue;
-        }
-      };
-      let mut content = String::new();
-      if let Err(e) = data.read_to_string(&mut content) {
-        println!("could not read webhook response: {}", e);
-        continue;
-      }
-      if data.status.class() != hyper::status::StatusClass::Success {
-        println!("discord says no");
-        println!("{}", content);
-      } else {
-        println!("webhook sent");
-      }
+      println!("{:#?}", item);
+      // scraper.database.items.insert(id, item);
+      // let res = scraper.client.post(&webhook_url)
+      //   .header(hyper::header::ContentType::json())
+      //   .body(&data.to_string())
+      //   .send();
+      // let mut data = match res {
+      //   Ok(r) => r,
+      //   Err(e) => {
+      //     println!("error sending webhook: {}", e);
+      //     continue;
+      //   }
+      // };
+      // let mut content = String::new();
+      // if let Err(e) = data.read_to_string(&mut content) {
+      //   println!("could not read webhook response: {}", e);
+      //   continue;
+      // }
+      // if data.status.class() != hyper::status::StatusClass::Success {
+      //   println!("discord says no");
+      //   println!("{}", content);
+      // } else {
+      //   println!("webhook sent");
+      // }
     }
   }
   if scraper.database.save().is_none() {
@@ -188,17 +189,28 @@ impl NewsScraper {
 
   fn parse_news(&self, news: &str) -> HashMap<String, NewsItem> {
     let html = Html::parse_document(news);
-    let li_selector = Selector::parse("div.news__content.parts__space--add > ul:nth-of-type(2) > li").unwrap();
+    let news_selector = Selector::parse("div.news__content.parts__space--add > ul:nth-of-type(2) > li").unwrap();
+    let topics_selector = Selector::parse("div.news__content.parts__space--add > ul:nth-of-type(3) > li").unwrap();
     let title_selector = Selector::parse("p.news__list--title").unwrap();
     let time_script_selector = Selector::parse("time.news__list--time > script").unwrap();
-    let lis: Vec<_> = html.select(&li_selector).collect();
+    let mut lis: Vec<_> = html.select(&news_selector).map(|x| (NewsKind::News, x)).collect();
+    lis.append(&mut html.select(&topics_selector).map(|x| (NewsKind::Topic, x)).collect());
     let mut items = HashMap::with_capacity(lis.len());
-    for li in lis {
-      let child = match li.first_child().and_then(|v| v.value().as_element()) {
+    for (kind, li) in lis {
+      let child = match kind {
+        NewsKind::News => li.first_child().and_then(|v| v.value().as_element()),
+        NewsKind::Topic => li.select(&title_selector).next().and_then(|v| v.first_child().and_then(|x| x.value().as_element())),
+        _ => {
+          println!("unsupported news kind");
+          continue;
+        }
+      };
+
+      let child = match child {
         Some(c) => c,
         None => {
-          println!("invalid news item");
-          continue;
+          println!("could not get news item child");
+          continue
         }
       };
 
@@ -210,24 +222,44 @@ impl NewsScraper {
         }
       };
 
-      let title = match li.select(&title_selector).next() {
-        Some(t) => t,
-        None => {
-          println!("missing title in news item");
-          continue;
-        }
-      };
+      let (title, tag) = match kind {
+        NewsKind::News => {
+          let title = match li.select(&title_selector).next() {
+            Some(t) => t,
+            None => {
+              println!("missing title in news item");
+              continue;
+            }
+          };
 
-      let tag: Option<String> = title.first_child()
-        .and_then(scraper::ElementRef::wrap)
-        .map(|c| c.text().collect::<String>())
-        .map(|tag| tag[1..tag.len() - 1].to_string());
+          let tag: Option<String> = title.first_child()
+            .and_then(scraper::ElementRef::wrap)
+            .map(|c| c.text().collect::<String>())
+            .map(|tag| tag[1..tag.len() - 1].to_string());
 
-      let text_iter = title.text();
-      let title: String = if tag.is_some() {
-        text_iter.skip(1).collect()
-      } else {
-        text_iter.collect()
+          let text_iter = title.text();
+          let title: String = if tag.is_some() {
+            text_iter.skip(1).collect()
+          } else {
+            text_iter.collect()
+          };
+
+          (title, tag)
+        },
+        NewsKind::Topic => {
+          let text = li.select(&title_selector).next()
+            .and_then(|v| v.first_child())
+            .and_then(scraper::ElementRef::wrap)
+            .map(|v| v.text().collect());
+          match text {
+            Some(t) => (t, None),
+            None => {
+              println!("invalid topic: no title");
+              continue;
+            }
+          }
+        },
+        _ => unreachable!()
       };
 
       let time_script = match li.select(&time_script_selector).next() {
@@ -265,7 +297,7 @@ impl NewsScraper {
       let news_item = NewsItem {
         title: title,
         url: format!("http://na.finalfantasyxiv.com{}", href),
-        kind: NewsKind::News,
+        kind: kind,
         time: time,
         tag: tag
       };
