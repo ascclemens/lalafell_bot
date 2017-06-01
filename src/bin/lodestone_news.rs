@@ -116,7 +116,6 @@ fn main() {
       let data = json!({
         "embeds": [embed]
       });
-      println!("{:#?}", item);
       let res = scraper.client.post(&webhook_url)
         .header(hyper::header::ContentType::json())
         .body(&data.to_string())
