@@ -118,7 +118,6 @@ fn main() {
         "embeds": [embed]
       });
       println!("{:#?}", item);
-      scraper.database.items.insert(id, item);
       let res = scraper.client.post(&webhook_url)
         .header(hyper::header::ContentType::json())
         .body(&data.to_string())
@@ -140,6 +139,7 @@ fn main() {
         println!("{}", content);
       } else {
         println!("webhook sent");
+        scraper.database.items.insert(id, item);
       }
     }
   }
