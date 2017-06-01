@@ -212,6 +212,9 @@ impl AudioSource for BufferedQueuedAudioSource {
   fn read_frame(&mut self, buffer: &mut [i16]) -> Option<usize> {
     self.read_controls();
     self.handle_queue();
+    if self.finished {
+      return Some(0);
+    }
     if self.paused {
       for byte in buffer.iter_mut() {
         *byte = 0;
