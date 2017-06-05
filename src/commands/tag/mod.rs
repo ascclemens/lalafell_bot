@@ -137,9 +137,9 @@ impl Tagger {
 
     // Extend the roles to add with the roles we created.
     add_roles.extend(created_roles.iter());
-    let all_group_roles: Vec<&String> = bot.config.roles.groups.iter().flat_map(|x| x).collect();
+    let all_group_roles: Vec<String> = bot.config.roles.groups.iter().flat_map(|x| x).map(|x| x.to_lowercase()).collect();
     let keep: Vec<&Role> = roles.iter().filter(|x| member.roles.contains(&x.id)).collect();
-    let keep: Vec<&Role> = keep.into_iter().filter(|x| !all_group_roles.contains(&&x.name)).collect();
+    let keep: Vec<&Role> = keep.into_iter().filter(|x| !all_group_roles.contains(&x.name.to_lowercase())).collect();
     let mut role_set: Vec<RoleId> = add_roles.iter().map(|r| r.id).chain(keep.into_iter().map(|r| r.id)).collect();
     role_set.sort();
     role_set.dedup();
