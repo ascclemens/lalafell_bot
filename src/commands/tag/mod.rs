@@ -144,7 +144,7 @@ impl Tagger {
     role_set.sort();
     role_set.dedup();
 
-    if !role_set.iter().all(|r| member.roles.contains(r)) {
+    if !member.roles.iter().all(|r| role_set.contains(r)) {
       bot.discord.edit_member_roles(on.id, who, &role_set).chain_err(|| "could not add roles")?;
     }
 
