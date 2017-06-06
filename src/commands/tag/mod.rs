@@ -14,6 +14,7 @@ use xivdb::error::*;
 use discord::model::{UserId, LiveServer, Role, RoleId};
 
 use std::sync::{Arc, Mutex};
+use std::collections::HashSet;
 
 lazy_static! {
   // Limbo roles are roles that may or may not be added to the Discord bot state.
@@ -160,7 +161,6 @@ impl Tagger {
 
     // Only update the roles if they are different
     let different = {
-      use std::collections::HashSet;
       let member_roles: HashSet<u64> = member.roles.iter().map(|x| x.0).collect();
       let actual_role_set: HashSet<u64> = role_set.iter().map(|x| x.0).collect();
       member_roles != actual_role_set
