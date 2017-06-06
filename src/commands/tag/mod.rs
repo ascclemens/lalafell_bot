@@ -158,8 +158,14 @@ impl Tagger {
 
     debug!("Final role set:\n{:#?}", role_set);
 
-    // Only update the roles if the member is missing any or if any are different
-    if !member.roles.iter().all(|r| role_set.contains(r)) {
+    // Only update the roles if they are different
+    let different = {
+      use std::collections::HashSet;
+      let member_roles: HashSet<u64> = member.roles.iter().map(|x| x.0).collect();
+      let actual_role_set: HashSet<u64> = role_set.iter().map(|x| x.0).collect();
+      member_roles != actual_role_set
+    };
+    if different {
       bot.discord.edit_member_roles(on.id, who, &role_set).chain_err(|| "could not add roles")?;
     }
 
