@@ -135,15 +135,30 @@ impl Tagger {
       }
     }
 
+    debug!("Created the following roles:\n:{:#?}", created_roles);
+
+    debug!("Existing roles:\n{:#?}", add_roles);
+
     // Extend the roles to add with the roles we created.
     add_roles.extend(created_roles.iter());
+    // Get all the roles that are part of groups
     let all_group_roles: Vec<String> = bot.config.roles.groups.iter().flat_map(|x| x).map(|x| x.to_lowercase()).collect();
+    // Filter all roles on the server to only the roles the member has
     let keep: Vec<&Role> = roles.iter().filter(|x| member.roles.contains(&x.id)).collect();
+    // Filter all the roles the member has, keeping the ones not in a group. These roles will not be touched when
+    // updating the tag.
     let keep: Vec<&Role> = keep.into_iter().filter(|x| !all_group_roles.contains(&x.name.to_lowercase())).collect();
+    debug!("Roles to keep:\n{:#?}", keep);
+    // Combine the two sets of roles and map them to IDs
     let mut role_set: Vec<RoleId> = add_roles.iter().map(|r| r.id).chain(keep.into_iter().map(|r| r.id)).collect();
+    // Sort the IDs so we can dedup them
     role_set.sort();
+    // Remove the duplicate roles, if any
     role_set.dedup();
 
+    debug!("Final role set:\n{:#?}", role_set);
+
+    // Only update the roles if the member is missing any or if any are different
     if !member.roles.iter().all(|r| role_set.contains(r)) {
       bot.discord.edit_member_roles(on.id, who, &role_set).chain_err(|| "could not add roles")?;
     }
