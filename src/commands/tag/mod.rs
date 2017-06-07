@@ -55,6 +55,18 @@ impl Tagger {
     Tagger::tag(bot, who, on, char_id, ignore_verified)
   }
 
+  fn find_or_create_role(bot: &LalafellBot, server: &LiveServer, name: &str, add_roles: &mut Vec<Role>, created_roles: &mut Vec<Role>) -> Result<()> {
+    let lower_name = name.to_lowercase();
+    match server.roles.iter().find(|x| x.name.to_lowercase() == lower_name) {
+      Some(r) => add_roles.push(r.clone()),
+      None => {
+        let role = bot.discord.create_role(server.id, Some(&lower_name), None, None, None, None).chain_err(|| "could not create role")?;
+        created_roles.push(role);
+      }
+    }
+    Ok(())
+  }
+
   pub fn tag(bot: Arc<LalafellBot>, who: UserId, on: &LiveServer, char_id: u64, ignore_verified: bool) -> Result<Option<String>> {
     let is_verified = match bot.database.read().unwrap().autotags.users.iter().find(|u| u.user_id == who.0 && u.server_id == on.id.0) {
       Some(u) => {
@@ -94,37 +106,16 @@ impl Tagger {
     let limbo = LIMBO_ROLES.lock().unwrap().clone();
     // Extend the server roles with the limbo roles.
     roles.extend(limbo);
+
+    // Find or create the necessary roles
     let mut created_roles = Vec::new();
     let mut add_roles = Vec::new();
-    match roles.iter().find(|x| x.name.to_lowercase() == character.data.race.to_lowercase()) {
-      Some(r) => add_roles.push(r),
-      None => {
-        let role = bot.discord.create_role(on.id, Some(&character.data.race.to_lowercase()), None, None, None, None).chain_err(|| "could not create role")?;
-        created_roles.push(role);
-      }
-    }
-    match roles.iter().find(|x| x.name.to_lowercase() == character.data.gender.to_lowercase()) {
-      Some(r) => add_roles.push(r),
-      None => {
-        let role = bot.discord.create_role(on.id, Some(&character.data.gender.to_lowercase()), None, None, None, None).chain_err(|| "could not create role")?;
-        created_roles.push(role);
-      }
-    }
-    match roles.iter().find(|x| x.name.to_lowercase() == character.server.to_lowercase()) {
-      Some(r) => add_roles.push(r),
-      None => {
-        let role = bot.discord.create_role(on.id, Some(&character.server.to_lowercase()), None, None, None, None).chain_err(|| "could not create role")?;
-        created_roles.push(role);
-      }
-    }
+    Tagger::find_or_create_role(&bot, on, &character.data.race, &mut add_roles, &mut created_roles)?;
+    Tagger::find_or_create_role(&bot, on, &character.data.gender, &mut add_roles, &mut created_roles)?;
+    Tagger::find_or_create_role(&bot, on, &character.server, &mut add_roles, &mut created_roles)?;
+
     if is_verified {
-      match roles.iter().find(|x| x.name.to_lowercase() == "verified") {
-        Some(r) => add_roles.push(r),
-        None => {
-          let role = bot.discord.create_role(on.id, Some("Verified"), None, None, None, None).chain_err(|| "could not create role")?;
-          created_roles.push(role);
-        }
-      }
+      Tagger::find_or_create_role(&bot, on, "verified", &mut add_roles, &mut created_roles)?;
     }
 
     // If we created any roles, the server may or may not update with them fast enough, so store a copy in the limbo
@@ -141,7 +132,7 @@ impl Tagger {
     debug!("Existing roles:\n{:#?}", add_roles);
 
     // Extend the roles to add with the roles we created.
-    add_roles.extend(created_roles.iter());
+    add_roles.extend(created_roles);
     // Get all the roles that are part of groups
     let all_group_roles: Vec<String> = bot.config.roles.groups.iter().flat_map(|x| x).map(|x| x.to_lowercase()).collect();
     // Filter all roles on the server to only the roles the member has
