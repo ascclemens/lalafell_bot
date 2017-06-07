@@ -38,6 +38,7 @@ impl<'a> CommandListener<'a> {
       Some(c) => c,
       None => return
     };
+    debug!("running command: {}", command_name);
     let run_result = command.run(message, params);
     match run_result {
       Ok(info) => match info.message {
