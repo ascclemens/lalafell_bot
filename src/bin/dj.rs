@@ -11,6 +11,8 @@ use discord::voice::AudioSource;
 use std::collections::HashMap;
 use std::sync::mpsc::{channel, Sender, Receiver};
 
+// TODO: Add response messages
+
 #[derive(Default)]
 struct Dj {
   controls: HashMap<u64, Sender<AudioSourceControl>>

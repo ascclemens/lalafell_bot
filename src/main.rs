@@ -34,6 +34,7 @@ use xivdb::error::*;
 
 use std::sync::mpsc::channel;
 
+// TODO: Stop using xivdb's error type and use our own (error_chain with foreign_links/links).
 fn main() {
   if let Err(e) = inner() {
     for err in e.iter() {
