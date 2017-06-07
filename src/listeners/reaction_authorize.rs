@@ -3,7 +3,7 @@ use config::Listener;
 use listeners::ReceivesEvents;
 use discord::model::{Event, Channel, ReactionEmoji};
 
-use xivdb::error::*;
+use error::*;
 
 use serde_json;
 

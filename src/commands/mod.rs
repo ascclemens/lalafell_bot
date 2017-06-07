@@ -18,7 +18,7 @@ pub use self::reference_count::ReferenceCountCommand;
 
 use LalafellBot;
 
-use xivdb::error::{self, ResultExt};
+use error::{self, ResultExt};
 
 use discord::model::{Message, Channel, PublicChannel};
 use discord::builders::EmbedBuilder;

@@ -4,7 +4,7 @@ use database::Database;
 use listeners::ReceivesEvents;
 
 use xivdb::XivDb;
-use xivdb::error::*;
+use error::*;
 
 use discord::{Discord, State};
 

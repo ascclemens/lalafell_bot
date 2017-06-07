@@ -5,7 +5,7 @@ use std::io;
 use chrono;
 use std::env::var;
 
-use xivdb::error::*;
+use error::*;
 
 fn colored_level(level: LogLevel) -> String {
   let color = match level {

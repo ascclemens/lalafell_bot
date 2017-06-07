@@ -4,7 +4,7 @@ use commands::*;
 use discord::model::{ServerId, UserId, ReactionEmoji, Channel};
 use discord::builders::EmbedBuilder;
 
-use xivdb::error::*;
+use error::*;
 
 use std::sync::Arc;
 

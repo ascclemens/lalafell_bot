@@ -9,7 +9,7 @@ pub use self::update_tags::UpdateTagsCommand;
 use LalafellBot;
 use database::AutotagUser;
 
-use xivdb::error::*;
+use error::*;
 
 use discord::model::{UserId, LiveServer, Role, RoleId};
 

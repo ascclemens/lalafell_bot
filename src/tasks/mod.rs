@@ -1,6 +1,6 @@
 use LalafellBot;
 use config::Task;
-use xivdb::error::Result;
+use error::Result;
 
 use std::sync::Arc;
 use std::thread;

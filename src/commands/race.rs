@@ -3,7 +3,7 @@ use commands::*;
 
 use discord::builders::EmbedBuilder;
 
-use xivdb::error::*;
+use error::*;
 
 use std::sync::Arc;
 

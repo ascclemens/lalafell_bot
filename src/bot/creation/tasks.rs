@@ -1,7 +1,7 @@
 use LalafellBot;
 use tasks::{TaskManager, AutoTagTask, DatabaseSaveTask};
 
-use xivdb::error::*;
+use error::*;
 
 use std::sync::Arc;
 

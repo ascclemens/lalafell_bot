@@ -1,4 +1,4 @@
-use xivdb::error::*;
+use error::*;
 
 use hyper::Client;
 

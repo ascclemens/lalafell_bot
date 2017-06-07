@@ -18,6 +18,8 @@ extern crate uuid;
 #[macro_use]
 extern crate lazy_static;
 extern crate envy;
+#[macro_use]
+extern crate error_chain;
 
 mod logging;
 mod bot;
@@ -27,14 +29,13 @@ mod tasks;
 mod commands;
 mod lodestone;
 mod config;
+mod error;
 
 use bot::LalafellBot;
-
-use xivdb::error::*;
+use error::*;
 
 use std::sync::mpsc::channel;
 
-// TODO: Stop using xivdb's error type and use our own (error_chain with foreign_links/links).
 fn main() {
   if let Err(e) = inner() {
     for err in e.iter() {

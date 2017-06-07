@@ -6,7 +6,7 @@ use discord::model::ChannelId;
 use chrono::prelude::*;
 use chrono::Duration;
 
-use xivdb::error::*;
+use error::*;
 use serde_json;
 
 use std::sync::Arc;

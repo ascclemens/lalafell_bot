@@ -1,7 +1,7 @@
 use {LalafellBot, Environment};
 use config::Config;
 
-use xivdb::error::*;
+use error::*;
 
 use serde_json;
 

@@ -1,8 +1,7 @@
 use LalafellBot;
 use listeners::{ListenerManager, CommandListener};
 use commands::*;
-
-use xivdb::error::*;
+use error::*;
 
 use std::sync::Arc;
 

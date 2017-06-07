@@ -1,7 +1,7 @@
 use LalafellBot;
 use config::Listener;
 
-use xivdb::error::*;
+use error::*;
 
 use discord::model::Event;
 
