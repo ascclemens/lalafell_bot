@@ -11,7 +11,10 @@ use database::AutotagUser;
 
 use error::*;
 
+use discord;
 use discord::model::{UserId, LiveServer, Role, RoleId};
+
+use serde_json;
 
 use std::sync::{Arc, Mutex};
 use std::collections::HashSet;
@@ -78,7 +81,26 @@ impl Tagger {
       None => false
     };
 
-    let member = bot.discord.get_member(on.id, who).chain_err(|| "could not get member for tagging")?;
+    let member = match bot.discord.get_member(on.id, who) {
+      Ok(m) => m,
+      Err(discord::Error::Status(_, Some(discord_error))) => {
+        let error: DiscordNotFoundError = serde_json::from_value(discord_error)
+          .chain_err(|| "could not get member for tagging and could not parse error")?;
+        if error.code == 10013 {
+          let mut database = bot.database.write().unwrap();
+          match database.autotags.users.iter().position(|u| u.user_id == who.0) {
+            Some(id) => {
+              database.autotags.users.remove(id);
+              return Err(format!("could not find user {} on server {}: removing from database", who.0, on.id.0).into());
+            },
+            _ => return Err("could not find user {} on server {}, but was not in database".into())
+          }
+        } else {
+          return Err("could not get member for tagging with unknown error code".into());
+        }
+      },
+      Err(e) => return Err(e).chain_err(|| "could not get member for tagging")
+    };
 
     let character = bot.xivdb.character(char_id).chain_err(|| "could not look up character")?;
 
@@ -170,4 +192,10 @@ impl Tagger {
     }
     Ok(None)
   }
+}
+
+#[derive(Debug, Deserialize)]
+struct DiscordNotFoundError {
+  code: u64,
+  message: Option<String>
 }
