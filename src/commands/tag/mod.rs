@@ -96,7 +96,8 @@ impl Tagger {
             _ => return Err("could not find user {} on server {}, but was not in database".into())
           }
         } else {
-          return Err("could not get member for tagging with unknown error code".into());
+          let message = error.message.map(|x| format!(" ({})", x)).unwrap_or_default();
+          return Err(format!("could not get member for tagging with unknown error code: {}{}", error.code, message).into());
         }
       },
       Err(e) => return Err(e).chain_err(|| "could not get member for tagging")
