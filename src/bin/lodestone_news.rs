@@ -187,21 +187,19 @@ impl NewsScraper {
 
   fn parse_news(&self, news: &str) -> HashMap<String, NewsItem> {
     let html = Html::parse_document(news);
+    let special_notices_selector = Selector::parse("div.news__content.parts__space--add > ul:nth-of-type(1) > li").unwrap();
     let news_selector = Selector::parse("div.news__content.parts__space--add > ul:nth-of-type(2) > li").unwrap();
     let topics_selector = Selector::parse("div.news__content.parts__space--add > ul:nth-of-type(3) > li").unwrap();
     let title_selector = Selector::parse("p.news__list--title").unwrap();
     let time_script_selector = Selector::parse("time.news__list--time > script").unwrap();
     let mut lis: Vec<_> = html.select(&news_selector).map(|x| (NewsKind::News, x)).collect();
     lis.append(&mut html.select(&topics_selector).map(|x| (NewsKind::Topic, x)).collect());
+    lis.append(&mut html.select(&special_notices_selector).map(|x| (NewsKind::SpecialNotice, x)).collect());
     let mut items = HashMap::with_capacity(lis.len());
     for (kind, li) in lis {
       let child = match kind {
-        NewsKind::News => li.first_child().and_then(|v| v.value().as_element()),
+        NewsKind::News | NewsKind::SpecialNotice => li.first_child().and_then(|v| v.value().as_element()),
         NewsKind::Topic => li.select(&title_selector).next().and_then(|v| v.first_child().and_then(|x| x.value().as_element())),
-        _ => {
-          println!("unsupported news kind");
-          continue;
-        }
       };
 
       let child = match child {
@@ -221,7 +219,7 @@ impl NewsScraper {
       };
 
       let (title, tag) = match kind {
-        NewsKind::News => {
+        NewsKind::News | NewsKind::SpecialNotice => {
           let title = match li.select(&title_selector).next() {
             Some(t) => t,
             None => {
@@ -252,12 +250,11 @@ impl NewsScraper {
           match text {
             Some(t) => (t, None),
             None => {
-              println!("invalid topic: no title");
+              println!("invalid topic/special notice: no title");
               continue;
             }
           }
-        },
-        _ => unreachable!()
+        }
       };
 
       let time_script = match li.select(&time_script_selector).next() {
