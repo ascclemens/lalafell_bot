@@ -84,7 +84,7 @@ impl<'a> Command<'a> for PollResultsCommand {
     };
     let message = match self.bot.discord.get_message(channel_id, message_id) {
       Ok(m) => m,
-      Err(e) => return Err(ExternalCommandFailure::default()
+      Err(_) => return Err(ExternalCommandFailure::default()
         .message(|e: EmbedBuilder| e
           .description("Could not get that message."))
         .wrap())
