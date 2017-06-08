@@ -91,7 +91,6 @@ impl Tagger {
           if error.code == 10013 || error.code == 10007 {
             match database.autotags.users.iter().position(|u| u.user_id == who.0) {
               Some(id) => {
-                database.autotags.users.remove(id);
                 let message = match error.code {
                   // Unknown user
                   10013 => format!("could not find user {}: removing from database", who.0),
@@ -99,6 +98,7 @@ impl Tagger {
                   10007 => format!("user {} is not on server {}: removing from database", who.0, on.id.0),
                   _ => unreachable!()
                 };
+                database.autotags.users.remove(id);
                 return Err(message.into());
               },
               _ => return Err("could not find user {} on server {}, but was not in database".into())
