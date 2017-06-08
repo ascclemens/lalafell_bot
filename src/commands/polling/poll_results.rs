@@ -71,23 +71,23 @@ impl<'a> Command<'a> for PollResultsCommand {
     let channel_id = match channel.parse::<u64>() {
       Ok(u) => ChannelId(u),
       Err(_) => return Err(ExternalCommandFailure::default()
-                  .message(|e: EmbedBuilder| e
-                    .description("Invalid channel."))
-                  .wrap())
+        .message(|e: EmbedBuilder| e
+          .description("Invalid channel."))
+        .wrap())
     };
     let message_id = match params[1].parse::<u64>() {
       Ok(u) => MessageId(u),
       Err(_) => return Err(ExternalCommandFailure::default()
-                  .message(|e: EmbedBuilder| e
-                    .description("Invalid message ID."))
-                  .wrap())
+        .message(|e: EmbedBuilder| e
+          .description("Invalid message ID."))
+        .wrap())
     };
     let message = match self.bot.discord.get_message(channel_id, message_id) {
       Ok(m) => m,
-      Err(e) => { println!("{:#?}", e); return Err(ExternalCommandFailure::default()
-                  .message(|e: EmbedBuilder| e
-                    .description("Could not get that message."))
-                  .wrap());}
+      Err(e) => return Err(ExternalCommandFailure::default()
+        .message(|e: EmbedBuilder| e
+          .description("Could not get that message."))
+        .wrap())
     };
     let mut reactions: Vec<(&String, u64)> = message.reactions.iter()
       .map(|r| match r.emoji {
