@@ -81,24 +81,32 @@ impl Tagger {
       None => false
     };
 
+    // FIXME: This is a goddamn disaster
     let member = match bot.discord.get_member(on.id, who) {
       Ok(m) => m,
       Err(discord::Error::Status(_, Some(discord_error))) => {
         let error: DiscordNotFoundError = serde_json::from_value(discord_error)
           .chain_err(|| "could not get member for tagging and could not parse error")?;
-        if error.code == 10013 {
           let mut database = bot.database.write().unwrap();
-          match database.autotags.users.iter().position(|u| u.user_id == who.0) {
-            Some(id) => {
-              database.autotags.users.remove(id);
-              return Err(format!("could not find user {} on server {}: removing from database", who.0, on.id.0).into());
-            },
-            _ => return Err("could not find user {} on server {}, but was not in database".into())
+          if error.code == 10013 || error.code == 10007 {
+            match database.autotags.users.iter().position(|u| u.user_id == who.0) {
+              Some(id) => {
+                database.autotags.users.remove(id);
+                let message = match error.code {
+                  // Unknown user
+                  10013 => format!("could not find user {}: removing from database", who.0),
+                  // User not a member on this server
+                  10007 => format!("user {} is not on server {}: removing from database", who.0, on.id.0),
+                  _ => unreachable!()
+                };
+                return Err(message.into());
+              },
+              _ => return Err("could not find user {} on server {}, but was not in database".into())
+            }
+          } else {
+            let message = error.message.map(|x| format!(" ({})", x)).unwrap_or_default();
+            return Err(format!("could not get member for tagging with unknown error code: {}{}", error.code, message).into());
           }
-        } else {
-          let message = error.message.map(|x| format!(" ({})", x)).unwrap_or_default();
-          return Err(format!("could not get member for tagging with unknown error code: {}{}", error.code, message).into());
-        }
       },
       Err(e) => return Err(e).chain_err(|| "could not get member for tagging")
     };
