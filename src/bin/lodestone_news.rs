@@ -293,11 +293,11 @@ impl NewsScraper {
       };
 
       let news_item = NewsItem {
-        title: title,
+        title: title.trim().to_string(),
         url: format!("http://na.finalfantasyxiv.com{}", href),
         kind: kind,
         time: time,
-        tag: tag
+        tag: tag.map(|x| x.trim().to_string())
       };
       items.insert(id.to_string(), news_item);
     }
