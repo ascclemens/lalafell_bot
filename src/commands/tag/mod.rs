@@ -100,7 +100,7 @@ impl Tagger {
           };
           if remove {
             let mut database = bot.database.write().unwrap();
-            match database.autotags.users.iter().position(|u| u.user_id == who.0) {
+            match database.autotags.users.iter().position(|u| u.user_id == who.0 && u.server_id == on.id.0) {
               Some(id) => database.autotags.users.remove(id),
               None => return Err("could not find user {} on server {}, but was not in database".into())
             };
