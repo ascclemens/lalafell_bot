@@ -81,32 +81,31 @@ impl Tagger {
       None => false
     };
 
-    // FIXME: This is a goddamn disaster
+    // This is still a disaster, just slightly less so
     let member = match bot.discord.get_member(on.id, who) {
       Ok(m) => m,
       Err(discord::Error::Status(_, Some(discord_error))) => {
         let error: DiscordNotFoundError = serde_json::from_value(discord_error)
           .chain_err(|| "could not get member for tagging and could not parse error")?;
-          let mut database = bot.database.write().unwrap();
-          if error.code == 10013 || error.code == 10007 {
-            match database.autotags.users.iter().position(|u| u.user_id == who.0) {
-              Some(id) => {
-                let message = match error.code {
-                  // Unknown user
-                  10013 => format!("could not find user {}: removing from database", who.0),
-                  // User not a member on this server
-                  10007 => format!("user {} is not on server {}: removing from database", who.0, on.id.0),
-                  _ => unreachable!()
-                };
-                database.autotags.users.remove(id);
-                return Err(message.into());
-              },
-              _ => return Err("could not find user {} on server {}, but was not in database".into())
+          let (remove, message) = match error.code {
+            // Unknown user
+            10013 => (true, format!("could not find user {}: removing from database", who.0)),
+            // User not a member on this server
+            10007 => (true, format!("user {} is not on server {}: removing from database", who.0, on.id.0)),
+            _ => {
+              let message = error.message.map(|x| format!(" ({})", x)).unwrap_or_default();
+              let error_message = format!("could not get member for tagging with unknown error code: {}{}", error.code, message);
+              (false, error_message)
             }
-          } else {
-            let message = error.message.map(|x| format!(" ({})", x)).unwrap_or_default();
-            return Err(format!("could not get member for tagging with unknown error code: {}{}", error.code, message).into());
+          };
+          if remove {
+            let mut database = bot.database.write().unwrap();
+            match database.autotags.users.iter().position(|u| u.user_id == who.0) {
+              Some(id) => database.autotags.users.remove(id),
+              None => return Err("could not find user {} on server {}, but was not in database".into())
+            };
           }
+          return Err(message.into());
       },
       Err(e) => return Err(e).chain_err(|| "could not get member for tagging")
     };
