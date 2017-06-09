@@ -1,4 +1,4 @@
-use LalafellBot;
+use bot::LalafellBot;
 use tasks::{TaskManager, AutoTagTask, DatabaseSaveTask};
 
 use error::*;

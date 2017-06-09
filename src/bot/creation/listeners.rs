@@ -1,4 +1,4 @@
-use LalafellBot;
+use bot::LalafellBot;
 use listeners::{ListenerManager, CommandListener};
 use commands::*;
 use error::*;

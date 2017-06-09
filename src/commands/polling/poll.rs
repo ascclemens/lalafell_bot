@@ -1,4 +1,4 @@
-use LalafellBot;
+use bot::LalafellBot;
 use commands::*;
 
 use discord::model::{ServerId, UserId, ReactionEmoji, Channel};

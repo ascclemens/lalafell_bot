@@ -1,4 +1,4 @@
-use LalafellBot;
+use bot::LalafellBot;
 use listeners::ReceivesEvents;
 use commands::*;
 use discord::model::{Event, Message, ReactionEmoji};

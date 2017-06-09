@@ -1,4 +1,4 @@
-use LalafellBot;
+use bot::LalafellBot;
 use tasks::{RunsTask, FromConfig};
 use config::Task;
 use discord::GetMessages;

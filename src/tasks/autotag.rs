@@ -1,4 +1,4 @@
-use LalafellBot;
+use bot::LalafellBot;
 use tasks::RunsTask;
 use commands::tag::Tagger;
 use discord::model::UserId;

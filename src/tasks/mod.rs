@@ -1,4 +1,4 @@
-use LalafellBot;
+use bot::LalafellBot;
 use config::Task;
 use error::Result;
 

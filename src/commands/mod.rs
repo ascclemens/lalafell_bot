@@ -16,7 +16,7 @@ pub use self::save_database::SaveDatabaseCommand;
 pub use self::verify::VerifyCommand;
 pub use self::reference_count::ReferenceCountCommand;
 
-use LalafellBot;
+use bot::LalafellBot;
 
 use error::{self, ResultExt};
 

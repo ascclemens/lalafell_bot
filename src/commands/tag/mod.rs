@@ -6,7 +6,7 @@ pub use self::tag_command::TagCommand;
 pub use self::autotag::AutoTagCommand;
 pub use self::update_tags::UpdateTagsCommand;
 
-use LalafellBot;
+use bot::LalafellBot;
 use database::AutotagUser;
 
 use error::*;

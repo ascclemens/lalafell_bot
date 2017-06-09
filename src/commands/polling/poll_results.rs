@@ -20,7 +20,7 @@ No custom emoji
 :thumbsdown: No
 */
 
-use LalafellBot;
+use bot::LalafellBot;
 use commands::*;
 
 use discord::model::{ChannelId, MessageId, ReactionEmoji};

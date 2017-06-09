@@ -1,4 +1,4 @@
-use LalafellBot;
+use bot::LalafellBot;
 use tasks::RunsTask;
 use chrono::prelude::*;
 use chrono::Duration;
