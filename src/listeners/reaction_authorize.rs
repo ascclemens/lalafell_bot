@@ -18,7 +18,7 @@ impl ReactionAuthorize {
   pub fn new(bot: Arc<LalafellBot>, listener: &Listener) -> Result<ReactionAuthorize> {
     let config = match listener.config {
       Some(ref c) => serde_json::from_value(c.clone()).chain_err(|| "could not parse reaction_authorize configuration")?,
-      None => return Err("missing configuration for reaction_authorize listener".into())
+      None => bail!("missing configuration for reaction_authorize listener")
     };
     Ok(ReactionAuthorize {
       bot: bot,

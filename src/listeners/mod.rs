@@ -29,7 +29,7 @@ impl ListenerManager {
       "tag_instructions" => box TagInstructions::new(bot.clone(), listener)?,
       "event_debugger" => box EventDebugger,
       "reaction_authorize" => box ReactionAuthorize::new(bot.clone(), listener)?,
-      _ => return Err(format!("no listener called {}", listener.name).into())
+      _ => bail!("no listener called {}", listener.name)
     };
     Ok(listener)
   }

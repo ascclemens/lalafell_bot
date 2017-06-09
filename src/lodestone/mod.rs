@@ -28,7 +28,7 @@ impl Lodestone {
     let selector = Selector::parse("div.character__selfintroduction").unwrap();
     let profile = match html.select(&selector).next() {
       Some(p) => p,
-      None => return Err("could not find character__selfintroduction".into())
+      None => bail!("could not find character__selfintroduction")
     };
     Ok(profile.text().collect::<Vec<_>>().join(" ").trim().to_string())
   }

@@ -69,7 +69,7 @@ impl RunsTask for DeleteAllMessagesTask {
 impl FromConfig for DeleteAllMessagesTask {
   fn from_config(task: &Task) -> Result<Self> {
     let val = match task.config {
-      None => return Err("delete_all_messages task is missing configuration".into()),
+      None => bail!("delete_all_messages task is missing configuration"),
       Some(ref val) => val
     };
     let config: DeleteAllMessagesTaskConfig = serde_json::from_value(val.clone()).chain_err(|| "could not parse delete_all_messages configuration")?;

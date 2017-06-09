@@ -43,12 +43,12 @@ impl Tagger {
 
     let char_id = match search_chars[0]["id"].as_u64() {
       Some(u) => u,
-      None => return Err("character ID was not a u64".into())
+      None => bail!("character ID was not a u64")
     };
 
     let name = match search_chars[0]["name"].as_str() {
       Some(s) => s,
-      None => return Err("character name was not a string".into())
+      None => bail!("character name was not a string")
     };
 
     if name.to_lowercase() != character_name.to_lowercase() {
@@ -102,10 +102,10 @@ impl Tagger {
             let mut database = bot.database.write().unwrap();
             match database.autotags.users.iter().position(|u| u.user_id == who.0 && u.server_id == on.id.0) {
               Some(id) => database.autotags.users.remove(id),
-              None => return Err("could not find user {} on server {}, but was not in database".into())
+              None => bail!("could not find user {} on server {}, but was not in database", who.0, on.id.0)
             };
           }
-          return Err(message.into());
+          bail!(message);
       },
       Err(e) => return Err(e).chain_err(|| "could not get member for tagging")
     };

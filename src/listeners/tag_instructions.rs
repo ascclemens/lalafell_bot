@@ -18,7 +18,7 @@ impl TagInstructions {
   pub fn new(bot: Arc<LalafellBot>, listener: &Listener) -> Result<TagInstructions> {
     let config = match listener.config {
       Some(ref c) => serde_json::from_value(c.clone()).chain_err(|| "could not parse tag_instructions configuration")?,
-      None => return Err("missing configuration for tag_instructions listener".into())
+      None => bail!("missing configuration for tag_instructions listener")
     };
     Ok(TagInstructions {
       bot: bot,
