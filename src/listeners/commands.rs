@@ -32,9 +32,9 @@ impl<'a> CommandListener<'a> {
     if !first.starts_with('!') {
       return;
     }
-    let command_name = &first[1..].to_lowercase();
+    let command_name = first[1..].to_lowercase();
     let params = &parts[1..];
-    let (_, command) = match self.commands.iter().find(|&(names, _)| names.contains(&command_name.to_lowercase())) {
+    let (_, command) = match self.commands.iter().find(|&(names, _)| names.contains(&command_name)) {
       Some(c) => c,
       None => return
     };
