@@ -22,6 +22,7 @@ pub enum MusicItem {
   YouTube(String)
 }
 
+// FIXME: refactor into individual methods
 fn main() {
   println!("Loading .env");
 

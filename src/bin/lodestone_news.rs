@@ -83,6 +83,8 @@ fn main() {
   };
 
   let downloaded_news = scraper.parse_news(&news);
+  // Ignore clippy false positive
+  #[cfg_attr(feature = "cargo-clippy", allow(map_entry))]
   for (id, item) in downloaded_news {
     if !scraper.database.items.contains_key(&id) {
       let mut embed = json!({
