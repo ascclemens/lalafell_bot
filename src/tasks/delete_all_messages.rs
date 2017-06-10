@@ -37,14 +37,7 @@ impl RunsTask for DeleteAllMessagesTask {
         if self.config.except.contains(&message.id.0) {
           continue;
         }
-        let timestamp: DateTime<UTC> = match message.timestamp.parse() {
-          Ok(t) => t,
-          Err(e) => {
-            warn!("Could not parse message timestamp: {}", e);
-            continue;
-          }
-        };
-        if timestamp + Duration::seconds(self.config.after) > UTC::now() {
+        if message.timestamp.with_timezone(&UTC) + Duration::seconds(self.config.after) > UTC::now() {
           continue;
         }
         to_delete.push(message);
