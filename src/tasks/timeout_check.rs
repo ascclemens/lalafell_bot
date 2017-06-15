@@ -33,7 +33,7 @@ impl RunsTask for TimeoutCheckTask {
         if let Err(e) = s.discord.remove_user_from_role(ServerId(t.server_id), UserId(t.user_id), RoleId(t.role_id)) {
           warn!("could not remove timeout role from {}: {}", t.user_id, e);
         }
-        return false;
+        false
       });
       self.next_sleep = s.config.bot.timeouts.role_check_interval.unwrap_or(30);
     }

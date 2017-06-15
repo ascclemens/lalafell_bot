@@ -36,7 +36,7 @@ pub fn set_up_timeouts(bot: &LalafellBot, server: &LiveServer) -> Result<RoleId>
 
   let role_id = match server.roles.iter().find(|r| r.name.to_lowercase() == lower) {
     Some(r) => r.id,
-    None => bot.discord.create_role(server.id, Some(&role_name), Some(*ROLE_PERMISSIONS), None, None, None).chain_err(|| "could not create role")?.id
+    None => bot.discord.create_role(server.id, Some(role_name), Some(*ROLE_PERMISSIONS), None, None, None).chain_err(|| "could not create role")?.id
   };
 
   let target = PermissionOverwrite {
