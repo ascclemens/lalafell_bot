@@ -3,7 +3,7 @@ use commands::*;
 use commands::tag::Tagger;
 
 use discord::builders::EmbedBuilder;
-use discord::model::{PublicChannel, UserId, Role};
+use discord::model::{PublicChannel, UserId};
 use discord::model::permissions;
 
 use std::sync::Arc;
@@ -31,7 +31,6 @@ impl HasBot for TagCommand {
 impl<'a> PublicChannelCommand<'a> for TagCommand {
   fn run(&self, message: &Message, channel: &PublicChannel, params: &[&str]) -> CommandResult<'a> {
     let server_id = channel.server_id;
-    let user = self.bot.discord.get_member(server_id, message.author.id).chain_err(|| "could not get member for message")?;
     let state_option = self.bot.state.read().unwrap();
     let state = state_option.as_ref().unwrap();
     let server = match state.servers().iter().find(|x| x.id == server_id) {
@@ -41,18 +40,7 @@ impl<'a> PublicChannelCommand<'a> for TagCommand {
         return Err(err.into());
       }
     };
-    let can_manage_roles = if server.owner_id != message.author.id {
-      true
-    } else {
-      let roles = &server.roles;
-      let user_roles: Option<Vec<&Role>> = user.roles.iter()
-        .map(|r| roles.iter().find(|z| z.id == *r))
-        .collect();
-      match user_roles {
-        Some(ur) => ur.iter().any(|r| r.permissions.contains(permissions::MANAGE_ROLES)),
-        None => false
-      }
-    };
+    let can_manage_roles = server.permissions_for(channel.id, message.author.id).contains(permissions::MANAGE_ROLES);
     if !can_manage_roles {
       return Err(ExternalCommandFailure::default()
         .message(|e: EmbedBuilder| e
