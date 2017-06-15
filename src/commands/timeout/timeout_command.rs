@@ -138,8 +138,8 @@ impl<'a> PublicChannelCommand<'a> for TimeoutCommand {
     let mut database = self.bot.database.write().unwrap();
     if database.timeouts.iter().any(|u| u.user_id == who.0 && u.server_id == server_id.0) {
       return Err(ExternalCommandFailure::default()
-        .message(|e: EmbedBuilder| e
-          .description("That user is already timed out."))
+        .message(move |e: EmbedBuilder| e
+          .description(&format!("{} is already timed out.", who.mention())))
         .wrap());
     }
 
