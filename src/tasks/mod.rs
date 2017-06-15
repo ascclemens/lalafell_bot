@@ -17,10 +17,12 @@ pub trait RunsTask {
 pub mod delete_all_messages;
 pub mod database_save;
 pub mod autotag;
+pub mod timeout_check;
 
 pub use self::delete_all_messages::DeleteAllMessagesTask;
 pub use self::database_save::DatabaseSaveTask;
 pub use self::autotag::AutoTagTask;
+pub use self::timeout_check::TimeoutCheckTask;
 
 pub struct TaskManager {
   bot: Arc<LalafellBot>

@@ -1,10 +1,14 @@
 use uuid::Uuid;
+use chrono::prelude::*;
+use chrono::Duration;
 
 #[derive(Debug, Default, Serialize, Deserialize)]
 pub struct Database {
   #[serde(skip_serializing, skip_deserializing)]
   pub last_saved: i64,
-  pub autotags: Autotags
+  pub autotags: Autotags,
+  #[serde(default)]
+  pub timeouts: Vec<TimeoutUser>
 }
 
 #[derive(Debug, Default, Serialize, Deserialize)]
@@ -63,5 +67,30 @@ impl AutotagUser {
       server: server.to_string(),
       verification: Default::default()
     }
+  }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct TimeoutUser {
+  pub server_id: u64,
+  pub user_id: u64,
+  pub role_id: u64,
+  pub seconds: i64,
+  pub start: i64
+}
+
+impl TimeoutUser {
+  pub fn new(server_id: u64, user_id: u64, role_id: u64, seconds: i64, start: i64) -> Self {
+    TimeoutUser {
+      server_id: server_id,
+      user_id: user_id,
+      role_id: role_id,
+      seconds: seconds,
+      start: start
+    }
+  }
+
+  pub fn ends(&self) -> i64 {
+    (UTC.timestamp(self.start, 0) + Duration::seconds(self.seconds)).timestamp()
   }
 }

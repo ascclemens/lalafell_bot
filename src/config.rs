@@ -12,7 +12,15 @@ pub struct Config {
 #[derive(Debug, Default, Deserialize)]
 #[serde(default)]
 pub struct Bot {
-  pub administrators: Vec<u64>
+  pub administrators: Vec<u64>,
+  pub timeouts: Timeouts
+}
+
+#[derive(Debug, Default, Deserialize)]
+#[serde(default)]
+pub struct Timeouts {
+  pub timed_out_role: Option<String>,
+  pub role_check_interval: Option<i64>
 }
 
 #[derive(Debug, Default, Deserialize)]

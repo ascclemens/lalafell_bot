@@ -15,11 +15,13 @@ pub mod debugger;
 pub mod commands;
 pub mod tag_instructions;
 pub mod reaction_authorize;
+pub mod timeouts;
 
 pub use self::debugger::EventDebugger;
 pub use self::commands::CommandListener;
 pub use self::tag_instructions::TagInstructions;
 pub use self::reaction_authorize::ReactionAuthorize;
+pub use self::timeouts::Timeouts;
 
 pub struct ListenerManager;
 
