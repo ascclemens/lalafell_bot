@@ -14,7 +14,7 @@ dependencies = [
  "hyper-rustls 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "lazy_static 0.2.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.3.8 (registry+https://github.com/rust-lang/crates.io-index)",
- "make_hyper_great_again 0.11.0 (git+https://github.com/jkcclemens/make_hyper_great_again)",
+ "make_hyper_great_again 0.11.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "scraper 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "selectors 0.18.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde 1.0.8 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -441,24 +441,6 @@ dependencies = [
 
 [[package]]
 name = "hyper"
-version = "0.10.12"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-dependencies = [
- "base64 0.5.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "httparse 1.2.3 (registry+https://github.com/rust-lang/crates.io-index)",
- "language-tags 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "log 0.3.8 (registry+https://github.com/rust-lang/crates.io-index)",
- "mime 0.2.6 (registry+https://github.com/rust-lang/crates.io-index)",
- "num_cpus 1.5.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "time 0.1.37 (registry+https://github.com/rust-lang/crates.io-index)",
- "traitobject 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "typeable 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "unicase 1.4.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "url 1.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
-]
-
-[[package]]
-name = "hyper"
 version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
@@ -477,16 +459,6 @@ dependencies = [
  "tokio-proto 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "tokio-service 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "unicase 2.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
-]
-
-[[package]]
-name = "hyper-rustls"
-version = "0.6.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-dependencies = [
- "hyper 0.10.12 (registry+https://github.com/rust-lang/crates.io-index)",
- "rustls 0.8.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "webpki-roots 0.10.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -588,7 +560,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 [[package]]
 name = "make_hyper_great_again"
 version = "0.11.0"
-source = "git+https://github.com/jkcclemens/make_hyper_great_again#6226fde42f2c52860c7e0bb190ae2a11a3f01188"
+source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "futures 0.1.14 (registry+https://github.com/rust-lang/crates.io-index)",
  "hyper 0.11.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -1287,11 +1259,6 @@ version = "0.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
-name = "traitobject"
-version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-
-[[package]]
 name = "typeable"
 version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1460,11 +1427,12 @@ dependencies = [
 [[package]]
 name = "xivdb"
 version = "0.1.0"
-source = "git+https://github.com/jkcclemens/xivdb-rs#5fb9d05d49dd4d80179352368b626e3798d3187e"
+source = "git+https://github.com/jkcclemens/xivdb-rs#8d71f461b005eba18ed1f92a1be47bd5765f44fd"
 dependencies = [
  "error-chain 0.10.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "hyper 0.10.12 (registry+https://github.com/rust-lang/crates.io-index)",
- "hyper-rustls 0.6.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "hyper 0.11.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "hyper-rustls 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "make_hyper_great_again 0.11.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde 1.0.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde_derive 1.0.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde_json 1.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -1519,10 +1487,8 @@ dependencies = [
 "checksum hpack 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)" = "3d2da7d3a34cf6406d9d700111b8eafafe9a251de41ae71d8052748259343b58"
 "checksum html5ever 0.5.4 (registry+https://github.com/rust-lang/crates.io-index)" = "fd04d31858b8fd8ac9d55570da8c822bc6defd2c1ac18a47cb70fc280f42b432"
 "checksum httparse 1.2.3 (registry+https://github.com/rust-lang/crates.io-index)" = "af2f2dd97457e8fb1ae7c5a420db346af389926e36f43768b96f101546b04a07"
-"checksum hyper 0.10.12 (registry+https://github.com/rust-lang/crates.io-index)" = "0f01e4a20f5dfa5278d7762b7bdb7cab96e24378b9eca3889fbd4b5e94dc7063"
 "checksum hyper 0.11.0 (registry+https://github.com/rust-lang/crates.io-index)" = "b8590f308416a428dca05ca67020283105344e94059fd2f02cc72e9c913c30fb"
 "checksum hyper 0.9.18 (registry+https://github.com/rust-lang/crates.io-index)" = "1b9bf64f730d6ee4b0528a5f0a316363da9d8104318731509d4ccc86248f82b3"
-"checksum hyper-rustls 0.6.0 (registry+https://github.com/rust-lang/crates.io-index)" = "63e0becf840528007fbdb40e5b54355ebc747a9fb1998ca21ef7e9dbb5eb78de"
 "checksum hyper-rustls 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)" = "1a2eeac64b555d68c67f471583c2ff625a20376d1ce1752b6363284bac8e7a38"
 "checksum idna 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)" = "2233d4940b1f19f0418c158509cd7396b8d70a5db5705ce410914dc8fa603b37"
 "checksum iovec 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)" = "29d062ee61fccdf25be172e70f34c9f6efc597e1fb8f6526e8437b2046ab26be"
@@ -1536,7 +1502,7 @@ dependencies = [
 "checksum libsodium-sys 0.0.12 (registry+https://github.com/rust-lang/crates.io-index)" = "44e9986c330611ccd26ea74e502c70e5ebab2874c4c23f2f5f3c5a6ed3fbfbc6"
 "checksum log 0.3.8 (registry+https://github.com/rust-lang/crates.io-index)" = "880f77541efa6e5cc74e76910c9884d9859683118839d6a1dc3b11e63512565b"
 "checksum mac 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)" = "c41e0c4fef86961ac6d6f8a82609f55f31b05e4fce149ac5710e439df7619ba4"
-"checksum make_hyper_great_again 0.11.0 (git+https://github.com/jkcclemens/make_hyper_great_again)" = "<none>"
+"checksum make_hyper_great_again 0.11.0 (registry+https://github.com/rust-lang/crates.io-index)" = "3b5902eb0e2527331364bc197fcbacd00c0ed80f457761763ded11bfc75436a2"
 "checksum matches 0.1.6 (registry+https://github.com/rust-lang/crates.io-index)" = "100aabe6b8ff4e4a7e32c1c13523379802df0772b82466207ac25b013f193376"
 "checksum memchr 1.0.1 (registry+https://github.com/rust-lang/crates.io-index)" = "1dbccc0e46f1ea47b9f17e6d67c5a96bd27030519c519c9c91327e31275a47b4"
 "checksum mime 0.2.6 (registry+https://github.com/rust-lang/crates.io-index)" = "ba626b8a6de5da682e1caa06bdb42a335aee5a84db8e5046a3e8ab17ba0a3ae0"
@@ -1617,7 +1583,6 @@ dependencies = [
 "checksum tokio-rustls 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)" = "1cc9132b84f5007e49caec4b10da287492917be4759cc22a0a506cac3ec6a626"
 "checksum tokio-service 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)" = "24da22d077e0f15f55162bdbdc661228c1581892f52074fb242678d015b45162"
 "checksum traitobject 0.0.1 (registry+https://github.com/rust-lang/crates.io-index)" = "07eaeb7689bb7fca7ce15628319635758eda769fed481ecfe6686ddef2600616"
-"checksum traitobject 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)" = "efd1f82c56340fdf16f2a953d7bda4f8fdffba13d93b00844c25572110b26079"
 "checksum typeable 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)" = "1410f6f91f21d1612654e7cc69193b0334f909dcf2c790c4826254fbb86f8887"
 "checksum unicase 1.4.2 (registry+https://github.com/rust-lang/crates.io-index)" = "7f4765f83163b74f957c797ad9253caf97f103fb064d3999aea9568d09fc8a33"
 "checksum unicase 2.0.0 (registry+https://github.com/rust-lang/crates.io-index)" = "2e01da42520092d0cd2d6ac3ae69eb21a22ad43ff195676b86f8c37f487d6b80"
