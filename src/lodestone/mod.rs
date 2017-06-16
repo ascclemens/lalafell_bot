@@ -1,19 +1,20 @@
 use error::*;
 
-use hyper::Client;
+use hyper::client::HttpConnector;
+use make_hyper_great_again::Client;
 
 use scraper::{Html, Selector};
 
 use std::io::Read;
 
 pub struct Lodestone {
-  client: Client
+  client: Client<HttpConnector>
 }
 
 impl Lodestone {
   pub fn new() -> Lodestone {
     Lodestone {
-      client: Client::new()
+      client: Client::new().unwrap()
     }
   }
 

@@ -12,6 +12,7 @@ extern crate chrono;
 extern crate log;
 extern crate fern;
 extern crate hyper;
+extern crate make_hyper_great_again;
 extern crate ansi_term;
 extern crate scraper;
 extern crate uuid;

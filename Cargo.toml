@@ -15,8 +15,9 @@ chrono = "0.3"
 log = "0.3"
 fern = "0.4"
 ansi_term = "0.9"
-hyper = "0.10"
-hyper-rustls = "0.6"
+hyper = "0.11"
+hyper-rustls = "0.7"
+make_hyper_great_again = { version = "0.11", git = "https://github.com/jkcclemens/make_hyper_great_again" }
 scraper = "0.4"
 uuid = { version = "0.5", features = ["v4"] }
 lazy_static = "0.2"

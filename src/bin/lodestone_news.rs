@@ -1,5 +1,6 @@
 extern crate hyper;
 extern crate hyper_rustls;
+extern crate make_hyper_great_again;
 #[macro_use]
 extern crate serde_derive;
 #[macro_use]
@@ -8,7 +9,7 @@ extern crate scraper;
 extern crate chrono;
 extern crate dotenv;
 
-use hyper::Client;
+use make_hyper_great_again::Client;
 
 use scraper::{Html, Selector};
 
@@ -22,7 +23,7 @@ use std::env;
 const NEWS_URL: &'static str = "http://na.finalfantasyxiv.com/lodestone/news/";
 
 struct NewsScraper {
-  client: Client,
+  client: Client<hyper_rustls::HttpsConnector>,
   database: NewsDatabase
 }
 
@@ -120,7 +121,7 @@ fn main() {
       });
       let res = scraper.client.post(&webhook_url)
         .header(hyper::header::ContentType::json())
-        .body(&data.to_string())
+        .body(data.to_string())
         .send();
       let mut data = match res {
         Ok(r) => r,
@@ -134,7 +135,7 @@ fn main() {
         println!("could not read webhook response: {}", e);
         continue;
       }
-      if data.status.class() != hyper::status::StatusClass::Success {
+      if data.status().is_success() {
         println!("discord says no to {}", item.title);
         println!("{}", content);
       } else {
@@ -169,7 +170,7 @@ impl NewsDatabase {
 impl NewsScraper {
   fn new(database: NewsDatabase) -> Self {
     NewsScraper {
-      client: Client::with_connector(hyper::net::HttpsConnector::new(hyper_rustls::TlsClient::new())),
+      client: Client::create_connector(|c| hyper_rustls::HttpsConnector::new(4, &c.handle())).unwrap(),
       database: database
     }
   }
