@@ -51,7 +51,7 @@ impl<'a> PublicChannelCommand<'a> for AutoTagCommand {
     let ff_server = params[0];
     let name = params[1..].join(" ");
 
-    match Tagger::search_tag(self.bot.clone(), message.author.id, server, ff_server, &name, false)? {
+    match Tagger::search_tag(self.bot.as_ref(), message.author.id, server, ff_server, &name, false)? {
       Some(error) => Err(ExternalCommandFailure::default()
         .message(move |e: EmbedBuilder| e.description(&error))
         .wrap()),

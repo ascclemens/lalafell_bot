@@ -8,7 +8,7 @@ pub mod verify;
 pub mod reference_count;
 pub mod timeout;
 
-pub use self::tag::{TagCommand, AutoTagCommand, UpdateTagsCommand};
+pub use self::tag::{TagCommand, AutoTagCommand, UpdateTagsCommand, UpdateTagCommand};
 pub use self::polling::{PollCommand, PollResultsCommand};
 pub use self::timeout::{TimeoutCommand, UntimeoutCommand};
 

@@ -70,7 +70,7 @@ impl<'a> PublicChannelCommand<'a> for TagCommand {
     let ff_server = params[1];
     let name = params[2..].join(" ");
 
-    match Tagger::search_tag(self.bot.clone(), who, server, ff_server, &name, can_manage_roles)? {
+    match Tagger::search_tag(self.bot.as_ref(), who, server, ff_server, &name, can_manage_roles)? {
       Some(error) => Err(ExternalCommandFailure::default()
         .message(move |e: EmbedBuilder| e.description(&error))
         .wrap()),

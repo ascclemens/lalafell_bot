@@ -1,10 +1,12 @@
 pub mod tag_command;
 pub mod autotag;
 pub mod update_tags;
+pub mod update_tag;
 
 pub use self::tag_command::TagCommand;
 pub use self::autotag::AutoTagCommand;
 pub use self::update_tags::UpdateTagsCommand;
+pub use self::update_tag::UpdateTagCommand;
 
 use bot::LalafellBot;
 use database::AutotagUser;
@@ -16,7 +18,7 @@ use discord::model::{UserId, LiveServer, Role, RoleId};
 
 use serde_json;
 
-use std::sync::{Arc, Mutex};
+use std::sync::Mutex;
 use std::collections::HashSet;
 
 lazy_static! {
@@ -27,7 +29,7 @@ lazy_static! {
 pub struct Tagger;
 
 impl Tagger {
-  pub fn search_tag(bot: Arc<LalafellBot>, who: UserId, on: &LiveServer, server: &str, character_name: &str, ignore_verified: bool) -> Result<Option<String>> {
+  pub fn search_tag(bot: &LalafellBot, who: UserId, on: &LiveServer, server: &str, character_name: &str, ignore_verified: bool) -> Result<Option<String>> {
     let params = &[
       ("one", "characters"),
       ("strict", "on"),
@@ -70,7 +72,7 @@ impl Tagger {
     Ok(())
   }
 
-  pub fn tag(bot: Arc<LalafellBot>, who: UserId, on: &LiveServer, char_id: u64, ignore_verified: bool) -> Result<Option<String>> {
+  pub fn tag(bot: &LalafellBot, who: UserId, on: &LiveServer, char_id: u64, ignore_verified: bool) -> Result<Option<String>> {
     let is_verified = match bot.database.read().unwrap().autotags.users.iter().find(|u| u.user_id == who.0 && u.server_id == on.id.0) {
       Some(u) => {
         if u.verification.verified && !ignore_verified && char_id != u.character_id {

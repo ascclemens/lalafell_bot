@@ -1,7 +1,10 @@
 use bot::LalafellBot;
 use tasks::RunsTask;
 use commands::tag::Tagger;
-use discord::model::UserId;
+use error::*;
+
+use discord::State;
+use discord::model::{UserId, ServerId};
 use chrono::prelude::*;
 use chrono::Duration;
 
@@ -19,6 +22,14 @@ impl AutoTagTask {
     }
   }
 
+  pub fn update_tag(s: &LalafellBot, state: &State, user: UserId, server: ServerId, character: u64) -> Result<Option<String>> {
+    let server = match state.servers().iter().find(|s| s.id.0 == server.0) {
+      Some(ser) => ser,
+      None => return Ok(Some(format!("Couldn't find server for user ID {}", user.0)))
+    };
+    Tagger::tag(s, user, server, character, false)
+  }
+
   pub fn run_once(&mut self, s: Arc<LalafellBot>) {
     thread::sleep(Duration::seconds(self.next_sleep).to_std().unwrap());
     info!("Autotag task running");
@@ -32,9 +43,9 @@ impl AutoTagTask {
       return;
     }
     info!("Time to update autotags");
-    let users: Vec<(u64, u64, u64)> = {
+    let users: Vec<(UserId, ServerId, u64)> = {
       let database = s.database.read().unwrap();
-      database.autotags.users.iter().map(|u| (u.user_id, u.server_id, u.character_id)).collect()
+      database.autotags.users.iter().map(|u| (UserId(u.user_id), ServerId(u.server_id), u.character_id)).collect()
     };
     {
       let option_state = s.state.read().unwrap();
@@ -47,14 +58,7 @@ impl AutoTagTask {
         }
       };
       for (user_id, server_id, character_id) in users {
-        let server = match state.servers().iter().find(|s| s.id.0 == server_id) {
-          Some(ser) => ser,
-          None => {
-            warn!("Couldn't find server for user ID {}", user_id);
-            continue;
-          }
-        };
-        if let Err(e) = Tagger::tag(s.clone(), UserId(user_id), server, character_id, false) {
+        if let Err(e) = AutoTagTask::update_tag(s.as_ref(), &state, user_id, server_id, character_id) {
           warn!("Couldn't update tag for user ID {}: {}", user_id, e);
         }
       }
