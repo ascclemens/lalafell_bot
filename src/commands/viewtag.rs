@@ -54,7 +54,6 @@ impl<'a> PublicChannelCommand<'a> for ViewTagCommand {
       Some(u) => format!("{} is {} on {}.", who.mention(), u.character, u.server),
       None => format!("{} is not tagged.", who.mention())
     };
-    Ok(CommandSuccess::default()
-      .message(move |e: EmbedBuilder| e.description(&msg)))
+    Ok(msg.into())
   }
 }

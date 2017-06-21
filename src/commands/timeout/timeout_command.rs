@@ -104,10 +104,7 @@ impl<'a> PublicChannelCommand<'a> for TimeoutCommand {
       let state = state_option.as_ref().unwrap();
       let live_server = match state.servers().iter().find(|s| s.id == server_id) {
         Some(s) => s,
-        None => return Err(ExternalCommandFailure::default()
-          .message(|e: EmbedBuilder| e
-            .description("Could not find the server in the bot state. This is a bug."))
-          .wrap())
+        None => return Err("Could not find the server in the bot state. This is a bug.".into())
       };
 
       match timeout::set_up_timeouts(self.bot.as_ref(), live_server) {
@@ -119,28 +116,19 @@ impl<'a> PublicChannelCommand<'a> for TimeoutCommand {
         },
         Err(e) => {
           warn!("could not set up timeouts for {}: {}", live_server.id.0, e);
-          return Err(ExternalCommandFailure::default()
-            .message(|e: EmbedBuilder| e
-              .description("Could not set up timeouts for this server. Do I have enough permissions?"))
-            .wrap());
+          return Err("Could not set up timeouts for this server. Do I have enough permissions?".into());
         }
       }
     };
 
     let duration = match TimeoutCommand::parse_duration(&params[1..].to_vec().into_iter().collect::<String>()) {
       Ok(d) => d,
-      Err(_) => return Err(ExternalCommandFailure::default()
-        .message(|e: EmbedBuilder| e
-          .description("Invalid time length. Try \"15m\" or \"3 hours\" for example."))
-        .wrap())
+      Err(_) => return Err("Invalid time length. Try \"15m\" or \"3 hours\" for example.".into())
     };
 
     let mut database = self.bot.database.write().unwrap();
     if database.timeouts.iter().any(|u| u.user_id == who.0 && u.server_id == server_id.0) {
-      return Err(ExternalCommandFailure::default()
-        .message(move |e: EmbedBuilder| e
-          .description(&format!("{} is already timed out.", who.mention())))
-        .wrap());
+      return Err(format!("{} is already timed out.", who.mention()).into());
     }
 
     let timeout_user = TimeoutUser::new(server_id.0, who.0, role_id.0, duration as i64, UTC::now().timestamp());

@@ -49,9 +49,7 @@ impl<'a, T> Command<'a> for T
     let channel = self.bot().discord.get_channel(message.channel_id).chain_err(|| "could not get channel for message")?;
     let public_channel = match channel {
       Channel::Public(c) => c,
-      _ => return Err(ExternalCommandFailure::default()
-        .message(|e: EmbedBuilder| e.description("This command must be run in a public channel."))
-        .wrap())
+      _ => return Err("This command must be run in a public channel.".into())
     };
     self.run(message, &public_channel, params)
   }
@@ -68,6 +66,16 @@ impl<'a> CommandSuccess<'a> {
   {
     self.message = Some(box message);
     self
+  }
+}
+
+impl<'a, T> From<T> for CommandSuccess<'a>
+  where T: AsRef<str>
+{
+  fn from(message: T) -> Self {
+    let message = message.as_ref().to_string();
+    CommandSuccess::default()
+      .message(move |e: EmbedBuilder| e.description(&message))
   }
 }
 
@@ -91,6 +99,17 @@ impl<'a> ExternalCommandFailure<'a> {
 
   pub fn wrap(self) -> CommandFailure<'a> {
     CommandFailure::External(self)
+  }
+}
+
+impl<'a, T> From<T> for CommandFailure<'a>
+  where T: AsRef<str>
+{
+  fn from(message: T) -> Self {
+    let message = message.as_ref().to_string();
+    ExternalCommandFailure::default()
+      .message(move |e: EmbedBuilder| e.description(&message))
+      .wrap()
   }
 }
 

@@ -35,7 +35,6 @@ impl<'a> Command<'a> for UpdateTagsCommand {
       database.autotags.last_updated = 0;
     }
     ::std::thread::spawn(move || task.run_once(thread_bot));
-    Ok(CommandSuccess::default()
-      .message(|e: EmbedBuilder| e.description("Task started.")))
+    Ok("Task started.".into())
   }
 }

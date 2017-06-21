@@ -58,7 +58,7 @@ impl AutoTagTask {
         }
       };
       for (user_id, server_id, character_id) in users {
-        if let Err(e) = AutoTagTask::update_tag(s.as_ref(), &state, user_id, server_id, character_id) {
+        if let Err(e) = AutoTagTask::update_tag(s.as_ref(), state, user_id, server_id, character_id) {
           warn!("Couldn't update tag for user ID {}: {}", user_id, e);
         }
       }

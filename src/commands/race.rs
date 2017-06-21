@@ -46,19 +46,12 @@ impl<'a> Command<'a> for RaceCommand {
       }
     };
     if search_chars.is_empty() {
-      return Err(ExternalCommandFailure::default()
-        .message(move |e: EmbedBuilder| e
-          .description(&format!("Could not find any character by the name {}.", name)))
-        .wrap());
+      return Err(format!("Could not find any character by the name {}.", name).into());
     }
     let character = self.bot.xivdb.character(search_chars[0]["id"].as_u64().unwrap()).unwrap();
     if character.name.to_lowercase() != name.to_lowercase() {
-      return Err(ExternalCommandFailure::default()
-        .message(move |e: EmbedBuilder| e
-          .description(&format!("Could not find any character by the name {}.", name)))
-        .wrap());
+      return Err(format!("Could not find any character by the name {}.", name).into());
     }
-    Ok(CommandSuccess::default()
-      .message(move |e: EmbedBuilder| e.description(&format!("{} ({})", character.data.race, character.data.clan))))
+    Ok(format!("{} ({})", character.data.race, character.data.clan).into())
   }
 }

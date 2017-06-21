@@ -142,12 +142,12 @@ impl Tagger {
     // Find or create the necessary roles
     let mut created_roles = Vec::new();
     let mut add_roles = Vec::new();
-    Tagger::find_or_create_role(&bot, on, &character.data.race, &mut add_roles, &mut created_roles)?;
-    Tagger::find_or_create_role(&bot, on, &character.data.gender, &mut add_roles, &mut created_roles)?;
-    Tagger::find_or_create_role(&bot, on, &character.server, &mut add_roles, &mut created_roles)?;
+    Tagger::find_or_create_role(bot, on, &character.data.race, &mut add_roles, &mut created_roles)?;
+    Tagger::find_or_create_role(bot, on, &character.data.gender, &mut add_roles, &mut created_roles)?;
+    Tagger::find_or_create_role(bot, on, &character.server, &mut add_roles, &mut created_roles)?;
 
     if is_verified {
-      Tagger::find_or_create_role(&bot, on, "verified", &mut add_roles, &mut created_roles)?;
+      Tagger::find_or_create_role(bot, on, "verified", &mut add_roles, &mut created_roles)?;
     }
 
     // If we created any roles, the server may or may not update with them fast enough, so store a copy in the limbo

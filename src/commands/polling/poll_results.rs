@@ -70,24 +70,15 @@ impl<'a> Command<'a> for PollResultsCommand {
     };
     let channel_id = match channel.parse::<u64>() {
       Ok(u) => ChannelId(u),
-      Err(_) => return Err(ExternalCommandFailure::default()
-        .message(|e: EmbedBuilder| e
-          .description("Invalid channel."))
-        .wrap())
+      Err(_) => return Err("Invalid channel.".into())
     };
     let message_id = match params[1].parse::<u64>() {
       Ok(u) => MessageId(u),
-      Err(_) => return Err(ExternalCommandFailure::default()
-        .message(|e: EmbedBuilder| e
-          .description("Invalid message ID."))
-        .wrap())
+      Err(_) => return Err("Invalid message ID.".into())
     };
     let message = match self.bot.discord.get_message(channel_id, message_id) {
       Ok(m) => m,
-      Err(_) => return Err(ExternalCommandFailure::default()
-        .message(|e: EmbedBuilder| e
-          .description("Could not get that message."))
-        .wrap())
+      Err(_) => return Err("Could not get that message.".into())
     };
     let mut reactions: Vec<(&String, u64)> = message.reactions.iter()
       .map(|r| match r.emoji {
@@ -102,7 +93,6 @@ impl<'a> Command<'a> for PollResultsCommand {
       .map(|&(emoji, count)| format!("{} with {} vote{}", emoji, count, if count == 1 { "" } else { "s" }))
       .collect::<Vec<_>>()
       .join("\n");
-    Ok(CommandSuccess::default()
-      .message(move |e: EmbedBuilder| e.description(&votes)))
+    Ok(votes.into())
   }
 }

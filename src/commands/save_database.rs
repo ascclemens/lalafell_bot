@@ -32,7 +32,6 @@ impl<'a> Command<'a> for SaveDatabaseCommand {
         error!("Error saving database: {}", e);
       }
     });
-    Ok(CommandSuccess::default()
-      .message(|e: EmbedBuilder| e.description("Task started.")))
+    Ok("Task started.".into())
   }
 }

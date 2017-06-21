@@ -39,9 +39,7 @@ impl<'a> PublicChannelCommand<'a> for VerifyCommand {
         .wrap())
     };
     if user.verification.verified {
-      return Err(ExternalCommandFailure::default()
-        .message(|e: EmbedBuilder| e.description("You are already verified."))
-        .wrap());
+      return Err("You are already verified.".into());
     }
     let verification_string = match user.verification.verification_string {
       Some(ref v) => v,

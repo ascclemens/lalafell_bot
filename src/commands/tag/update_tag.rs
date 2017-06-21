@@ -2,7 +2,6 @@ use bot::LalafellBot;
 use commands::*;
 use tasks::AutoTagTask;
 
-use discord::builders::EmbedBuilder;
 use discord::model::{PublicChannel, UserId, ServerId};
 
 use std::sync::Arc;
@@ -35,24 +34,17 @@ impl<'a> PublicChannelCommand<'a> for UpdateTagCommand {
     };
     let (user_id, server_id, character_id) = match user {
       Some(u) => u,
-      None => return Err(ExternalCommandFailure::default()
-        .message(|e: EmbedBuilder| e
-          .description("You are not set up with a tag. Use `!autotag` to tag yoruself."))
-        .wrap())
+      None => return Err("You are not set up with a tag. Use `!autotag` to tag yourself.".into())
     };
     let option_state = self.bot.state.read().unwrap();
     let state = match option_state.as_ref() {
       Some(st) => st,
-      None => return Err(ExternalCommandFailure::default()
-                .message(|e: EmbedBuilder| e.description("I'm not fully synced with Discord! Please try again later."))
-                .wrap())
+      None => return Err("I'm not fully synced with Discord! Please try again later.".into())
     };
-    match AutoTagTask::update_tag(self.bot.as_ref(), &state, user_id, server_id, character_id) {
-      Ok(Some(err)) => return Err(ExternalCommandFailure::default()
-        .message(move |e: EmbedBuilder| e.description(&err))
-        .wrap()),
-      Err(e) => return Err(e.into()),
-      Ok(None) => return Ok(CommandSuccess::default())
+    match AutoTagTask::update_tag(self.bot.as_ref(), state, user_id, server_id, character_id) {
+      Ok(Some(err)) => Err(err.into()),
+      Err(e) => Err(e.into()),
+      Ok(None) => Ok(CommandSuccess::default())
     }
   }
 }

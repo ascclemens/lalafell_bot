@@ -71,10 +71,7 @@ impl<'a> PublicChannelCommand<'a> for UntimeoutCommand {
     let mut database = self.bot.database.write().unwrap();
     let timeout = match database.timeouts.iter().position(|u| u.user_id == who.0 && u.server_id == server_id.0) {
       Some(i) => database.timeouts.remove(i),
-      None => return Err(ExternalCommandFailure::default()
-        .message(move |e: EmbedBuilder| e
-          .description(&format!("{} is not timed out.", who.mention())))
-        .wrap())
+      None => return Err(format!("{} is not timed out.", who.mention()).into())
     };
 
     self.bot.discord.remove_user_from_role(server_id, who, RoleId(timeout.role_id)).chain_err(|| "could not remove timeout role")?;

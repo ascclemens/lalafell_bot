@@ -44,18 +44,12 @@ impl<'a> Command<'a> for PollCommand {
         .wrap());
     }
     if options.len() > 9 {
-      return Err(ExternalCommandFailure::default()
-        .message(|e: EmbedBuilder| e
-          .description("No more than nine poll options can be specified."))
-        .wrap());
+      return Err("No more than nine poll options can be specified.".into());
     }
     let message = params.join(" ");
     let channel = match self.bot.discord.get_channel(msg.channel_id) {
       Ok(Channel::Public(c)) => c,
-      _ => return Err(ExternalCommandFailure::default()
-        .message(|e: EmbedBuilder| e
-          .description("This command must be used in a public channel."))
-        .wrap())
+      _ => return Err("This command must be used in a public channel.".into())
     };
     self.bot.discord.delete_message(msg.channel_id, msg.id).chain_err(|| "could not delete original message")?;
     let name = self.nick_or_name(channel.server_id, msg.author.id).unwrap_or_else(|| "someone".into());
