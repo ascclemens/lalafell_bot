@@ -91,6 +91,6 @@ impl TimeoutUser {
   }
 
   pub fn ends(&self) -> i64 {
-    (UTC.timestamp(self.start, 0) + Duration::seconds(self.seconds)).timestamp()
+    (Utc.timestamp(self.start, 0) + Duration::seconds(self.seconds)).timestamp()
   }
 }

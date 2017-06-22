@@ -25,7 +25,7 @@ impl RunsTask for TimeoutCheckTask {
     loop {
       thread::sleep(Duration::seconds(self.next_sleep).to_std().unwrap());
       let mut database = s.database.write().unwrap();
-      let now = UTC::now().timestamp();
+      let now = Utc::now().timestamp();
       database.timeouts.retain(|t| {
         if t.ends() >= now {
           return true;

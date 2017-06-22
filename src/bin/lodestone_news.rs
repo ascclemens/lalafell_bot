@@ -13,7 +13,7 @@ use make_hyper_great_again::Client;
 
 use scraper::{Html, Selector};
 
-use chrono::{UTC, TimeZone};
+use chrono::{Utc, TimeZone};
 
 use std::collections::HashMap;
 use std::fs::{File, OpenOptions};
@@ -90,7 +90,7 @@ fn main() {
     if !scraper.database.items.contains_key(&id) {
       let mut embed = json!({
         "type": "rich",
-        "timestamp": UTC.timestamp(item.time, 0).to_rfc3339(),
+        "timestamp": Utc.timestamp(item.time, 0).to_rfc3339(),
         "fields": [
           {
             "name": "Title",

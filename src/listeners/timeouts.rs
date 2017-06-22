@@ -31,7 +31,7 @@ impl Timeouts {
       }
     };
 
-    if ends < UTC::now().timestamp() {
+    if ends < Utc::now().timestamp() {
       let mut database = self.bot.database.write().unwrap();
       let index = match database.timeouts.iter().position(|t| t.user_id == message.author.id.0 && t.server_id == channel.server_id.0) {
         Some(i) => i,

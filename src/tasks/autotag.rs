@@ -35,7 +35,7 @@ impl AutoTagTask {
     info!("Autotag task running");
     let time_to_update = {
       let database = s.database.read().unwrap();
-      database.autotags.last_updated + Duration::hours(12).num_seconds() < UTC::now().timestamp()
+      database.autotags.last_updated + Duration::hours(12).num_seconds() < Utc::now().timestamp()
     };
     if !time_to_update {
       info!("Not yet time to update, sleeping 30 minutes");
@@ -65,7 +65,7 @@ impl AutoTagTask {
     }
     {
       let mut database = s.database.write().unwrap();
-      database.autotags.last_updated = UTC::now().timestamp();
+      database.autotags.last_updated = Utc::now().timestamp();
     };
     info!("Done updating autotags");
   }

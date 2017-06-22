@@ -131,7 +131,7 @@ impl<'a> PublicChannelCommand<'a> for TimeoutCommand {
       return Err(format!("{} is already timed out.", who.mention()).into());
     }
 
-    let timeout_user = TimeoutUser::new(server_id.0, who.0, role_id.0, duration as i64, UTC::now().timestamp());
+    let timeout_user = TimeoutUser::new(server_id.0, who.0, role_id.0, duration as i64, Utc::now().timestamp());
     database.timeouts.push(timeout_user);
     Ok(CommandSuccess::default())
   }

@@ -25,7 +25,7 @@ impl RunsTask for DatabaseSaveTask {
       info!("Database save task running");
       let time_to_update = {
         let database = s.database.read().unwrap();
-        database.last_saved + Duration::hours(1).num_seconds() < UTC::now().timestamp()
+        database.last_saved + Duration::hours(1).num_seconds() < Utc::now().timestamp()
       };
       if !time_to_update {
         info!("Not yet time to save database. Sleeping for five minutes.");
@@ -37,7 +37,7 @@ impl RunsTask for DatabaseSaveTask {
       }
       {
         let mut database = s.database.write().unwrap();
-        database.last_saved = UTC::now().timestamp();
+        database.last_saved = Utc::now().timestamp();
       }
       info!("Database save task done");
     }

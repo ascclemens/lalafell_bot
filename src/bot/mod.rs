@@ -42,7 +42,7 @@ impl LalafellBot {
   pub fn new(environment: Environment, config: Config) -> Result<LalafellBot> {
     let discord = Discord::from_bot_token(&environment.discord_bot_token).chain_err(|| "could not start discord from bot token")?;
     let mut database = LalafellBot::load_database(&environment.database_location)?;
-    database.last_saved = UTC::now().timestamp();
+    database.last_saved = Utc::now().timestamp();
     Ok(LalafellBot {
       environment: environment,
       config: config,

@@ -37,7 +37,7 @@ impl RunsTask for DeleteAllMessagesTask {
         if self.config.except.contains(&message.id.0) {
           continue;
         }
-        if message.timestamp.with_timezone(&UTC) + Duration::seconds(self.config.after) > UTC::now() {
+        if message.timestamp.with_timezone(&Utc) + Duration::seconds(self.config.after) > Utc::now() {
           continue;
         }
         to_delete.push(message);
