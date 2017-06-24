@@ -16,20 +16,31 @@ pub fn listeners(bot: Arc<LalafellBot>) -> Result<()> {
   Ok(())
 }
 
+macro_rules! command_listener {
+  (bot => $bot:expr, $($($alias:expr),+ => $name:ident),+) => {{
+    let mut command_listener = CommandListener::new($bot.clone());
+    $(
+      command_listener.add_command(&[$($alias),*], box $name::new($bot.clone()));
+    )*
+    command_listener
+  }}
+}
+
 fn command_listener<'a>(bot: Arc<LalafellBot>) -> CommandListener<'a> {
-  let mut command_listener = CommandListener::new(bot.clone());
-  command_listener.add_command(&["race"], box RaceCommand::new(bot.clone()));
-  command_listener.add_command(&["tag"], box TagCommand::new(bot.clone()));
-  command_listener.add_command(&["autotag"], box AutoTagCommand::new(bot.clone()));
-  command_listener.add_command(&["viewtag"], box ViewTagCommand::new(bot.clone()));
-  command_listener.add_command(&["updatetags"], box UpdateTagsCommand::new(bot.clone()));
-  command_listener.add_command(&["updatetag"], box UpdateTagCommand::new(bot.clone()));
-  command_listener.add_command(&["savedatabase"], box SaveDatabaseCommand::new(bot.clone()));
-  command_listener.add_command(&["verify"], box VerifyCommand::new(bot.clone()));
-  command_listener.add_command(&["referencecount"], box ReferenceCountCommand::new(bot.clone()));
-  command_listener.add_command(&["poll"], box PollCommand::new(bot.clone()));
-  command_listener.add_command(&["pollresults"], box PollResultsCommand::new(bot.clone()));
-  command_listener.add_command(&["timeout"], box TimeoutCommand::new(bot.clone()));
-  command_listener.add_command(&["untimeout"], box UntimeoutCommand::new(bot.clone()));
-  command_listener
+  command_listener! {
+    bot => bot,
+    "race" => RaceCommand,
+    "tag" => TagCommand,
+    "autotag" => AutoTagCommand,
+    "viewtag" => ViewTagCommand,
+    "updatetags" => UpdateTagsCommand,
+    "updatetag" => UpdateTagCommand,
+    "savedatabase" => SaveDatabaseCommand,
+    "verify" => VerifyCommand,
+    "referencecount" => ReferenceCountCommand,
+    "poll" => PollCommand,
+    "pollresults" => PollResultsCommand,
+    "timeout" => TimeoutCommand,
+    "untimeout" => UntimeoutCommand
+  }
 }
