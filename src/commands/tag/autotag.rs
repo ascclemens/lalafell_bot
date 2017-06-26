@@ -27,20 +27,23 @@ impl HasBot for AutoTagCommand {
   }
 }
 
+#[derive(Debug, Deserialize)]
+pub struct Params {
+  server: String,
+  character_name: (String, String)
+}
+
+impl HasParams for AutoTagCommand {
+  type Params = Params;
+}
+
 impl<'a> PublicChannelCommand<'a> for AutoTagCommand {
   fn run(&self, message: &Message, server: &LiveServer, _: &PublicChannel, params: &[&str]) -> CommandResult<'a> {
-    if params.len() < 3 {
-      return Err(ExternalCommandFailure::default()
-        .message(|e: EmbedBuilder| e
-          .title("Not enough parameters.")
-          .description(USAGE))
-        .wrap());
-    }
+    let params = self.params(USAGE, params)?;
+    let ff_server = params.server;
+    let name = params.character_name.0 + " " + &params.character_name.1;
 
-    let ff_server = params[0];
-    let name = params[1..].join(" ");
-
-    match Tagger::search_tag(self.bot.as_ref(), message.author.id, server, ff_server, &name, false)? {
+    match Tagger::search_tag(self.bot.as_ref(), message.author.id, server, &ff_server, &name, false)? {
       Some(error) => Err(ExternalCommandFailure::default()
         .message(move |e: EmbedBuilder| e.description(&error))
         .wrap()),

@@ -26,17 +26,20 @@ impl HasBot for ViewTagCommand {
   }
 }
 
+#[derive(Debug, Deserialize)]
+pub struct Params {
+  who: String
+}
+
+impl HasParams for ViewTagCommand {
+  type Params = Params;
+}
+
 impl<'a> PublicChannelCommand<'a> for ViewTagCommand {
   fn run(&self, message: &Message, _: &LiveServer, channel: &PublicChannel, params: &[&str]) -> CommandResult<'a> {
-    if params.is_empty() {
-      return Err(ExternalCommandFailure::default()
-        .message(|e: EmbedBuilder| e
-          .title("Not enough parameters.")
-          .description(USAGE))
-        .wrap());
-    }
+    let params = self.params(USAGE, params)?;
     let server_id = channel.server_id;
-    let who = params[0];
+    let who = params.who;
     let who = if !who.starts_with("<@") && !who.ends_with('>') && message.mentions.len() != 1 {
       who.parse::<u64>().map(UserId).map_err(|_| ExternalCommandFailure::default()
         .message(|e: EmbedBuilder| e

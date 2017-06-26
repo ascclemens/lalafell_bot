@@ -27,6 +27,8 @@ use error::{self, ResultExt};
 use discord::model::{Message, LiveServer, Channel, PublicChannel};
 use discord::builders::EmbedBuilder;
 
+use serde::de::DeserializeOwned;
+
 use std::boxed::FnBox;
 use std::sync::Arc;
 
@@ -42,6 +44,26 @@ pub trait PublicChannelCommand<'a> {
 
 pub trait HasBot {
   fn bot(&self) -> Arc<LalafellBot>;
+}
+
+pub trait HasParams {
+  type Params: DeserializeOwned;
+
+  fn params<'a>(&self, usage: &str, params: &[&str]) -> Result<Self::Params, CommandFailure<'a>> {
+    let string = params.join(" ");
+    match params::from_str(&string) {
+      Ok(p) => Ok(p),
+      Err(::commands::params::error::Error::MissingParams) => {
+        let usage = usage.to_owned();
+        Err(ExternalCommandFailure::default()
+        .message(move |e: EmbedBuilder| e
+          .title("Not enough parameters.")
+          .description(&usage))
+        .wrap())
+      },
+      Err(e) => Err(e).chain_err(|| "could not parse params")?
+    }
+  }
 }
 
 impl<'a, T> Command<'a> for T

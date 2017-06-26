@@ -59,8 +59,19 @@ impl HasBot for TimeoutCommand {
   }
 }
 
+#[derive(Debug, Deserialize)]
+pub struct Params {
+  who: String,
+  length: Vec<String>
+}
+
+impl HasParams for TimeoutCommand {
+  type Params = Params;
+}
+
 impl<'a> PublicChannelCommand<'a> for TimeoutCommand {
   fn run(&self, message: &Message, server: &LiveServer, channel: &PublicChannel, params: &[&str]) -> CommandResult<'a> {
+    let params = self.params(USAGE, params)?;
     let can_manage_roles = server.permissions_for(channel.id, message.author.id).contains(permissions::MANAGE_ROLES);
     if !can_manage_roles {
       return Err(ExternalCommandFailure::default()
@@ -70,15 +81,8 @@ impl<'a> PublicChannelCommand<'a> for TimeoutCommand {
         .wrap());
     }
 
-    if params.len() < 2 {
-      return Err(ExternalCommandFailure::default()
-        .message(|e: EmbedBuilder| e
-          .title("Not enough parameters.")
-          .description(USAGE))
-        .wrap());
-    }
     let server_id = channel.server_id;
-    let who = params[0];
+    let who = params.who;
     let who = if !who.starts_with("<@") && !who.ends_with('>') && message.mentions.len() != 1 {
       who.parse::<u64>().map(UserId).map_err(|_| ExternalCommandFailure::default()
         .message(|e: EmbedBuilder| e
@@ -111,7 +115,7 @@ impl<'a> PublicChannelCommand<'a> for TimeoutCommand {
       }
     };
 
-    let duration = match TimeoutCommand::parse_duration(&params[1..].to_vec().into_iter().collect::<String>()) {
+    let duration = match TimeoutCommand::parse_duration(&params.length.into_iter().collect::<String>()) {
       Ok(d) => d,
       Err(_) => return Err("Invalid time length. Try \"15m\" or \"3 hours\" for example.".into())
     };

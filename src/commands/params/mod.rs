@@ -1,4 +1,4 @@
-mod error;
+pub mod error;
 #[cfg(test)]
 mod test;
 
@@ -24,7 +24,7 @@ macro_rules! forward_parsed_values {
   }
 }
 
-type Result<T> = StdResult<T, Error>;
+pub type Result<T> = StdResult<T, Error>;
 
 struct Deserializer<'de> {
   parts: Vec<&'de str>,

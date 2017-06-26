@@ -1,8 +1,6 @@
 use bot::LalafellBot;
 use commands::*;
 
-use discord::builders::EmbedBuilder;
-
 use error::*;
 
 use std::sync::Arc;
@@ -21,21 +19,25 @@ impl RaceCommand {
   }
 }
 
+#[derive(Debug, Deserialize)]
+pub struct Params {
+  server: String,
+  name: (String, String)
+}
+
+impl HasParams for RaceCommand {
+  type Params = Params;
+}
+
 impl<'a> Command<'a> for RaceCommand {
   fn run(&self, _: &Message, params: &[&str]) -> CommandResult<'a> {
-    if params.len() < 3 {
-      return Err(ExternalCommandFailure::default()
-        .message(|e: EmbedBuilder| e
-          .title("Not enough parameters.")
-          .description(USAGE))
-        .wrap());
-    }
-    let server = params[0];
-    let name = params[1..].join(" ");
+    let params = self.params(USAGE, params)?;
+    let server = params.server;
+    let name = params.name.0 + " " + &params.name.1;
     let params = &[
       ("one", "characters"),
       ("strict", "on"),
-      ("server|et", server)
+      ("server|et", &server)
     ];
     let res = self.bot.xivdb.search(&name, params).chain_err(|| "could not search XIVDB")?;
     let search_chars = match res.characters {

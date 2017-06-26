@@ -24,9 +24,19 @@ impl HasBot for UpdateTagCommand {
   }
 }
 
+#[derive(Debug, Deserialize)]
+pub struct Params {
+  who: Option<String>
+}
+
+impl HasParams for UpdateTagCommand {
+  type Params = Params;
+}
+
 impl<'a> PublicChannelCommand<'a> for UpdateTagCommand {
   fn run(&self, message: &Message, server: &LiveServer, channel: &PublicChannel, params: &[&str]) -> CommandResult<'a> {
-    let id = if !params.is_empty() {
+    let params = self.params("", params)?;
+    let id = if let Some(who) = params.who {
       let can_manage_roles = server.permissions_for(channel.id, message.author.id).contains(permissions::MANAGE_ROLES);
       if !can_manage_roles {
         return Err(ExternalCommandFailure::default()
@@ -35,7 +45,6 @@ impl<'a> PublicChannelCommand<'a> for UpdateTagCommand {
             .description("You don't have enough permissions to update other people's tags."))
           .wrap());
       }
-      let who = params[0];
       let who = if !who.starts_with("<@") && !who.ends_with('>') && message.mentions.len() != 1 {
         who.parse::<u64>().map(UserId).map_err(|_| ExternalCommandFailure::default()
           .message(|e: EmbedBuilder| e
