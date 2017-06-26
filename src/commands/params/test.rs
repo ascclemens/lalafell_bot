@@ -60,3 +60,15 @@ fn parse_slice() {
   };
   assert_eq!(expected, params);
 }
+
+#[test]
+fn parse_empty_vec() {
+  #[derive(Debug, Deserialize, PartialEq)]
+  struct VecParams {
+    first: String,
+    empty: Vec<String>
+  }
+  let params: VecParams = super::from_str("first").unwrap();
+  let expected = VecParams { first: "first".to_string(), empty: Vec::default() };
+  assert_eq!(expected, params);
+}

@@ -95,10 +95,6 @@ impl<'de, 'a> de::Deserializer<'de> for &'a mut Deserializer<'de> {
   fn deserialize_seq<V>(self, visitor: V) -> Result<V::Value>
     where V: de::Visitor<'de>
   {
-    if self.parts.is_empty() {
-      return Err(Error::MissingParams);
-    }
-
     SeqDeserializer::new(self.parts.drain(..)).deserialize_seq(visitor)
   }
 
