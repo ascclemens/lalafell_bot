@@ -1,8 +1,7 @@
 use bot::LalafellBot;
 use commands::*;
 
-use discord::builders::EmbedBuilder;
-use discord::model::{LiveServer, PublicChannel, UserId};
+use discord::model::{LiveServer, PublicChannel};
 
 use std::sync::Arc;
 
@@ -28,7 +27,7 @@ impl HasBot for ViewTagCommand {
 
 #[derive(Debug, Deserialize)]
 pub struct Params {
-  who: String
+  who: MentionOrId
 }
 
 impl HasParams for ViewTagCommand {
@@ -36,19 +35,10 @@ impl HasParams for ViewTagCommand {
 }
 
 impl<'a> PublicChannelCommand<'a> for ViewTagCommand {
-  fn run(&self, message: &Message, _: &LiveServer, channel: &PublicChannel, params: &[&str]) -> CommandResult<'a> {
+  fn run(&self, _: &Message, _: &LiveServer, channel: &PublicChannel, params: &[&str]) -> CommandResult<'a> {
     let params = self.params(USAGE, params)?;
     let server_id = channel.server_id;
     let who = params.who;
-    let who = if !who.starts_with("<@") && !who.ends_with('>') && message.mentions.len() != 1 {
-      who.parse::<u64>().map(UserId).map_err(|_| ExternalCommandFailure::default()
-        .message(|e: EmbedBuilder| e
-          .title("Invalid target.")
-          .description("The target was not a mention, and it was not a user ID."))
-        .wrap())?
-    } else {
-      message.mentions[0].id
-    };
 
     let database = self.bot.database.read().unwrap();
     let user = database.autotags.users.iter().find(|u| u.user_id == who.0 && u.server_id == server_id.0);

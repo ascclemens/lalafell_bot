@@ -3,7 +3,7 @@ use commands::*;
 use commands::tag::Tagger;
 
 use discord::builders::EmbedBuilder;
-use discord::model::{LiveServer, PublicChannel, UserId};
+use discord::model::{LiveServer, PublicChannel};
 use discord::model::permissions;
 
 use std::sync::Arc;
@@ -30,7 +30,7 @@ impl HasBot for TagCommand {
 
 #[derive(Debug, Deserialize)]
 pub struct Params {
-  who: String,
+  who: MentionOrId,
   server: String,
   name: [String; 2]
 }
@@ -52,19 +52,10 @@ impl<'a> PublicChannelCommand<'a> for TagCommand {
     }
 
     let who = params.who;
-    let who = if !who.starts_with("<@") && !who.ends_with('>') && message.mentions.len() != 1 {
-      who.parse::<u64>().map(UserId).map_err(|_| ExternalCommandFailure::default()
-        .message(|e: EmbedBuilder| e
-          .title("Invalid target.")
-          .description("The target was not a mention, and it was not a user ID."))
-        .wrap())?
-    } else {
-      message.mentions[0].id
-    };
     let ff_server = params.server;
     let name = params.name.join(" ");
 
-    match Tagger::search_tag(self.bot.as_ref(), who, server, &ff_server, &name, can_manage_roles)? {
+    match Tagger::search_tag(self.bot.as_ref(), *who, server, &ff_server, &name, can_manage_roles)? {
       Some(error) => Err(ExternalCommandFailure::default()
         .message(move |e: EmbedBuilder| e.description(&error))
         .wrap()),

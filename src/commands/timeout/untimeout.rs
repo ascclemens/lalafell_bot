@@ -3,7 +3,7 @@ use commands::*;
 use error::*;
 
 use discord::builders::EmbedBuilder;
-use discord::model::{LiveServer, PublicChannel, UserId, RoleId};
+use discord::model::{LiveServer, PublicChannel, RoleId};
 use discord::model::permissions;
 
 use std::sync::Arc;
@@ -30,7 +30,7 @@ impl HasBot for UntimeoutCommand {
 
 #[derive(Debug, Deserialize)]
 pub struct Params {
-  who: String
+  who: MentionOrId
 }
 
 impl HasParams for UntimeoutCommand {
@@ -51,15 +51,6 @@ impl<'a> PublicChannelCommand<'a> for UntimeoutCommand {
 
     let server_id = channel.server_id;
     let who = params.who;
-    let who = if !who.starts_with("<@") && !who.ends_with('>') && message.mentions.len() != 1 {
-      who.parse::<u64>().map(UserId).map_err(|_| ExternalCommandFailure::default()
-        .message(|e: EmbedBuilder| e
-          .title("Invalid target.")
-          .description("The target was not a mention, and it was not a user ID."))
-        .wrap())?
-    } else {
-      message.mentions[0].id
-    };
 
     let mut database = self.bot.database.write().unwrap();
     let timeout = match database.timeouts.iter().position(|u| u.user_id == who.0 && u.server_id == server_id.0) {
@@ -67,7 +58,7 @@ impl<'a> PublicChannelCommand<'a> for UntimeoutCommand {
       None => return Err(format!("{} is not timed out.", who.mention()).into())
     };
 
-    self.bot.discord.remove_user_from_role(server_id, who, RoleId(timeout.role_id)).chain_err(|| "could not remove timeout role")?;
+    self.bot.discord.remove_user_from_role(server_id, *who, RoleId(timeout.role_id)).chain_err(|| "could not remove timeout role")?;
 
     Ok(CommandSuccess::default())
   }

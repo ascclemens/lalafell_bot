@@ -4,7 +4,7 @@ use error::*;
 use database::TimeoutUser;
 
 use discord::builders::EmbedBuilder;
-use discord::model::{LiveServer, PublicChannel, UserId};
+use discord::model::{LiveServer, PublicChannel};
 use discord::model::permissions;
 
 use chrono::prelude::*;
@@ -61,7 +61,7 @@ impl HasBot for TimeoutCommand {
 
 #[derive(Debug, Deserialize)]
 pub struct Params {
-  who: String,
+  who: MentionOrId,
   length: Vec<String>
 }
 
@@ -83,15 +83,6 @@ impl<'a> PublicChannelCommand<'a> for TimeoutCommand {
 
     let server_id = channel.server_id;
     let who = params.who;
-    let who = if !who.starts_with("<@") && !who.ends_with('>') && message.mentions.len() != 1 {
-      who.parse::<u64>().map(UserId).map_err(|_| ExternalCommandFailure::default()
-        .message(|e: EmbedBuilder| e
-          .title("Invalid target.")
-          .description("The target was not a mention, and it was not a user ID."))
-        .wrap())?
-    } else {
-      message.mentions[0].id
-    };
 
     let role_id = {
       let state_option = self.bot.state.read().unwrap();
@@ -103,7 +94,7 @@ impl<'a> PublicChannelCommand<'a> for TimeoutCommand {
 
       match timeout::set_up_timeouts(self.bot.as_ref(), live_server) {
         Ok(r) => {
-          if let Err(e) = self.bot.discord.add_user_to_role(live_server.id, who, r) {
+          if let Err(e) = self.bot.discord.add_user_to_role(live_server.id, *who, r) {
             warn!("could not add user {} to timeout role: {}", who.0, e);
           }
           r

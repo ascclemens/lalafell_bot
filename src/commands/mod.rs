@@ -1,5 +1,7 @@
 pub mod params;
 
+pub use self::params::MentionOrId;
+
 pub mod tag;
 pub mod polling;
 

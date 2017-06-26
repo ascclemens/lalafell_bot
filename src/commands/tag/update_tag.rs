@@ -26,7 +26,7 @@ impl HasBot for UpdateTagCommand {
 
 #[derive(Debug, Deserialize)]
 pub struct Params {
-  who: Option<String>
+  who: Option<MentionOrId>
 }
 
 impl HasParams for UpdateTagCommand {
@@ -45,16 +45,7 @@ impl<'a> PublicChannelCommand<'a> for UpdateTagCommand {
             .description("You don't have enough permissions to update other people's tags."))
           .wrap());
       }
-      let who = if !who.starts_with("<@") && !who.ends_with('>') && message.mentions.len() != 1 {
-        who.parse::<u64>().map(UserId).map_err(|_| ExternalCommandFailure::default()
-          .message(|e: EmbedBuilder| e
-            .title("Invalid target.")
-            .description("The target was not a mention, and it was not a user ID."))
-          .wrap())?
-      } else {
-        message.mentions[0].id
-      };
-      who
+      who.clone()
     } else {
       message.author.id
     };
