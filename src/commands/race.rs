@@ -22,7 +22,7 @@ impl RaceCommand {
 #[derive(Debug, Deserialize)]
 pub struct Params {
   server: String,
-  name: (String, String)
+  name: [String; 2]
 }
 
 impl HasParams for RaceCommand {
@@ -33,7 +33,7 @@ impl<'a> Command<'a> for RaceCommand {
   fn run(&self, _: &Message, params: &[&str]) -> CommandResult<'a> {
     let params = self.params(USAGE, params)?;
     let server = params.server;
-    let name = params.name.0 + " " + &params.name.1;
+    let name = params.name.join(" ");
     let params = &[
       ("one", "characters"),
       ("strict", "on"),

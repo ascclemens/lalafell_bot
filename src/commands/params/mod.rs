@@ -85,9 +85,8 @@ impl<'de, 'a> de::Deserializer<'de> for &'a mut Deserializer<'de> {
     if self.parts.is_empty() {
       return Err(Error::MissingParams);
     }
-    let cloned = self.parts.clone();
-    self.parts.clear();
-    SeqDeserializer::new(cloned.into_iter()).deserialize_seq(visitor)
+
+    SeqDeserializer::new(self.parts.drain(..)).deserialize_seq(visitor)
   }
 
   forward_parsed_values! {

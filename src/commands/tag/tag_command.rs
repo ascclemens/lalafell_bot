@@ -32,7 +32,7 @@ impl HasBot for TagCommand {
 pub struct Params {
   who: String,
   server: String,
-  name: (String, String)
+  name: [String; 2]
 }
 
 impl HasParams for TagCommand {
@@ -62,7 +62,7 @@ impl<'a> PublicChannelCommand<'a> for TagCommand {
       message.mentions[0].id
     };
     let ff_server = params.server;
-    let name = params.name.0 + " " + &params.name.1;
+    let name = params.name.join(" ");
 
     match Tagger::search_tag(self.bot.as_ref(), who, server, &ff_server, &name, can_manage_roles)? {
       Some(error) => Err(ExternalCommandFailure::default()

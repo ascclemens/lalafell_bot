@@ -43,3 +43,20 @@ fn parse_vec() {
   let expected = VecParams { first: "first".to_owned(), others: vec!["second".to_owned(), "third".to_owned()] };
   assert_eq!(expected, params);
 }
+
+#[test]
+fn parse_slice() {
+  #[derive(Debug, Deserialize, PartialEq)]
+  struct SliceParams {
+    first: String,
+    name: [String; 2],
+    last: u8
+  }
+  let params: SliceParams = super::from_str("first second third 4").unwrap();
+  let expected = SliceParams {
+    first: "first".to_owned(),
+    name: ["second".to_owned(), "third".to_owned()],
+    last: 4
+  };
+  assert_eq!(expected, params);
+}
