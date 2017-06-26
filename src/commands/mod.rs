@@ -58,12 +58,24 @@ pub trait HasParams {
       Err(::commands::params::error::Error::MissingParams) => {
         let usage = usage.to_owned();
         Err(ExternalCommandFailure::default()
-        .message(move |e: EmbedBuilder| e
-          .title("Not enough parameters.")
-          .description(&usage))
-        .wrap())
+          .message(move |e: EmbedBuilder| e
+            .title("Not enough parameters.")
+            .description(&usage))
+          .wrap())
       },
-      Err(e) => Err(e).chain_err(|| "could not parse params")?
+      Err(e) => {
+        // I promise there's a better way, but I can't figure it out right now
+        let message = format!("{}", e);
+        if message.starts_with("could not parse target: ") {
+          Err(ExternalCommandFailure::default()
+            .message(|e: EmbedBuilder| e
+              .title("Invalid target.")
+              .description("The target was not a mention, and it was not a user ID."))
+            .wrap())
+        } else {
+          Err(e).chain_err(|| "could not parse params")?
+        }
+      }
     }
   }
 }

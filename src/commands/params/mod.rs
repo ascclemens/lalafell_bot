@@ -147,7 +147,7 @@ impl MentionOrId {
     } else {
       &who[2..who.len() - 1]
     };
-    who.parse::<u64>().map(UserId).map_err(de::Error::custom)
+    who.parse::<u64>().map(UserId).map_err(|e| de::Error::custom(&format!("could not parse target: {}", e)))
   }
 }
 
