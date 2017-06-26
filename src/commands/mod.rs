@@ -1,3 +1,5 @@
+pub mod params;
+
 pub mod tag;
 pub mod polling;
 
