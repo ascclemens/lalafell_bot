@@ -2,7 +2,7 @@ use bot::LalafellBot;
 use commands::*;
 
 use discord::builders::EmbedBuilder;
-use discord::model::{PublicChannel, UserId};
+use discord::model::{LiveServer, PublicChannel, UserId};
 
 use std::sync::Arc;
 
@@ -27,7 +27,7 @@ impl HasBot for ViewTagCommand {
 }
 
 impl<'a> PublicChannelCommand<'a> for ViewTagCommand {
-  fn run(&self, message: &Message, channel: &PublicChannel, params: &[&str]) -> CommandResult<'a> {
+  fn run(&self, message: &Message, _: &LiveServer, channel: &PublicChannel, params: &[&str]) -> CommandResult<'a> {
     if params.is_empty() {
       return Err(ExternalCommandFailure::default()
         .message(|e: EmbedBuilder| e

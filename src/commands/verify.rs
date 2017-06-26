@@ -3,7 +3,7 @@ use commands::*;
 use lodestone::Lodestone;
 
 use discord::builders::EmbedBuilder;
-use discord::model::PublicChannel;
+use discord::model::{LiveServer, PublicChannel};
 
 use std::sync::Arc;
 
@@ -26,8 +26,8 @@ impl HasBot for VerifyCommand {
 }
 
 impl<'a> PublicChannelCommand<'a> for VerifyCommand {
-  fn run(&self, message: &Message, channel: &PublicChannel, _: &[&str]) -> CommandResult<'a> {
-    let server_id = channel.server_id;
+  fn run(&self, message: &Message, server: &LiveServer, _: &PublicChannel, _: &[&str]) -> CommandResult<'a> {
+    let server_id = server.id;
     let mut database = self.bot.database.write().unwrap();
     let user = database.autotags.users.iter_mut().find(|u| u.user_id == message.author.id.0 && u.server_id == server_id.0);
     let mut user = match user {

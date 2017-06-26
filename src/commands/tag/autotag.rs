@@ -3,7 +3,7 @@ use commands::*;
 use commands::tag::Tagger;
 
 use discord::builders::EmbedBuilder;
-use discord::model::PublicChannel;
+use discord::model::{LiveServer, PublicChannel};
 
 use std::sync::Arc;
 
@@ -28,18 +28,7 @@ impl HasBot for AutoTagCommand {
 }
 
 impl<'a> PublicChannelCommand<'a> for AutoTagCommand {
-  fn run(&self, message: &Message, channel: &PublicChannel, params: &[&str]) -> CommandResult<'a> {
-    let server_id = channel.server_id;
-    let state_option = self.bot.state.read().unwrap();
-    let state = state_option.as_ref().unwrap();
-    let server = match state.servers().iter().find(|x| x.id == server_id) {
-      Some(s) => s,
-      None => {
-        let err: error::Error = "could not find server for channel".into();
-        return Err(err.into());
-      }
-    };
-
+  fn run(&self, message: &Message, server: &LiveServer, _: &PublicChannel, params: &[&str]) -> CommandResult<'a> {
     if params.len() < 3 {
       return Err(ExternalCommandFailure::default()
         .message(|e: EmbedBuilder| e

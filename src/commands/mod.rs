@@ -22,7 +22,7 @@ use bot::LalafellBot;
 
 use error::{self, ResultExt};
 
-use discord::model::{Message, Channel, PublicChannel};
+use discord::model::{Message, LiveServer, Channel, PublicChannel};
 use discord::builders::EmbedBuilder;
 
 use std::boxed::FnBox;
@@ -35,7 +35,7 @@ pub trait Command<'a> {
 }
 
 pub trait PublicChannelCommand<'a> {
-  fn run(&self, message: &Message, channel: &PublicChannel, params: &[&str]) -> CommandResult<'a>;
+  fn run(&self, message: &Message, server: &LiveServer, channel: &PublicChannel, params: &[&str]) -> CommandResult<'a>;
 }
 
 pub trait HasBot {
@@ -51,7 +51,20 @@ impl<'a, T> Command<'a> for T
       Channel::Public(c) => c,
       _ => return Err("This command must be run in a public channel.".into())
     };
-    self.run(message, &public_channel, params)
+    let server_id = public_channel.server_id;
+    let server = {
+      let bot = self.bot();
+      let state_option = bot.state.read().unwrap();
+      let state = state_option.as_ref().unwrap();
+      match state.servers().iter().find(|x| x.id == server_id) {
+        Some(s) => s.clone(),
+        None => {
+          let err: error::Error = "could not find server for channel".into();
+          return Err(err.into());
+        }
+      }
+    };
+    self.run(message, &server, &public_channel, params)
   }
 }
 

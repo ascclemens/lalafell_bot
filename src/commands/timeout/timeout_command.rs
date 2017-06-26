@@ -4,7 +4,7 @@ use error::*;
 use database::TimeoutUser;
 
 use discord::builders::EmbedBuilder;
-use discord::model::{PublicChannel, UserId};
+use discord::model::{LiveServer, PublicChannel, UserId};
 use discord::model::permissions;
 
 use chrono::prelude::*;
@@ -60,17 +60,7 @@ impl HasBot for TimeoutCommand {
 }
 
 impl<'a> PublicChannelCommand<'a> for TimeoutCommand {
-  fn run(&self, message: &Message, channel: &PublicChannel, params: &[&str]) -> CommandResult<'a> {
-    let server_id = channel.server_id;
-    let state_option = self.bot.state.read().unwrap();
-    let state = state_option.as_ref().unwrap();
-    let server = match state.servers().iter().find(|x| x.id == server_id) {
-      Some(s) => s,
-      None => {
-        let err: error::Error = "could not find server for channel".into();
-        return Err(err.into());
-      }
-    };
+  fn run(&self, message: &Message, server: &LiveServer, channel: &PublicChannel, params: &[&str]) -> CommandResult<'a> {
     let can_manage_roles = server.permissions_for(channel.id, message.author.id).contains(permissions::MANAGE_ROLES);
     if !can_manage_roles {
       return Err(ExternalCommandFailure::default()
