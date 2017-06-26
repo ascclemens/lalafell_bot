@@ -66,9 +66,24 @@ fn parse_empty_vec() {
   #[derive(Debug, Deserialize, PartialEq)]
   struct VecParams {
     first: String,
-    empty: Vec<String>
+    empty: Option<Vec<String>>
   }
   let params: VecParams = super::from_str("first").unwrap();
-  let expected = VecParams { first: "first".to_string(), empty: Vec::default() };
+  let expected = VecParams { first: "first".to_string(), empty: None };
+  assert_eq!(expected, params);
+}
+
+#[test]
+fn parse_optional_vec() {
+  #[derive(Debug, Deserialize, PartialEq)]
+  struct VecParams {
+    first: String,
+    empty: Option<Vec<String>>
+  }
+  let params: VecParams = super::from_str("first second third").unwrap();
+  let expected = VecParams {
+    first: "first".to_string(),
+    empty: Some(vec!["second".to_owned(), "third".to_owned()])
+  };
   assert_eq!(expected, params);
 }

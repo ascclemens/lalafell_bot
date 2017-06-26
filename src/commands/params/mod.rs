@@ -42,8 +42,11 @@ struct Deserializer<'de> {
 /// `Options`s can be chained at the end of a struct, but as soon as a `None` is hit, the rest are
 /// guaranteed to be `None`, as well.
 ///
-/// `Vec<T>` will consume every parameter except the ones before it. If you want a list of a
-/// specific number of parts, use a fixed-length slice, e.g. `[String; 2]`.
+/// `Vec<T>` will consume every parameter except the ones before it. `Vec`s must contain one element
+/// or the parser will return the `MissingParams` error. `Option<Vec<T>>` can be used in lieu of
+/// empty `Vec`s.
+///
+/// If you want a list of a specific number of parts, use a fixed-length slice, e.g. `[String; 2]`.
 pub fn from_str<'a, T>(input: &'a str) -> Result<T>
   where T: Deserialize<'a>
 {
@@ -95,6 +98,9 @@ impl<'de, 'a> de::Deserializer<'de> for &'a mut Deserializer<'de> {
   fn deserialize_seq<V>(self, visitor: V) -> Result<V::Value>
     where V: de::Visitor<'de>
   {
+    if self.parts.is_empty() {
+      return Err(Error::MissingParams);
+    }
     SeqDeserializer::new(self.parts.drain(..)).deserialize_seq(visitor)
   }
 
