@@ -32,6 +32,18 @@ struct Deserializer<'de> {
   count: usize
 }
 
+/// Parse a command-line parameter string into a Rust type, most often a struct.
+///
+/// The order that fields are declared in the struct is the order in which they are parsed.
+///
+/// Note that this handles certain types in radically different ways than what you would expect.
+///
+/// `Option<T>` will only ever result in `None` if it is at the end of a string of parameters.
+/// `Options`s can be chained at the end of a struct, but as soon as a `None` is hit, the rest are
+/// guaranteed to be `None`, as well.
+///
+/// `Vec<T>` will consume every parameter except the ones before it. If you want a list of a
+/// specific number of parts, use a fixed-length slice, e.g. `[String; 2]`.
 pub fn from_str<'a, T>(input: &'a str) -> Result<T>
   where T: Deserialize<'a>
 {
