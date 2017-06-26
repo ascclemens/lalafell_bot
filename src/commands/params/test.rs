@@ -31,3 +31,15 @@ fn parse_missing_params() {
 fn parse_invalid_params() {
   super::from_str::<Params>("someone bad").unwrap();
 }
+
+#[test]
+fn parse_vec() {
+  #[derive(Debug, Deserialize, PartialEq)]
+  struct VecParams {
+    first: String,
+    others: Vec<String>
+  }
+  let params: VecParams = super::from_str("first second third").unwrap();
+  let expected = VecParams { first: "first".to_owned(), others: vec!["second".to_owned(), "third".to_owned()] };
+  assert_eq!(expected, params);
+}
