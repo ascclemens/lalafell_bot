@@ -36,18 +36,19 @@ impl HasParams for UpdateTagCommand {
 impl<'a> PublicChannelCommand<'a> for UpdateTagCommand {
   fn run(&self, message: &Message, server: &LiveServer, channel: &PublicChannel, params: &[&str]) -> CommandResult<'a> {
     let params = self.params("", params)?;
-    let id = if let Some(who) = params.who {
-      let can_manage_roles = server.permissions_for(channel.id, message.author.id).contains(permissions::MANAGE_ROLES);
-      if !can_manage_roles {
-        return Err(ExternalCommandFailure::default()
-          .message(|e: EmbedBuilder| e
-            .title("Not enough permissions.")
-            .description("You don't have enough permissions to update other people's tags."))
-          .wrap());
-      }
-      *who
-    } else {
-      message.author.id
+    let id = match params.who {
+      Some(who) => {
+        let can_manage_roles = server.permissions_for(channel.id, message.author.id).contains(permissions::MANAGE_ROLES);
+        if !can_manage_roles {
+          return Err(ExternalCommandFailure::default()
+            .message(|e: EmbedBuilder| e
+              .title("Not enough permissions.")
+              .description("You don't have enough permissions to update other people's tags."))
+            .wrap());
+        }
+        *who
+      },
+      None => message.author.id
     };
     let user: Option<(UserId, ServerId, u64)> = {
       let database = self.bot.database.read().unwrap();
