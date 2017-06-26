@@ -45,7 +45,7 @@ impl<'a> PublicChannelCommand<'a> for UpdateTagCommand {
             .description("You don't have enough permissions to update other people's tags."))
           .wrap());
       }
-      who.clone()
+      *who
     } else {
       message.author.id
     };
