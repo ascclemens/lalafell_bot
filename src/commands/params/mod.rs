@@ -1,13 +1,13 @@
 pub mod error;
+pub mod helpers;
 #[cfg(test)]
 mod test;
 
 use self::error::Error;
 
 use std::result::Result as StdResult;
-use std::ops::Deref;
 
-use serde::de::{self, Deserialize, IntoDeserializer, Deserializer as SerdeDeserializer};
+use serde::de::{self, Deserialize, IntoDeserializer};
 use serde::de::value::SeqDeserializer;
 
 macro_rules! forward_parsed_values {
@@ -126,35 +126,5 @@ impl<'de> de::SeqAccess<'de> for Deserializer<'de> {
       (lower, Some(upper)) if lower == upper => Some(upper),
       _ => None,
     }
-  }
-}
-
-use discord::model::UserId;
-
-#[derive(Debug, Deserialize)]
-pub struct MentionOrId {
-  #[serde(deserialize_with = "MentionOrId::parse")]
-  user_id: UserId
-}
-
-impl MentionOrId {
-  pub fn parse<'de, D>(deserializer: D) -> StdResult<UserId, D::Error>
-    where D: SerdeDeserializer<'de>
-  {
-    let who = String::deserialize(deserializer)?;
-    let who = if !who.starts_with("<@") && !who.ends_with('>') {
-      &who
-    } else {
-      &who[2..who.len() - 1]
-    };
-    who.parse::<u64>().map(UserId).map_err(|e| de::Error::custom(&format!("could not parse target: {}", e)))
-  }
-}
-
-impl Deref for MentionOrId {
-  type Target = UserId;
-
-  fn deref(&self) -> &Self::Target {
-    &self.user_id
   }
 }

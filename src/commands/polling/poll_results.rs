@@ -23,7 +23,7 @@ No custom emoji
 use bot::LalafellBot;
 use commands::*;
 
-use discord::model::{ChannelId, MessageId, ReactionEmoji};
+use discord::model::{MessageId, ReactionEmoji};
 
 use std::sync::Arc;
 
@@ -54,7 +54,7 @@ impl PollResultsCommand {
 
 #[derive(Debug, Deserialize)]
 pub struct Params {
-  channel: String,
+  channel: ChannelOrId,
   message_id: u64
 }
 
@@ -66,17 +66,8 @@ impl<'a> Command<'a> for PollResultsCommand {
   fn run(&self, _: &Message, params: &[&str]) -> CommandResult<'a> {
     let params = self.params(USAGE, params)?;
     let channel = params.channel;
-    let channel = if channel.starts_with("<#") && channel.ends_with('>') {
-      &channel[2..channel.len() - 1]
-    } else {
-      &channel
-    };
-    let channel_id = match channel.parse::<u64>() {
-      Ok(u) => ChannelId(u),
-      Err(_) => return Err("Invalid channel.".into())
-    };
     let message_id = params.message_id;
-    let message = match self.bot.discord.get_message(channel_id, MessageId(message_id)) {
+    let message = match self.bot.discord.get_message(*channel, MessageId(message_id)) {
       Ok(m) => m,
       Err(_) => return Err("Could not get that message.".into())
     };

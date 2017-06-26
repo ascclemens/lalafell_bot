@@ -1,6 +1,7 @@
 pub mod params;
 
-pub use self::params::MentionOrId;
+pub use self::params::helpers::mention::MentionOrId;
+pub use self::params::helpers::channel::ChannelOrId;
 
 pub mod tag;
 pub mod polling;
@@ -71,6 +72,12 @@ pub trait HasParams {
             .message(|e: EmbedBuilder| e
               .title("Invalid target.")
               .description("The target was not a mention, and it was not a user ID."))
+            .wrap())
+        } else if message.starts_with("could not parse channel: ") {
+          Err(ExternalCommandFailure::default()
+            .message(|e: EmbedBuilder| e
+              .title("Invalid channel.")
+              .description("The channel was not a channel reference, and it was not a channel ID."))
             .wrap())
         } else {
           Err(e).chain_err(|| "could not parse params")?
