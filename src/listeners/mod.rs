@@ -11,11 +11,13 @@ pub mod debugger;
 pub mod tag_instructions;
 pub mod reaction_authorize;
 pub mod timeouts;
+pub mod poll_tagger;
 
 pub use self::debugger::EventDebugger;
 pub use self::tag_instructions::TagInstructions;
 pub use self::reaction_authorize::ReactionAuthorize;
 pub use self::timeouts::Timeouts;
+pub use self::poll_tagger::PollTagger;
 
 pub struct ListenerManager;
 

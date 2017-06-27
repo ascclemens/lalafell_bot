@@ -91,6 +91,7 @@ impl Poll {
       e
         .title(&format!("Poll by {}", name))
         .description(&desc)
+        .footer(|f| f.text("Loading poll ID..."))
     }
   }
 }

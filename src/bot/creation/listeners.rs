@@ -1,5 +1,5 @@
 use bot::LalafellBot;
-use listeners::{ListenerManager, Timeouts};
+use listeners::{ListenerManager, Timeouts, PollTagger};
 use commands::*;
 use error::*;
 
@@ -11,6 +11,7 @@ pub fn listeners(bot: Arc<LalafellBot>) -> Result<()> {
   let mut listeners = bot.listeners.write().unwrap();
   listeners.push(box command_listener(bot.clone()));
   listeners.push(box Timeouts::new(bot.clone()));
+  listeners.push(box PollTagger::new(bot.clone()));
   for listener in &bot.config.listeners {
     let listener = ListenerManager::from_config(bot.clone(), listener).chain_err(|| format!("could not create listener {}", listener.name))?;
     listeners.push(listener);
