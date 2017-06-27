@@ -1,7 +1,7 @@
 use bot::LalafellBot;
 use tasks::RunsTask;
 use commands::tag::Tagger;
-use error::*;
+use lalafell::error::*;
 
 use discord::State;
 use discord::model::{UserId, ServerId};

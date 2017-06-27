@@ -4,8 +4,6 @@ extern crate discord;
 extern crate xivdb;
 extern crate dotenv;
 #[macro_use]
-extern crate serde;
-#[macro_use]
 extern crate serde_derive;
 extern crate serde_json;
 extern crate ctrlc;
@@ -23,8 +21,8 @@ extern crate lazy_static;
 extern crate envy;
 #[macro_use]
 extern crate error_chain;
+extern crate lalafell;
 
-mod logging;
 mod bot;
 mod database;
 mod listeners;
@@ -48,7 +46,7 @@ fn main() {
 }
 
 fn inner() -> Result<()> {
-  if let Err(e) = logging::init_logger() {
+  if let Err(e) = lalafell::logging::init_logger() {
     println!("Could not set up logger.");
     for err in e.iter() {
       println!("{}", err);

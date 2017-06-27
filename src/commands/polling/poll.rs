@@ -1,12 +1,14 @@
 use bot::LalafellBot;
-use commands::*;
 
-use discord::model::{ServerId, UserId, ReactionEmoji, Channel};
+use lalafell::commands::prelude::*;
+
+use discord::model::{Message, ServerId, UserId, ReactionEmoji, Channel};
 use discord::builders::EmbedBuilder;
 
-use error::*;
+use lalafell::error::*;
 
 use std::sync::Arc;
+use std::boxed::FnBox;
 
 const USAGE: &'static str = "!poll <poll text>\n<option>\n<option>...";
 

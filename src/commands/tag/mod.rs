@@ -11,7 +11,7 @@ pub use self::update_tag::UpdateTagCommand;
 use bot::LalafellBot;
 use database::AutotagUser;
 
-use error::*;
+use lalafell::error::*;
 
 use discord;
 use discord::model::{UserId, LiveServer, Role, RoleId};

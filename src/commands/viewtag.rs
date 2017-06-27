@@ -1,7 +1,10 @@
 use bot::LalafellBot;
 use commands::*;
 
-use discord::model::{LiveServer, PublicChannel};
+use lalafell::bot::Bot;
+use lalafell::commands::prelude::*;
+
+use discord::model::{Message, LiveServer, PublicChannel};
 
 use std::sync::Arc;
 
@@ -20,8 +23,8 @@ impl ViewTagCommand {
 }
 
 impl HasBot for ViewTagCommand {
-  fn bot(&self) -> Arc<LalafellBot> {
-    self.bot.clone()
+  fn bot(&self) -> &Bot {
+    self.bot.as_ref()
   }
 }
 

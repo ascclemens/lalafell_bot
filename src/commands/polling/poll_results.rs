@@ -23,7 +23,9 @@ No custom emoji
 use bot::LalafellBot;
 use commands::*;
 
-use discord::model::{MessageId, ReactionEmoji};
+use lalafell::commands::prelude::*;
+
+use discord::model::{Message, MessageId, ReactionEmoji};
 
 use std::sync::Arc;
 

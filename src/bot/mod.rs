@@ -1,7 +1,9 @@
 use Environment;
 use config::Config;
 use database::Database;
-use listeners::ReceivesEvents;
+
+use lalafell::bot::Bot;
+use lalafell::listeners::ReceivesEvents;
 
 use xivdb::XivDb;
 use error::*;
@@ -35,6 +37,24 @@ pub struct LalafellBot {
 impl Drop for LalafellBot {
   fn drop(&mut self) {
     self.save_database(None).unwrap()
+  }
+}
+
+impl Bot for LalafellBot {
+  fn discord(&self) -> &Discord {
+    &self.discord
+  }
+
+  fn discord_mut(&mut self) -> &mut Discord {
+    &mut self.discord
+  }
+
+  fn state(&self) -> &RwLock<Option<State>> {
+    &self.state
+  }
+
+  fn listeners(&self) -> &RwLock<Vec<Box<ReceivesEvents + Send + Sync>>> {
+    &self.listeners
   }
 }
 

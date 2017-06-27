@@ -1,9 +1,12 @@
 use bot::LalafellBot;
 use commands::*;
-use error::*;
+use lalafell::error::*;
+
+use lalafell::bot::Bot;
+use lalafell::commands::prelude::*;
 
 use discord::builders::EmbedBuilder;
-use discord::model::{LiveServer, PublicChannel, RoleId};
+use discord::model::{Message, LiveServer, PublicChannel, RoleId};
 use discord::model::permissions;
 
 use std::sync::Arc;
@@ -23,8 +26,8 @@ impl UntimeoutCommand {
 }
 
 impl HasBot for UntimeoutCommand {
-  fn bot(&self) -> Arc<LalafellBot> {
-    self.bot.clone()
+  fn bot(&self) -> &Bot {
+    self.bot.as_ref()
   }
 }
 

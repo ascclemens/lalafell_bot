@@ -1,6 +1,8 @@
 use bot::LalafellBot;
-use commands::*;
 
+use lalafell::commands::prelude::*;
+
+use discord::model::Message;
 use discord::builders::EmbedBuilder;
 
 use std::sync::Arc;

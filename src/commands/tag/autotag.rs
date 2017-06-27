@@ -1,6 +1,8 @@
 use bot::LalafellBot;
-use commands::*;
 use commands::tag::Tagger;
+
+use lalafell::bot::Bot;
+use lalafell::commands::prelude::*;
 
 use discord::builders::EmbedBuilder;
 use discord::model::{LiveServer, PublicChannel};
@@ -22,8 +24,8 @@ impl AutoTagCommand {
 }
 
 impl HasBot for AutoTagCommand {
-  fn bot(&self) -> Arc<LalafellBot> {
-    self.bot.clone()
+  fn bot(&self) -> &Bot {
+    self.bot.as_ref()
   }
 }
 

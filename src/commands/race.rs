@@ -1,7 +1,11 @@
 use bot::LalafellBot;
-use commands::*;
 
-use error::*;
+use lalafell::commands::prelude::*;
+
+use discord::model::Message;
+
+use lalafell::error;
+use lalafell::error::*;
 
 use std::sync::Arc;
 

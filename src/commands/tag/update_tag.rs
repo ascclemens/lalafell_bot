@@ -2,7 +2,10 @@ use bot::LalafellBot;
 use commands::*;
 use tasks::AutoTagTask;
 
-use discord::model::{LiveServer, PublicChannel, UserId, ServerId, permissions};
+use lalafell::bot::Bot;
+use lalafell::commands::prelude::*;
+
+use discord::model::{Message, LiveServer, PublicChannel, UserId, ServerId, permissions};
 
 use std::sync::Arc;
 
@@ -19,8 +22,8 @@ impl UpdateTagCommand {
 }
 
 impl HasBot for UpdateTagCommand {
-  fn bot(&self) -> Arc<LalafellBot> {
-    self.bot.clone()
+  fn bot(&self) -> &Bot {
+    self.bot.as_ref()
   }
 }
 

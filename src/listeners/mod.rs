@@ -1,24 +1,18 @@
 use bot::LalafellBot;
 use config::Listener;
 
-use error::*;
+use lalafell::listeners::ReceivesEvents;
 
-use discord::model::Event;
+use error::*;
 
 use std::sync::Arc;
 
-pub trait ReceivesEvents {
-  fn receive(&self, event: &Event);
-}
-
 pub mod debugger;
-pub mod commands;
 pub mod tag_instructions;
 pub mod reaction_authorize;
 pub mod timeouts;
 
 pub use self::debugger::EventDebugger;
-pub use self::commands::CommandListener;
 pub use self::tag_instructions::TagInstructions;
 pub use self::reaction_authorize::ReactionAuthorize;
 pub use self::timeouts::Timeouts;

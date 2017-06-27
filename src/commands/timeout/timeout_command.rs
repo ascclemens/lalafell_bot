@@ -3,8 +3,11 @@ use commands::*;
 use error::*;
 use database::TimeoutUser;
 
+use lalafell::bot::Bot;
+use lalafell::commands::prelude::*;
+
 use discord::builders::EmbedBuilder;
-use discord::model::{LiveServer, PublicChannel};
+use discord::model::{Message, LiveServer, PublicChannel};
 use discord::model::permissions;
 
 use chrono::prelude::*;
@@ -54,8 +57,8 @@ impl TimeoutCommand {
 }
 
 impl HasBot for TimeoutCommand {
-  fn bot(&self) -> Arc<LalafellBot> {
-    self.bot.clone()
+  fn bot(&self) -> &Bot {
+    self.bot.as_ref()
   }
 }
 

@@ -1,4 +1,4 @@
-use error::*;
+use lalafell::error::*;
 
 use hyper::client::HttpConnector;
 use make_hyper_great_again::Client;

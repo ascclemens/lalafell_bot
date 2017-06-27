@@ -1,6 +1,7 @@
 use bot::LalafellBot;
-use commands::*;
 use tasks::AutoTagTask;
+
+use lalafell::commands::prelude::*;
 
 use discord::builders::EmbedBuilder;
 

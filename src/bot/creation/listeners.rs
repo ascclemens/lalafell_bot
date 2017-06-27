@@ -1,7 +1,9 @@
 use bot::LalafellBot;
-use listeners::{ListenerManager, CommandListener, Timeouts};
+use listeners::{ListenerManager, Timeouts};
 use commands::*;
 use error::*;
+
+use lalafell::listeners::CommandListener;
 
 use std::sync::Arc;
 

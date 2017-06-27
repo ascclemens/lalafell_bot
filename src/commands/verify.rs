@@ -1,9 +1,13 @@
 use bot::LalafellBot;
-use commands::*;
 use lodestone::Lodestone;
+use lalafell::error;
+use lalafell::error::*;
+
+use lalafell::bot::Bot;
+use lalafell::commands::prelude::*;
 
 use discord::builders::EmbedBuilder;
-use discord::model::{LiveServer, PublicChannel};
+use discord::model::{Message, LiveServer, PublicChannel};
 
 use std::sync::Arc;
 
@@ -20,8 +24,8 @@ impl VerifyCommand {
 }
 
 impl HasBot for VerifyCommand {
-  fn bot(&self) -> Arc<LalafellBot> {
-    self.bot.clone()
+  fn bot(&self) -> &Bot {
+    self.bot.as_ref()
   }
 }
 
