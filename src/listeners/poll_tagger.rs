@@ -50,9 +50,8 @@ impl PollTagger {
 
 impl ReceivesEvents for PollTagger {
   fn receive(&self, event: &Event) {
-    match *event {
-      Event::MessageCreate(ref msg) => self.tag_poll(msg),
-      _ => {}
+    if let Event::MessageCreate(ref msg) = *event {
+      self.tag_poll(msg);
     }
   }
 }
