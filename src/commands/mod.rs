@@ -9,10 +9,12 @@ pub mod save_database;
 pub mod verify;
 pub mod reference_count;
 pub mod timeout;
+pub mod archive;
 
 pub use self::tag::{TagCommand, AutoTagCommand, UpdateTagsCommand, UpdateTagCommand};
 pub use self::polling::{PollCommand, PollResultsCommand};
 pub use self::timeout::{TimeoutCommand, UntimeoutCommand};
+pub use self::archive::ArchiveCommand;
 
 pub use self::race::RaceCommand;
 pub use self::viewtag::ViewTagCommand;

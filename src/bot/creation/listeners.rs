@@ -44,6 +44,7 @@ fn command_listener<'a>(bot: Arc<LalafellBot>) -> CommandListener<'a> {
     "poll" => PollCommand,
     "pollresults" => PollResultsCommand,
     "timeout" => TimeoutCommand,
-    "untimeout" => UntimeoutCommand
+    "untimeout" => UntimeoutCommand,
+    "archive" => ArchiveCommand
   }
 }
