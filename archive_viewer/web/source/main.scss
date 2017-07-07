@@ -101,5 +101,23 @@ div.message {
         padding-left: .5em;
       }
     }
+
+    div.content {
+      & + div.attachment {
+        padding-top: 0.5em;
+      }
+    }
+
+    div.attachment {
+      & + & {
+        padding-top: 0.5em;
+      }
+      img {
+        max-width: 400px;
+        max-height: 600px;
+        width: auto;
+        height: auto;
+      }
+    }
   }
 }
