@@ -82,7 +82,7 @@ fn mount(router: Router) -> Mount {
 
 fn router() -> Router {
   router!(
-    index: get "/:server_id/:channel_id/:page" => channel,
+    channel: get "/:server_id/:channel_id/:page" => channel,
     refresh: get "/refresh" => refresh
   )
 }
@@ -244,6 +244,8 @@ fn channel(req: &mut Request) -> IronResult<Response> {
     .collect();
   let pages = (messages.len() as f32 / 50.0).ceil() as u64;
   let data = ArchiveData {
+    channel_name: &archive.channel.name,
+    topic: archive.channel.topic.clone().unwrap_or_else(Default::default),
     messages: wrappers,
     channel_id: channel_id,
     prev_page: page,
@@ -258,13 +260,15 @@ fn channel(req: &mut Request) -> IronResult<Response> {
   // TODO: embeds
   // TODO: links
 
-  response.set_mut(Template::new("index", data)).set_mut(status::Ok);
+  response.set_mut(Template::new("channel", data)).set_mut(status::Ok);
 
   Ok(response)
 }
 
 #[derive(Debug, Serialize)]
 struct ArchiveData<'a> {
+  channel_name: &'a str,
+  topic: String,
   messages: Vec<(&'a Message, MessageData)>,
   channel_id: u64,
   prev_page: u64,

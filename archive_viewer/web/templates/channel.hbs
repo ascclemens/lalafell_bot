@@ -1,11 +1,17 @@
 <!doctype html>
 <html lang="en">
   <head>
-    <title>Main</title>
+    <title>#{{ channel_name }} archive</title>
     <meta charset="utf-8"/>
     <link rel="stylesheet" href="/static/main.css"/>
   </head>
   <body>
+    <div class="channel_name">
+      {{~#if topic }}
+        <p>{{ topic }}</p>
+      {{/if}}
+      <h2>#<span>{{ channel_name }}</span></h2>
+    </div>
     {{> pages }}
     <div class="messages">
       {{#each messages}}
