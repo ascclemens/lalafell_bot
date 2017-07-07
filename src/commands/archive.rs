@@ -6,7 +6,7 @@ use lalafell::commands::ChannelOrId;
 use lalafell::error::*;
 
 use discord::GetMessages;
-use discord::model::{permissions, Message, PublicChannel};
+use discord::model::{permissions, Message, PublicChannel, Member, Emoji, Role};
 
 
 use serde_json;
@@ -45,7 +45,7 @@ impl HasParams for ArchiveCommand {
 }
 
 impl<'a> PublicChannelCommand<'a> for ArchiveCommand {
-  fn run(&self, message: &Message, server: &LiveServer, _: &PublicChannel, params: &[&str]) -> CommandResult<'a> {
+  fn run(&self, message: &Message, server: &LiveServer, channel: &PublicChannel, params: &[&str]) -> CommandResult<'a> {
     let params = self.params(USAGE, params)?;
     if !server.channels.iter().any(|c| c.id == *params.channel) {
       return Err("This command must be run in the server the channel is in.".into());
@@ -87,11 +87,50 @@ impl<'a> PublicChannelCommand<'a> for ArchiveCommand {
       }
     }
 
+    let num_messages = messages.len();
+
+    let archive = Archive {
+      server: ArchiveServer {
+        name: server.name.clone(),
+        roles: server.roles.clone(),
+        members: server.members.clone(),
+        icon: server.icon.clone(),
+        emojis: server.emojis.clone()
+      },
+      channel: ArchiveChannel {
+        name: channel.name.clone(),
+        topic: channel.topic.clone()
+      },
+      messages: messages
+    };
+
     let file = File::create(archive_path)
       .chain_err(|| "could not create archive file")?;
-    serde_json::to_writer(file, &messages)
+    serde_json::to_writer(file, &archive)
       .chain_err(|| "could not serialize messages")?;
 
-    Ok(format!("Archived {} message{}.", messages.len(), if messages.len() == 1 { "" } else { "s" }).into())
+    Ok(format!("Archived {} message{}.", num_messages, if num_messages == 1 { "" } else { "s" }).into())
   }
+}
+
+#[derive(Debug, Serialize)]
+struct Archive {
+  server: ArchiveServer,
+  channel: ArchiveChannel,
+  messages: Vec<Message>
+}
+
+#[derive(Debug, Serialize)]
+struct ArchiveServer {
+  name: String,
+  roles: Vec<Role>,
+  members: Vec<Member>,
+  icon: Option<String>,
+  emojis: Vec<Emoji>
+}
+
+#[derive(Debug, Serialize)]
+struct ArchiveChannel {
+  name: String,
+  topic: Option<String>
 }
