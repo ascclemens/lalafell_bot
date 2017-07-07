@@ -44,11 +44,12 @@ impl HasParams for ArchiveCommand {
 }
 
 impl<'a> PublicChannelCommand<'a> for ArchiveCommand {
-  fn run(&self, message: &Message, server: &LiveServer, channel: &PublicChannel, params: &[&str]) -> CommandResult<'a> {
+  fn run(&self, message: &Message, server: &LiveServer, _: &PublicChannel, params: &[&str]) -> CommandResult<'a> {
     let params = self.params(USAGE, params)?;
-    if !server.channels.iter().any(|c| c.id == *params.channel) {
-      return Err("This command must be run in the server the channel is in.".into());
-    }
+    let channel = match server.channels.iter().find(|c| c.id == *params.channel) {
+      Some(c) => c,
+      None => return Err("This command must be run in the server the channel is in.".into())
+    };
     let can_manage_chans = server.permissions_for(*params.channel, message.author.id).contains(permissions::MANAGE_CHANNELS);
     if !can_manage_chans {
       return Err(ExternalCommandFailure::default()
