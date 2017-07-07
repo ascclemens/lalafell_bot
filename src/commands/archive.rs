@@ -6,7 +6,7 @@ use lalafell::commands::ChannelOrId;
 use lalafell::error::*;
 
 use discord::GetMessages;
-use discord::model::{permissions, Message, PublicChannel, Member, Emoji, Role};
+use discord::model::{permissions, Message, PublicChannel, Member, Emoji, Role, ChannelId};
 
 
 use serde_json;
@@ -95,12 +95,13 @@ impl<'a> PublicChannelCommand<'a> for ArchiveCommand {
         roles: server.roles.clone(),
         members: server.members.clone(),
         channels: server.channels.iter()
-          .map(|c| ArchiveChannel { name: c.name.clone(), topic: c.topic.clone() })
+          .map(|c| ArchiveChannel { id: c.id, name: c.name.clone(), topic: c.topic.clone() })
           .collect(),
         icon: server.icon.clone(),
         emojis: server.emojis.clone()
       },
       channel: ArchiveChannel {
+        id: channel.id,
         name: channel.name.clone(),
         topic: channel.topic.clone()
       },
@@ -135,6 +136,7 @@ struct ArchiveServer {
 
 #[derive(Debug, Serialize)]
 struct ArchiveChannel {
+  id: ChannelId,
   name: String,
   topic: Option<String>
 }
