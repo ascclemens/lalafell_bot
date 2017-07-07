@@ -94,6 +94,9 @@ impl<'a> PublicChannelCommand<'a> for ArchiveCommand {
         name: server.name.clone(),
         roles: server.roles.clone(),
         members: server.members.clone(),
+        channels: server.channels.iter()
+          .map(|c| ArchiveChannel { name: c.name.clone(), topic: c.topic.clone() })
+          .collect(),
         icon: server.icon.clone(),
         emojis: server.emojis.clone()
       },
@@ -125,6 +128,7 @@ struct ArchiveServer {
   name: String,
   roles: Vec<Role>,
   members: Vec<Member>,
+  channels: Vec<ArchiveChannel>,
   icon: Option<String>,
   emojis: Vec<Emoji>
 }
