@@ -1,0 +1,10 @@
+<div class="pages">
+  <a {{~#unless start}} href="/{{channel_id}}/{{prev_page}}"{{/unless}}>&larr;</a>
+  <select onchange="window.location = this.selectedOptions[0].value">
+  {{~#range pages}}
+    <option {{~#eq this current_page}} selected{{/eq}}>{{this}}</option>
+  {{~/range}}
+  </select>
+  &nbsp;/ {{pages}} pages
+  <a {{~#unless end}} href="/{{channel_id}}/{{next_page}}"{{/unless}}>&rarr;</a>
+</div>

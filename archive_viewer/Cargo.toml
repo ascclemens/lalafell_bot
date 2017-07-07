@@ -1,0 +1,17 @@
+[package]
+name = "archive_viewer"
+version = "0.1.0"
+authors = ["Kyle Clemens <me@kyleclemens.com>"]
+
+[dependencies]
+iron = "0.5"
+router = "0.5"
+handlebars-iron = "0.25"
+mount = "0.3"
+staticfile = "0.4"
+error-chain = "0.10"
+discord = { version = "*", git = "https://github.com/jkcclemens/discord-rs" }
+serde = "1.0"
+serde_derive = "1.0"
+serde_json = "1.0"
+lazy_static = "0.2"

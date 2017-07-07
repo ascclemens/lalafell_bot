@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <title>Main</title>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" href="/static/main.css"/>
+  </head>
+  <body>
+    {{> pages }}
+    <div class="messages">
+      {{#each messages}}
+        {{> message message=this.0 timestamp=this.1 }}
+      {{/each}}
+    </div>
+    {{> pages }}
+  </body>
+</html>
