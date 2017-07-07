@@ -15,6 +15,7 @@ extern crate serde_derive;
 extern crate serde_json;
 #[macro_use]
 extern crate lazy_static;
+extern crate url;
 
 mod error;
 use error::*;
@@ -32,6 +33,8 @@ use handlebars_iron::{HandlebarsEngine, DirectorySource, Template};
 use handlebars_iron::handlebars::*;
 
 use discord::model::{Message, Role, Member, Emoji, ChannelId};
+
+use url::Url;
 
 use std::path::{Path, PathBuf};
 use std::fs::File;
@@ -87,6 +90,20 @@ fn router() -> Router {
   )
 }
 
+fn escape(data: &str) -> String {
+  let mut result = String::new();
+  for c in data.chars() {
+    match c {
+      '<' => result += "&lt;",
+      '>' => result += "&gt;",
+      '\"' => result += "&quot;",
+      '&' => result += "&amp;",
+      other => result += other.to_string().as_str()
+    };
+  }
+  result
+}
+
 fn add_messages(channel: PathBuf, server_id: u64, channel_id: u64) {
   let f = File::open(channel).unwrap();
   let mut archive: Archive = serde_json::from_reader(f).unwrap();
@@ -106,7 +123,7 @@ fn add_messages(channel: PathBuf, server_id: u64, channel_id: u64) {
         };
         if let Some(member) = archive.server.members.iter().find(|m| m.user.id.0 == id) {
           let name = member.nick.as_ref().unwrap_or(&member.user.name);
-          *part = format!("@{}", name);
+          *part = format!("<span class=\"highlight\">@{}</span>", escape(&name));
         }
       } else if part.starts_with("<@&") {
         let end = part.find('>').unwrap_or_else(|| part.len() - 1);
@@ -116,7 +133,7 @@ fn add_messages(channel: PathBuf, server_id: u64, channel_id: u64) {
         };
         if let Some(role) = archive.server.roles.iter().find(|r| r.id.0 == id) {
           let name = if role.name == "@everyone" { role.name.clone() } else { format!("@{}", role.name) };
-          *part = name;
+          *part = format!("<span class=\"highlight\">{}</span>", escape(&name));
         }
       } else if part.starts_with("<@") {
         let end = part.find('>').unwrap_or_else(|| part.len() - 1);
@@ -126,7 +143,7 @@ fn add_messages(channel: PathBuf, server_id: u64, channel_id: u64) {
         };
         if let Some(member) = archive.server.members.iter().find(|m| m.user.id.0 == id) {
           let name = member.nick.as_ref().unwrap_or(&member.user.name);
-          *part = format!("@{}", name);
+          *part = format!("<span class=\"highlight\">@{}</span>", escape(&name));
         }
       } else if part.starts_with("<#") {
         let end = part.find('>').unwrap_or_else(|| part.len() - 1);
@@ -135,7 +152,15 @@ fn add_messages(channel: PathBuf, server_id: u64, channel_id: u64) {
           Err(_) => continue
         };
         if let Some(channel) = archive.server.channels.iter().find(|c| c.id.0 == id) {
-          *part = format!("#{}", channel.name);
+          *part = format!("<span class=\"highlight\">#{}</span>", escape(&channel.name));
+        }
+      } else {
+        *part = escape(&part);
+      }
+
+      if let Ok(url) = Url::parse(&part) {
+        if url.has_host() {
+          *part = format!("<a href=\"{url}\">{url}</a>", url=part)
         }
       }
     }
@@ -256,9 +281,7 @@ fn channel(req: &mut Request) -> IronResult<Response> {
     end: page == pages - 1
   };
 
-  // TODO: special color for roles, mentions, and channels
   // TODO: embeds
-  // TODO: links
 
   response.set_mut(Template::new("channel", data)).set_mut(status::Ok);
 

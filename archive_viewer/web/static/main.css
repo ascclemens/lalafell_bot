@@ -25,6 +25,15 @@ div.channel_name {
     div.channel_name p + h2 {
       border-right: 1px solid rgba(183, 187, 191, 0.1); }
 
+a {
+  text-decoration: none; }
+  a[href] {
+    color: #0095cd; }
+    a[href]:hover {
+      text-decoration: underline; }
+  a:visited {
+    color: #0095cd; }
+
 div.messages {
   display: flex;
   flex-direction: column;
@@ -36,14 +45,7 @@ div.pages {
   justify-content: center;
   padding-bottom: 0.5em; }
   div.pages a {
-    text-decoration: none;
     padding: 0 .5em; }
-    div.pages a[href] {
-      color: #0095cd; }
-      div.pages a[href]:hover {
-        text-decoration: underline; }
-    div.pages a:visited {
-      color: #0095cd; }
 
 div.message {
   border-top: solid 1px rgba(183, 187, 191, 0.1);
@@ -72,6 +74,11 @@ div.message {
       padding-left: .5em; }
   div.message div.right div.content + div.attachment {
     padding-top: 0.5em; }
+  div.message div.right div.content span.highlight {
+    color: #7289da;
+    background-color: rgba(115, 139, 215, 0.1);
+    font-weight: 500;
+    transition: background-color .05s,color .05s; }
   div.message div.right div.attachment + div.message div.right div.attachment {
     padding-top: 0.5em; }
   div.message div.right div.attachment img {
