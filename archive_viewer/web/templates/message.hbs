@@ -4,8 +4,8 @@
   </div>
   <div class="right">
     <div class="header">
-      <div class="author">{{message.author.username}}</div>
-      <div class="timestamp">{{timestamp}}</div>
+      <div class="author" {{~#if data.name_color}} style="color: {{data.name_color}}"{{/if}}>{{message.author.username}}</div>
+      <div class="timestamp">{{data.timestamp}}</div>
     </div>
     <div class="content">
       {{message.content}}

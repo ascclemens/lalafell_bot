@@ -8,7 +8,6 @@ use lalafell::error::*;
 use discord::GetMessages;
 use discord::model::{permissions, Message, PublicChannel, Member, Emoji, Role, ChannelId};
 
-
 use serde_json;
 
 use std::sync::Arc;

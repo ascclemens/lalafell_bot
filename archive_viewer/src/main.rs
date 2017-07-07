@@ -31,13 +31,15 @@ use staticfile::Static;
 use handlebars_iron::{HandlebarsEngine, DirectorySource, Template};
 use handlebars_iron::handlebars::*;
 
-use discord::model::Message;
+use discord::model::{Message, Role, Member, Emoji, ChannelId};
 
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::fs::File;
+use std::sync::RwLock;
+use std::collections::HashMap;
 
 lazy_static! {
-  static ref MESSAGES: Vec<Message> = get_messages().unwrap();
+  static ref MESSAGES: RwLock<HashMap<u64, HashMap<u64, Archive>>> = RwLock::default();
 }
 
 fn handlebars() -> Result<HandlebarsEngine> {
@@ -80,8 +82,88 @@ fn mount(router: Router) -> Mount {
 
 fn router() -> Router {
   router!(
-    index: get "/:channel_id/:page" => channel
+    index: get "/:server_id/:channel_id/:page" => channel,
+    refresh: get "/refresh" => refresh
   )
+}
+
+fn add_messages(channel: PathBuf, server_id: u64, channel_id: u64) {
+  let f = File::open(channel).unwrap();
+  let mut archive: Archive = serde_json::from_reader(f).unwrap();
+  for message in &mut archive.messages {
+    if let Some(member) = archive.server.members.iter().find(|mem| mem.user.id == message.author.id) {
+      if let Some(ref nick) = member.nick {
+        message.author.name = nick.clone();
+      }
+    }
+    let mut parts: Vec<String> = message.content.split(' ').map(ToOwned::to_owned).collect();
+    for part in &mut parts {
+      if part.starts_with("<@!") {
+        let end = part.find('>').unwrap_or_else(|| part.len() - 1);
+        let id: u64 = match part[3..end].parse() {
+          Ok(u) => u,
+          Err(_) => continue
+        };
+        if let Some(member) = archive.server.members.iter().find(|m| m.user.id.0 == id) {
+          let name = member.nick.as_ref().unwrap_or(&member.user.name);
+          *part = format!("@{}", name);
+        }
+      } else if part.starts_with("<@&") {
+        let end = part.find('>').unwrap_or_else(|| part.len() - 1);
+        let id: u64 = match part[3..end].parse() {
+          Ok(u) => u,
+          Err(_) => continue
+        };
+        if let Some(role) = archive.server.roles.iter().find(|r| r.id.0 == id) {
+          let name = if role.name == "@everyone" { role.name.clone() } else { format!("@{}", role.name) };
+          *part = name;
+        }
+      } else if part.starts_with("<@") {
+        let end = part.find('>').unwrap_or_else(|| part.len() - 1);
+        let id: u64 = match part[2..end].parse() {
+          Ok(u) => u,
+          Err(_) => continue
+        };
+        if let Some(member) = archive.server.members.iter().find(|m| m.user.id.0 == id) {
+          let name = member.nick.as_ref().unwrap_or(&member.user.name);
+          *part = format!("@{}", name);
+        }
+      } else if part.starts_with("<#") {
+        let end = part.find('>').unwrap_or_else(|| part.len() - 1);
+        let id: u64 = match part[2..end].parse() {
+          Ok(u) => u,
+          Err(_) => continue
+        };
+        if let Some(channel) = archive.server.channels.iter().find(|c| c.id.0 == id) {
+          *part = format!("#{}", channel.name);
+        }
+      }
+    }
+    message.content = parts.join(" ");
+  }
+  let mut msgs = MESSAGES.write().unwrap();
+  let server = msgs.entry(server_id).or_insert_with(Default::default);
+  server.insert(channel_id, archive);
+}
+
+fn _refresh() {
+  let archives = std::fs::read_dir("archives").unwrap();
+  for server in archives {
+    let server = server.unwrap().path();
+    if server.is_dir() {
+      let server_id: u64 = server.file_stem().unwrap().to_string_lossy().parse().unwrap();
+      for channel in std::fs::read_dir(server).unwrap() {
+        let channel = channel.unwrap().path();
+        let channel_id: u64 = channel.file_stem().unwrap().to_string_lossy().parse().unwrap();
+        add_messages(channel, server_id, channel_id);
+      }
+    }
+  }
+}
+
+fn refresh(_: &mut Request) -> IronResult<Response> {
+  _refresh();
+  Ok(Response::with(("We gucci", status::Ok)))
 }
 
 fn chain(mount: Mount, handlebars: HandlebarsEngine) -> Chain {
@@ -96,11 +178,21 @@ fn main() {
   let mount = mount(router);
   let chain = chain(mount, handlebars);
 
+  _refresh();
+
   Iron::new(chain).http("localhost:3000").unwrap();
 }
 
 fn channel(req: &mut Request) -> IronResult<Response> {
   let params = req.extensions.get::<Router>().unwrap();
+  let server_id = match params.find("server_id") {
+    Some(c) => c,
+    None => return Ok(Response::with(("No server_id", status::BadRequest)))
+  };
+  let server_id = match server_id.parse::<u64>() {
+    Ok(c) => c,
+    Err(_) => return Ok(Response::with(("Bad server_id", status::BadRequest)))
+  };
   let channel_id = match params.find("channel_id") {
     Some(c) => c,
     None => return Ok(Response::with(("No channel_id", status::BadRequest)))
@@ -117,18 +209,40 @@ fn channel(req: &mut Request) -> IronResult<Response> {
 
   let mut response = Response::new();
 
-  let message_chunk = match MESSAGES.chunks(50).nth(page as usize) {
+  let msgs = MESSAGES.read().unwrap();
+  let server = match msgs.get(&server_id) {
+    Some(s) => s,
+    None => return Ok(Response::with(("No such server", status::BadRequest)))
+  };
+  let archive = match server.get(&channel_id) {
+    Some(c) => c,
+    None => return Ok(Response::with(("No such channel", status::BadRequest)))
+  };
+  let messages = &archive.messages;
+
+  let message_chunk = match messages.chunks(50).nth(page as usize) {
     Some(m) => m,
     None => return Ok(Response::with(("No such page", status::BadRequest)))
   };
   let wrappers: Vec<_> = message_chunk.into_iter()
     .map(|m| {
       let timestamp = m.timestamp.format("%m/%d/%Y at %H:%M:%S").to_string();
-      (m, timestamp)
+      let mut color = 0;
+      if let Some(member) = archive.server.members.iter().find(|mem| mem.user.id == m.author.id) {
+        let roles = member.roles.iter().flat_map(|r| archive.server.roles.iter().find(|x| x.id == *r));
+        if let Some(role) = roles.max_by_key(|r| r.position) {
+          color = role.color;
+        }
+      }
+      let data = MessageData {
+        timestamp: timestamp,
+        name_color: format!("#{:x}", color)
+      };
+      (m, data)
     })
     .rev()
     .collect();
-  let pages = (MESSAGES.len() as f32 / 50.0).ceil() as u64;
+  let pages = (messages.len() as f32 / 50.0).ceil() as u64;
   let data = ArchiveData {
     messages: wrappers,
     channel_id: channel_id,
@@ -140,21 +254,18 @@ fn channel(req: &mut Request) -> IronResult<Response> {
     end: page == pages - 1
   };
 
-  // TODO: page links
+  // TODO: special color for roles, mentions, and channels
+  // TODO: embeds
+  // TODO: links
 
   response.set_mut(Template::new("index", data)).set_mut(status::Ok);
 
   Ok(response)
 }
 
-fn get_messages() -> Result<Vec<Message>> {
-  let f = File::open("archives/322773022064771073.json").chain_err(|| "could not open 322773022064771073.json")?;
-  serde_json::from_reader(f).chain_err(|| "could not parse 322773022064771073.json")
-}
-
 #[derive(Debug, Serialize)]
 struct ArchiveData<'a> {
-  messages: Vec<(&'a Message, String)>,
+  messages: Vec<(&'a Message, MessageData)>,
   channel_id: u64,
   prev_page: u64,
   current_page: u64,
@@ -162,4 +273,34 @@ struct ArchiveData<'a> {
   pages: u64,
   start: bool,
   end: bool
+}
+
+#[derive(Debug, Serialize)]
+struct MessageData {
+  timestamp: String,
+  name_color: String
+}
+
+#[derive(Debug, Deserialize)]
+struct Archive {
+  server: ArchiveServer,
+  channel: ArchiveChannel,
+  messages: Vec<Message>
+}
+
+#[derive(Debug, Deserialize)]
+struct ArchiveServer {
+  name: String,
+  roles: Vec<Role>,
+  members: Vec<Member>,
+  channels: Vec<ArchiveChannel>,
+  icon: Option<String>,
+  emojis: Vec<Emoji>
+}
+
+#[derive(Debug, Deserialize)]
+struct ArchiveChannel {
+  id: ChannelId,
+  name: String,
+  topic: Option<String>
 }
