@@ -43,7 +43,7 @@ fn parse_user_mention(server: &ArchiveServer, part: &mut String) -> bool {
   match server.members.iter().find(|m| m.user.id.0 == id) {
     Some(member) => {
       let name = member.nick.as_ref().unwrap_or(&member.user.name);
-      *part = format!("<span class=\"highlight\">@{}</span>", html_escape(name));
+      *part = format!("<span class=\"highlight\">@{}</span>{}", html_escape(name), &part[end + 1..]);
       true
     },
     None => false
@@ -59,7 +59,7 @@ fn parse_user_nick_mention(server: &ArchiveServer, part: &mut String) -> bool {
   match server.members.iter().find(|m| m.user.id.0 == id) {
     Some(member) => {
       let name = member.nick.as_ref().unwrap_or(&member.user.name);
-      *part = format!("<span class=\"highlight\">@{}</span>", html_escape(name));
+      *part = format!("<span class=\"highlight\">@{}</span>{}", html_escape(name), &part[end + 1..]);
       true
     },
     None => false
@@ -74,7 +74,7 @@ fn parse_channel_mention(server: &ArchiveServer, part: &mut String) -> bool {
   };
   match server.channels.iter().find(|c| c.id.0 == id) {
     Some(channel) => {
-      *part = format!("<span class=\"highlight\">#{}</span>", html_escape(&channel.name));
+      *part = format!("<span class=\"highlight\">#{}</span>{}", html_escape(&channel.name), &part[end + 1..]);
       true
     },
     None => false
@@ -90,7 +90,7 @@ fn parse_role_mention(server: &ArchiveServer, part: &mut String) -> bool {
   match server.roles.iter().find(|r| r.id.0 == id) {
     Some(role) => {
       let name = if role.name == "@everyone" { role.name.clone() } else { format!("@{}", role.name) };
-      *part = format!("<span class=\"highlight\">{}</span>", html_escape(&name));
+      *part = format!("<span class=\"highlight\">{}</span>{}", html_escape(&name), &part[end + 1..]);
       true
     },
     None => false
@@ -105,7 +105,7 @@ fn parse_custom_emoji(part: &mut String) -> bool {
         Ok(u) => u,
         Err(_) => return false
       };
-      *part = format!("<img class=\"emoji\" alt=\"{}\" src=\"https://cdn.discordapp.com/emojis/{}.png\"/>", &part[2..index], id);
+      *part = format!("<img class=\"emoji\" alt=\"{}\" src=\"https://cdn.discordapp.com/emojis/{}.png\"/>{}", &part[2..index], id, &part[end + 1..]);
       true
     },
     None => false
