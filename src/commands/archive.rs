@@ -8,6 +8,8 @@ use lalafell::error::*;
 use discord::GetMessages;
 use discord::model::{permissions, Message, PublicChannel, Member, Emoji, Role, ChannelId};
 
+use chrono::Utc;
+
 use serde_json;
 
 use std::sync::Arc;
@@ -90,6 +92,7 @@ impl<'a> PublicChannelCommand<'a> for ArchiveCommand {
     let num_messages = messages.len();
 
     let archive = Archive {
+      timestamp: Utc::now().timestamp(),
       server: ArchiveServer {
         name: server.name.clone(),
         roles: server.roles.clone(),
@@ -119,6 +122,7 @@ impl<'a> PublicChannelCommand<'a> for ArchiveCommand {
 
 #[derive(Debug, Serialize)]
 struct Archive {
+  timestamp: i64,
   server: ArchiveServer,
   channel: ArchiveChannel,
   messages: Vec<Message>

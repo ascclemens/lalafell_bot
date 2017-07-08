@@ -16,8 +16,11 @@ extern crate serde_json;
 #[macro_use]
 extern crate lazy_static;
 extern crate url;
+extern crate chrono;
 
 mod error;
+
+mod index;
 mod channel;
 mod refresh;
 mod helpers;
@@ -66,6 +69,8 @@ fn mount(router: Router) -> Mount {
 
 fn router() -> Router {
   router!(
+    index: get "/" => index::index,
+    channel_no_page: get "/:server_id/:channel_id" => channel::channel_redirect,
     channel: get "/:server_id/:channel_id/:page" => channel::channel,
     refresh: get "/refresh" => refresh::refresh
   )

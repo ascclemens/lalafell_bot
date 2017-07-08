@@ -2,12 +2,21 @@ use MESSAGES;
 
 use iron::prelude::*;
 use iron::status;
+use iron::modifiers::Redirect;
 
 use router::Router;
 
 use handlebars_iron::Template;
 
 use discord::model::{Message, Role, Member, Emoji, ChannelId};
+
+pub fn channel_redirect(req: &mut Request) -> IronResult<Response> {
+  {
+    let mut url = req.url.as_mut();
+    url.path_segments_mut().unwrap().push("1");
+  }
+  Ok(Response::with((Redirect(req.url.clone()), status::MovedPermanently)))
+}
 
 pub fn channel(req: &mut Request) -> IronResult<Response> {
   let params = req.extensions.get::<Router>().unwrap();
@@ -61,6 +70,7 @@ pub fn channel(req: &mut Request) -> IronResult<Response> {
         }
       }
       let data = MessageData {
+        raw_timestamp: m.timestamp.timestamp(),
         timestamp: timestamp,
         name_color: format!("#{:x}", color)
       };
@@ -106,12 +116,14 @@ pub struct ArchiveData<'a> {
 
 #[derive(Debug, Serialize)]
 pub struct MessageData {
+  pub raw_timestamp: i64,
   pub timestamp: String,
   pub name_color: String
 }
 
 #[derive(Debug, Deserialize)]
 pub struct Archive {
+  pub timestamp: i64,
   pub server: ArchiveServer,
   pub channel: ArchiveChannel,
   pub messages: Vec<Message>

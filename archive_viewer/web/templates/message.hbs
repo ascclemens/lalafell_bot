@@ -5,7 +5,7 @@
   <div class="right">
     <div class="header">
       <div class="author" {{~#if data.name_color}} style="color: {{data.name_color}}"{{/if}}>{{message.author.username}}</div>
-      <div class="timestamp">{{data.timestamp}}</div>
+      <div class="timestamp" data-timestamp="{{data.raw_timestamp}}">{{data.timestamp}}</div>
     </div>
     {{~#if message.content}}
       <div class="content">

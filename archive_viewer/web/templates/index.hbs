@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <title>#discord_archives</title>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <link rel="stylesheet" href="/static/main.css"/>
+  </head>
+  <body>
+    <div class="channel_name">
+      <p>Archives of old Discord channels</p>
+      <h2>#<span>discord_archives</span></h2>
+    </div>
+    <div class="messages">
+    {{#each servers as |server_id channels|}}
+      {{#each channels as |channel|}}
+        <div class="message">
+          <div class="left">
+            <img src="https://cdn.discordapp.com/icons/{{server_id}}/{{channel.server_icon}}.webp" class="avatar">
+          </div>
+          <div class="right">
+            <div class="header">
+              <div class="author">{{channel.server_name}}</div>
+              <div class="timestamp">Snapshotted at <span class="utc_timestamp" data-timestamp="{{channel.raw_timestamp}}">{{channel.timestamp}}</span></div>
+            </div>
+            <div class="content">
+              <a href="/{{server_id}}/{{channel.id}}">#{{channel.name}}</a>
+            </div>
+          </div>
+        </div>
+      {{/each}}
+    {{/each}}
+    </div>
+  </body>
+  <script src="/static/moment.js"></script>
+  <script src="/static/timestamps.js"></script>
+  <script>
+    convertTimestamps("utc_timestamp");
+  </script>
+</html>
