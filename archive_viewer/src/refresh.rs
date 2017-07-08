@@ -1,6 +1,6 @@
 use MESSAGES;
 
-use channel::Archive;
+use channel::{Archive, ArchiveServer};
 
 use iron::prelude::*;
 use iron::status;
@@ -34,6 +34,84 @@ pub fn refresh(_: &mut Request) -> IronResult<Response> {
   Ok(Response::with(("We gucci", status::Ok)))
 }
 
+fn parse_user_mention(server: &ArchiveServer, part: &mut String) -> bool {
+  let end = part.find('>').unwrap_or_else(|| part.len() - 1);
+  let id: u64 = match part[2..end].parse() {
+    Ok(u) => u,
+    Err(_) => return false
+  };
+  match server.members.iter().find(|m| m.user.id.0 == id) {
+    Some(member) => {
+      let name = member.nick.as_ref().unwrap_or(&member.user.name);
+      *part = format!("<span class=\"highlight\">@{}</span>", html_escape(name));
+      true
+    },
+    None => false
+  }
+}
+
+fn parse_user_nick_mention(server: &ArchiveServer, part: &mut String) -> bool {
+  let end = part.find('>').unwrap_or_else(|| part.len() - 1);
+  let id: u64 = match part[3..end].parse() {
+    Ok(u) => u,
+    Err(_) => return false
+  };
+  match server.members.iter().find(|m| m.user.id.0 == id) {
+    Some(member) => {
+      let name = member.nick.as_ref().unwrap_or(&member.user.name);
+      *part = format!("<span class=\"highlight\">@{}</span>", html_escape(name));
+      true
+    },
+    None => false
+  }
+}
+
+fn parse_channel_mention(server: &ArchiveServer, part: &mut String) -> bool {
+  let end = part.find('>').unwrap_or_else(|| part.len() - 1);
+  let id: u64 = match part[2..end].parse() {
+    Ok(u) => u,
+    Err(_) => return false
+  };
+  match server.channels.iter().find(|c| c.id.0 == id) {
+    Some(channel) => {
+      *part = format!("<span class=\"highlight\">#{}</span>", html_escape(&channel.name));
+      true
+    },
+    None => false
+  }
+}
+
+fn parse_role_mention(server: &ArchiveServer, part: &mut String) -> bool {
+  let end = part.find('>').unwrap_or_else(|| part.len() - 1);
+  let id: u64 = match part[3..end].parse() {
+    Ok(u) => u,
+    Err(_) => return false
+  };
+  match server.roles.iter().find(|r| r.id.0 == id) {
+    Some(role) => {
+      let name = if role.name == "@everyone" { role.name.clone() } else { format!("@{}", role.name) };
+      *part = format!("<span class=\"highlight\">{}</span>", html_escape(&name));
+      true
+    },
+    None => false
+  }
+}
+
+fn parse_custom_emoji(part: &mut String) -> bool {
+  match part[2..].find(':') {
+    Some(index) => {
+      let end = part[2 + index..].find('>').map(|x| x + 2 + index).unwrap_or_else(|| part.len() - 1);
+      let id: u64 = match part[3 + index..end].parse() {
+        Ok(u) => u,
+        Err(_) => return false
+      };
+      *part = format!("<img class=\"emoji\" alt=\"{}\" src=\"https://cdn.discordapp.com/emojis/{}.png\"/>", &part[2..index], id);
+      true
+    },
+    None => false
+  }
+}
+
 fn add_messages(channel: PathBuf, server_id: u64, channel_id: u64) {
   let f = File::open(channel).unwrap();
   let mut archive: Archive = serde_json::from_reader(f).unwrap();
@@ -43,60 +121,23 @@ fn add_messages(channel: PathBuf, server_id: u64, channel_id: u64) {
         message.author.name = nick.clone();
       }
     }
-    // FIXME: continuing here doesn't escape and opens a vulnerability
-    // can probably refactor these into individual methods that return, then always escape the end
-    // result or base it on a return value
     let mut parts: Vec<String> = message.content.split(' ').map(ToOwned::to_owned).collect();
     for part in &mut parts {
-      if part.starts_with("<@!") {
-        let end = part.find('>').unwrap_or_else(|| part.len() - 1);
-        let id: u64 = match part[3..end].parse() {
-          Ok(u) => u,
-          Err(_) => continue
-        };
-        if let Some(member) = archive.server.members.iter().find(|m| m.user.id.0 == id) {
-          let name = member.nick.as_ref().unwrap_or(&member.user.name);
-          *part = format!("<span class=\"highlight\">@{}</span>", html_escape(name));
-        }
+      let escaped = if part.starts_with("<@!") {
+        parse_user_nick_mention(&archive.server, part)
       } else if part.starts_with("<@&") {
-        let end = part.find('>').unwrap_or_else(|| part.len() - 1);
-        let id: u64 = match part[3..end].parse() {
-          Ok(u) => u,
-          Err(_) => continue
-        };
-        if let Some(role) = archive.server.roles.iter().find(|r| r.id.0 == id) {
-          let name = if role.name == "@everyone" { role.name.clone() } else { format!("@{}", role.name) };
-          *part = format!("<span class=\"highlight\">{}</span>", html_escape(&name));
-        }
+        parse_role_mention(&archive.server, part)
       } else if part.starts_with("<@") {
-        let end = part.find('>').unwrap_or_else(|| part.len() - 1);
-        let id: u64 = match part[2..end].parse() {
-          Ok(u) => u,
-          Err(_) => continue
-        };
-        if let Some(member) = archive.server.members.iter().find(|m| m.user.id.0 == id) {
-          let name = member.nick.as_ref().unwrap_or(&member.user.name);
-          *part = format!("<span class=\"highlight\">@{}</span>", html_escape(name));
-        }
+        parse_user_mention(&archive.server, part)
       } else if part.starts_with("<#") {
-        let end = part.find('>').unwrap_or_else(|| part.len() - 1);
-        let id: u64 = match part[2..end].parse() {
-          Ok(u) => u,
-          Err(_) => continue
-        };
-        if let Some(channel) = archive.server.channels.iter().find(|c| c.id.0 == id) {
-          *part = format!("<span class=\"highlight\">#{}</span>", html_escape(&channel.name));
-        }
+        parse_channel_mention(&archive.server, part)
       } else if part.starts_with("<:") {
-        if let Some(index) = part[2..].find(':') {
-          let end = part[2 + index..].find('>').map(|x| x + 2 + index).unwrap_or_else(|| part.len() - 1);
-          let id: u64 = match part[3 + index..end].parse() {
-            Ok(u) => u,
-            Err(_) => continue
-          };
-          *part = format!("<img class=\"emoji\" alt=\"{}\" src=\"https://cdn.discordapp.com/emojis/{}.png\"/>", &part[2..index], id);
-        }
+        parse_custom_emoji(part)
       } else {
+        false
+      };
+
+      if !escaped {
         *part = html_escape(part);
       }
 
