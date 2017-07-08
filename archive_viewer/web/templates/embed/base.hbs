@@ -1,0 +1,17 @@
+<div class="embed" {{~#if embed.color}} style="border-color: #{{hex embed.color}}" {{~/if}}>
+  {{~#eq embed.type "image"}}
+    <img src="{{embed.thumbnail.url}}"/>
+  {{/eq}}
+  {{~#eq embed.type "video"}}
+    <iframe width="560" height="315" src="{{embed.video.url}}" frameborder="0" allowfullscreen></iframe>
+  {{/eq}}
+  {{~#eq embed.type "link"}}
+    {{>embed/link}}
+  {{/eq}}
+  {{~#eq embed.type "article"}}
+    {{>embed/link}}
+  {{/eq}}
+  {{~#eq embed.type "rich"}}
+    {{>embed/rich}}
+  {{/eq~}}
+</div>
