@@ -90,6 +90,7 @@ fn router() -> Router {
   )
 }
 
+// FIXME: kill meeeeee
 fn escape(data: &str) -> String {
   let mut result = String::new();
   for c in data.chars() {
@@ -113,6 +114,9 @@ fn add_messages(channel: PathBuf, server_id: u64, channel_id: u64) {
         message.author.name = nick.clone();
       }
     }
+    // FIXME: continuing here doesn't escape and opens a vulnerability
+    // can probably refactor these into individual methods that return, then always escape the end
+    // result or base it on a return value
     let mut parts: Vec<String> = message.content.split(' ').map(ToOwned::to_owned).collect();
     for part in &mut parts {
       if part.starts_with("<@!") {
@@ -153,6 +157,15 @@ fn add_messages(channel: PathBuf, server_id: u64, channel_id: u64) {
         };
         if let Some(channel) = archive.server.channels.iter().find(|c| c.id.0 == id) {
           *part = format!("<span class=\"highlight\">#{}</span>", escape(&channel.name));
+        }
+      } else if part.starts_with("<:") {
+        if let Some(index) = part[2..].find(':') {
+          let end = part[2 + index..].find('>').map(|x| x + 2 + index).unwrap_or_else(|| part.len() - 1);
+          let id: u64 = match part[3 + index..end].parse() {
+            Ok(u) => u,
+            Err(_) => continue
+          };
+          *part = format!("<img class=\"emoji\" alt=\"{}\" src=\"https://cdn.discordapp.com/emojis/{}.png\"/>", &part[2..index], id);
         }
       } else {
         *part = escape(&part);
@@ -282,6 +295,7 @@ fn channel(req: &mut Request) -> IronResult<Response> {
   };
 
   // TODO: embeds
+  // TODO: reactions
 
   response.set_mut(Template::new("channel", data)).set_mut(status::Ok);
 

@@ -15,5 +15,8 @@
     {{~#each message.attachments}}
       {{>attachment attachment=this~}}
     {{/each~}}
+    {{~#each message.embeds}}
+      {{>embed embed=this~}}
+    {{/each~}}
   </div>
 </div>

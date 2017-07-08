@@ -1,0 +1,16 @@
+<div class="embed">
+  {{#eq embed.type "image"}}
+    <img src="{{embed.thumbnail.url}}"/>
+  {{/eq}}
+  {{#eq embed.type "video"}}
+    <iframe width="560" height="315" src="{{embed.video.url}}" frameborder="0" allowfullscreen></iframe>
+  {{/eq}}
+  {{#eq embed.type "link"}}
+    <div class="link info">
+      <div class="provider">{{embed.provider.name}}</div>
+      <div class="title"><a href="{{embed.url}}">{{embed.title}}</a></div>
+      <div class="description">{{embed.description}}</div>
+    </div>
+    <img src="{{embed.thumbnail.url}}" class="link thumbnail"/>
+  {{/eq}}
+</div>
