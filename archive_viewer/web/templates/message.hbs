@@ -18,5 +18,14 @@
     {{~#each message.embeds}}
       {{>embed/base embed=this~}}
     {{/each~}}
+    {{~#if message.reactions~}}
+      <div class="reactions">
+        {{~#each message.reactions}}
+          <div class="reaction">
+            {{this.emoji.name}} <span class="count">{{this.count}}</span>
+          </div>
+        {{/each~}}
+      </div>
+    {{~/if}}
   </div>
 </div>

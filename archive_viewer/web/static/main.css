@@ -1,5 +1,5 @@
 body, html {
-  background-color: #333;
+  background-color: #36393e;
   color: #b7bbbf;
   font-family: sans-serif;
   font-size: 1em;
@@ -71,6 +71,18 @@ div.message {
       font-size: 0.75em;
       color: #5c6268;
       padding-left: .5em; }
+  div.message div.right div.reactions {
+    display: flex;
+    margin-top: .5em;
+    font-size: 0.875em;
+    text-align: center; }
+    div.message div.right div.reactions div.reaction {
+      margin: 2px;
+      background-color: rgba(255, 255, 255, 0.04);
+      border-radius: 3px;
+      padding: 0 6px; }
+      div.message div.right div.reactions div.reaction span.count {
+        color: rgba(255, 255, 255, 0.3); }
   div.message div.right div.content + div.attachment {
     padding-top: 0.5em; }
   div.message div.right div.content span.highlight {
@@ -96,7 +108,7 @@ div.message {
   div.message div.right div.embed {
     display: inline-flex;
     flex-direction: row;
-    background-color: #2b2b2b;
+    background-color: #2f3136;
     padding: .5em;
     border-radius: 5px;
     border-left: 5px solid rgba(183, 187, 191, 0.1); }
@@ -136,5 +148,5 @@ div.message {
     div.message div.right div.embed img.link.thumbnail {
       max-height: 50px;
       padding-left: 1em; }
-  div.message div.right div + div.embed {
+  div.message div.right div.content + div.embed {
     margin-top: 0.5em; }

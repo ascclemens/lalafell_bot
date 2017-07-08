@@ -1,6 +1,6 @@
 $fontSize: 1em;
 $fontColor: #b7bbbf;
-$backgroundColor: #333;
+$backgroundColor: #36393e;
 $width: 80vw;
 $borderColor: transparentize($fontColor, .9);
 $linkColor: rgb(0, 149, 205);
@@ -101,6 +101,24 @@ div.message {
         font-size: $fontSize * .75;
         color: darken($fontColor, 35);
         padding-left: .5em;
+      }
+    }
+
+    div.reactions {
+      display: flex;
+      margin-top: .5em;
+      font-size: $fontSize * 0.875;
+      text-align: center;
+
+      div.reaction {
+        margin: 2px;
+        background-color: hsla(0, 0%, 100%, .04);
+        border-radius: 3px;
+        padding: 0 6px;
+
+        span.count {
+          color: hsla(0, 0%, 100%, .3);
+        }
       }
     }
 
@@ -213,7 +231,7 @@ div.message {
       }
     }
 
-    div + div.embed {
+    div.content + div.embed {
       margin-top: 0.5em;
     }
   }
