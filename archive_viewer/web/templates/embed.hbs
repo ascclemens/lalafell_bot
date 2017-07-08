@@ -13,6 +13,14 @@
     </div>
     <img src="{{embed.thumbnail.url}}" class="link thumbnail"/>
   {{/eq}}
+  {{~#eq embed.type "article"}}
+    <div class="link info">
+      <div class="provider">{{embed.provider.name}}</div>
+      <div class="title"><a href="{{embed.url}}">{{embed.title}}</a></div>
+      <div class="description">{{embed.description}}</div>
+    </div>
+    <img src="{{embed.thumbnail.url}}" class="link thumbnail"/>
+  {{/eq}}
   {{~#eq embed.type "rich"}}
     <div class="rich">
       <div class="author">
