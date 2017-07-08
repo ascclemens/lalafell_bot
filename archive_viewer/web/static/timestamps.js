@@ -9,7 +9,7 @@ convertTimestamps = function(className) {
     element = elements[i];
     results.push((function(element) {
       var timestamp;
-      timestamp = Number(element.getAttribute('data-timestamp') * 1000);
+      timestamp = Number(element.getAttribute('data-timestamp')) * 1000;
       element.setAttribute('title', element.innerHTML + ' UTC');
       return element.innerHTML = moment(timestamp).format('MM/DD/YYYY [at] HH:mm:ss');
     })(element));
