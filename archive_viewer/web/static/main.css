@@ -99,12 +99,34 @@ div.message {
     flex-direction: row;
     background-color: #2b2b2b;
     padding: .5em;
-    border-radius: 5px; }
+    border-radius: 5px;
+    border-left: 5px solid rgba(183, 187, 191, 0.1); }
     div.message div.right div.embed img {
       max-width: 400px;
       max-height: 600px;
       width: auto;
       height: auto; }
+      div.message div.right div.embed img.thumbnail {
+        max-height: 50px;
+        padding-left: 1em; }
+    div.message div.right div.embed div.rich {
+      display: flex;
+      flex-direction: column; }
+      div.message div.right div.embed div.rich > div:empty {
+        display: none; }
+      div.message div.right div.embed div.rich div:not(:empty) + div:not(:empty) {
+        padding-top: 0.5em; }
+      div.message div.right div.embed div.rich div.title, div.message div.right div.embed div.rich div.author {
+        font-weight: bold; }
+        div.message div.right div.embed div.rich div.title + div, div.message div.right div.embed div.rich div.author + div {
+          padding-top: 0 !important; }
+      div.message div.right div.embed div.rich div.footer {
+        font-size: 0.75em;
+        font-weight: 500; }
+      div.message div.right div.embed div.rich div.field div.name {
+        font-weight: bold; }
+      div.message div.right div.embed div.rich div.field.inline {
+        display: inline-block; }
     div.message div.right div.embed div.link.info div.provider {
       font-size: 0.8em; }
     div.message div.right div.embed div.link.info div.title {

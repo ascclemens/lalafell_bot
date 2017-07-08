@@ -148,12 +148,52 @@ div.message {
       background-color: darken($backgroundColor, 3);
       padding: .5em;
       border-radius: 5px;
+      border-left: 5px solid $borderColor;
 
       img {
         max-width: 400px;
         max-height: 600px;
         width: auto;
         height: auto;
+
+        &.thumbnail {
+          max-height: 50px;
+          padding-left: 1em;
+        }
+      }
+
+      div.rich {
+        display: flex;
+        flex-direction: column;
+
+        & > div:empty {
+          display: none;
+        }
+
+        div:not(:empty) + div:not(:empty) {
+          padding-top: 0.5em;
+        }
+
+        div.title, div.author {
+          & + div {
+            padding-top: 0 !important;
+          }
+          font-weight: bold;
+        }
+
+        div.footer {
+          font-size: $fontSize * .75;
+          font-weight: 500;
+        }
+
+        div.field {
+          div.name {
+            font-weight: bold;
+          }
+          &.inline {
+            display: inline-block;
+          }
+        }
       }
 
       div.link.info {

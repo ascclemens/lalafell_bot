@@ -64,9 +64,25 @@ fn handlebars() -> Result<HandlebarsEngine> {
     Ok(())
   }
 
+  fn hex(h: &Helper, _: &Handlebars, rc: &mut RenderContext) -> std::result::Result<(), RenderError> {
+    let param = h.params()[0].value().as_u64().unwrap();
+    let hex = format!("{:x}", param);
+    rc.writer().write_all(&hex.as_bytes())?;
+    Ok(())
+  }
+
+  fn break_lines(h: &Helper, _: &Handlebars, rc: &mut RenderContext) -> std::result::Result<(), RenderError> {
+    let param = h.params()[0].value().as_str().unwrap();
+    let broken = html_escape(&param).replace("\n", "<br/>");
+    rc.writer().write_all(&broken.as_bytes())?;
+    Ok(())
+  }
+
   let mut handlebars = Handlebars::new();
   handlebars.register_helper("range", box range);
   handlebars.register_helper("eq", box eq);
+  handlebars.register_helper("hex", box hex);
+  handlebars.register_helper("break_lines", box break_lines);
 
   let mut engine = HandlebarsEngine::from(handlebars);
   engine.add(box DirectorySource::new("web/templates", ".hbs"));
@@ -88,21 +104,6 @@ fn router() -> Router {
     channel: get "/:server_id/:channel_id/:page" => channel,
     refresh: get "/refresh" => refresh
   )
-}
-
-// FIXME: kill meeeeee
-fn escape(data: &str) -> String {
-  let mut result = String::new();
-  for c in data.chars() {
-    match c {
-      '<' => result += "&lt;",
-      '>' => result += "&gt;",
-      '\"' => result += "&quot;",
-      '&' => result += "&amp;",
-      other => result += other.to_string().as_str()
-    };
-  }
-  result
 }
 
 fn add_messages(channel: PathBuf, server_id: u64, channel_id: u64) {
@@ -127,7 +128,7 @@ fn add_messages(channel: PathBuf, server_id: u64, channel_id: u64) {
         };
         if let Some(member) = archive.server.members.iter().find(|m| m.user.id.0 == id) {
           let name = member.nick.as_ref().unwrap_or(&member.user.name);
-          *part = format!("<span class=\"highlight\">@{}</span>", escape(&name));
+          *part = format!("<span class=\"highlight\">@{}</span>", html_escape(&name));
         }
       } else if part.starts_with("<@&") {
         let end = part.find('>').unwrap_or_else(|| part.len() - 1);
@@ -137,7 +138,7 @@ fn add_messages(channel: PathBuf, server_id: u64, channel_id: u64) {
         };
         if let Some(role) = archive.server.roles.iter().find(|r| r.id.0 == id) {
           let name = if role.name == "@everyone" { role.name.clone() } else { format!("@{}", role.name) };
-          *part = format!("<span class=\"highlight\">{}</span>", escape(&name));
+          *part = format!("<span class=\"highlight\">{}</span>", html_escape(&name));
         }
       } else if part.starts_with("<@") {
         let end = part.find('>').unwrap_or_else(|| part.len() - 1);
@@ -147,7 +148,7 @@ fn add_messages(channel: PathBuf, server_id: u64, channel_id: u64) {
         };
         if let Some(member) = archive.server.members.iter().find(|m| m.user.id.0 == id) {
           let name = member.nick.as_ref().unwrap_or(&member.user.name);
-          *part = format!("<span class=\"highlight\">@{}</span>", escape(&name));
+          *part = format!("<span class=\"highlight\">@{}</span>", html_escape(&name));
         }
       } else if part.starts_with("<#") {
         let end = part.find('>').unwrap_or_else(|| part.len() - 1);
@@ -156,7 +157,7 @@ fn add_messages(channel: PathBuf, server_id: u64, channel_id: u64) {
           Err(_) => continue
         };
         if let Some(channel) = archive.server.channels.iter().find(|c| c.id.0 == id) {
-          *part = format!("<span class=\"highlight\">#{}</span>", escape(&channel.name));
+          *part = format!("<span class=\"highlight\">#{}</span>", html_escape(&channel.name));
         }
       } else if part.starts_with("<:") {
         if let Some(index) = part[2..].find(':') {
@@ -168,7 +169,7 @@ fn add_messages(channel: PathBuf, server_id: u64, channel_id: u64) {
           *part = format!("<img class=\"emoji\" alt=\"{}\" src=\"https://cdn.discordapp.com/emojis/{}.png\"/>", &part[2..index], id);
         }
       } else {
-        *part = escape(&part);
+        *part = html_escape(&part);
       }
 
       if let Ok(url) = Url::parse(&part) {

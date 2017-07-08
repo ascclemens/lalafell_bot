@@ -1,11 +1,11 @@
-<div class="embed">
-  {{#eq embed.type "image"}}
+<div class="embed" {{~#if embed.color}} style="border-color: #{{hex embed.color}}" {{~/if}}>
+  {{~#eq embed.type "image"}}
     <img src="{{embed.thumbnail.url}}"/>
   {{/eq}}
-  {{#eq embed.type "video"}}
+  {{~#eq embed.type "video"}}
     <iframe width="560" height="315" src="{{embed.video.url}}" frameborder="0" allowfullscreen></iframe>
   {{/eq}}
-  {{#eq embed.type "link"}}
+  {{~#eq embed.type "link"}}
     <div class="link info">
       <div class="provider">{{embed.provider.name}}</div>
       <div class="title"><a href="{{embed.url}}">{{embed.title}}</a></div>
@@ -13,4 +13,48 @@
     </div>
     <img src="{{embed.thumbnail.url}}" class="link thumbnail"/>
   {{/eq}}
+  {{~#eq embed.type "rich"}}
+    <div class="rich">
+      <div class="author">
+        {{~#if ember.footer.icon_url}}
+          <img src="{{embed.footer.icon_url}}"/>
+        {{/if~}}
+        {{~#if embed.author.url}}<a href="{{embed.author.url}}">{{/if~}}
+          {{embed.author.name}}
+        {{~#if embed.author.url}}</a>{{/if~}}
+      </div>
+      {{#if embed.title}}
+        <div class="title">
+          {{~#if embed.url}}<a href="{{embed.url}}">{{/if~}}
+            {{embed.title}}
+          {{~#if embed.url}}</a>{{/if~}}
+        </div>
+      {{/if}}
+      <div class="description">
+        {{~break_lines embed.description~}}
+      </div>
+      {{#each embed.fields}}
+        <div class="field {{~#if this.inline}} inline{{/if}}">
+          <div class="name">
+            {{~this.name~}}
+          </div>
+          <div class="value">
+            {{~this.value~}}
+          </div>
+        </div>
+      {{/each~}}
+      {{#if embed.image}}
+        {{~#if embed.url}}<a href="{{embed.url}}">{{/if~}}
+          <img src="{{embed.image.url}}"/>
+        {{~#if embed.url}}</a>{{/if~}}
+      {{/if}}
+      <div class="footer">
+        {{~#if ember.footer.icon_url}}<img src="{{embed.footer.icon_url}}"/>{{/if}}
+        {{~embed.footer.text~}}
+      </div>
+    </div>
+    {{#if embed.thumbnail}}
+      <img src="{{embed.thumbnail.url}}" class="thumbnail"/>
+    {{/if}}
+  {{/eq~}}
 </div>
