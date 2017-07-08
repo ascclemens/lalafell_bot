@@ -17,6 +17,7 @@ extern crate serde_json;
 extern crate lazy_static;
 extern crate url;
 extern crate chrono;
+extern crate dotenv;
 
 mod error;
 
@@ -43,9 +44,11 @@ use handlebars_iron::handlebars::*;
 use std::path::Path;
 use std::sync::RwLock;
 use std::collections::HashMap;
+use std::env::var;
 
 lazy_static! {
   pub static ref MESSAGES: RwLock<HashMap<u64, HashMap<u64, Archive>>> = RwLock::default();
+  pub static ref REFRESH_KEY: String = var("AV_REFRESH_KEY").unwrap();
 }
 
 fn handlebars() -> Result<HandlebarsEngine> {
@@ -72,7 +75,7 @@ fn router() -> Router {
     index: get "/" => index::index,
     channel_no_page: get "/:server_id/:channel_id" => channel::channel_redirect,
     channel: get "/:server_id/:channel_id/:page" => channel::channel,
-    refresh: get "/refresh" => refresh::refresh
+    refresh: post "/refresh" => refresh::refresh
   )
 }
 
@@ -82,8 +85,20 @@ fn chain(mount: Mount, handlebars: HandlebarsEngine) -> Chain {
   chain
 }
 
+fn verify_env() {
+  if REFRESH_KEY.is_empty() {
+    panic!("refresh key empty");
+  }
+}
+
 fn main() {
   println!("Starting up");
+
+  println!("Loading .env");
+  dotenv::dotenv().ok();
+
+  println!("Checking env vars");
+  verify_env();
 
   println!("Creating Handlebars instance");
   let handlebars = handlebars().unwrap();

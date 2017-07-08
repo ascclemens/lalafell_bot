@@ -1,4 +1,4 @@
-use MESSAGES;
+use {MESSAGES, REFRESH_KEY};
 
 use channel::{Archive, ArchiveServer};
 
@@ -15,6 +15,7 @@ use discord::model::Message;
 
 use std::path::PathBuf;
 use std::fs::{self, File};
+use std::collections::HashMap;
 
 // FIXME: .<@!123> and the like aren't accounted for
 //         <@!123>. and the like are account for, however
@@ -34,7 +35,12 @@ pub fn _refresh() {
   }
 }
 
-pub fn refresh(_: &mut Request) -> IronResult<Response> {
+pub fn refresh(req: &mut Request) -> IronResult<Response> {
+  let query: HashMap<_, _> = req.url.as_ref().query_pairs().collect();
+  let key = query.get("key").map(ToOwned::to_owned).unwrap_or_else(Default::default);
+  if key != *REFRESH_KEY {
+    return Ok(Response::with(("Get outta here", status::Forbidden)));
+  }
   _refresh();
   Ok(Response::with(("We gucci", status::Ok)))
 }
