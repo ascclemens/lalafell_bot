@@ -90,6 +90,12 @@ div.message {
     background-color: rgba(115, 139, 215, 0.1);
     font-weight: 500;
     transition: background-color .05s,color .05s; }
+  div.message div.right div.content span.emphasis {
+    font-style: italic; }
+  div.message div.right div.content span.strong {
+    font-weight: bold; }
+  div.message div.right div.content span.underline {
+    text-decoration: underline; }
   div.message div.right div.content img.emoji {
     object-fit: contain;
     width: 1rem;

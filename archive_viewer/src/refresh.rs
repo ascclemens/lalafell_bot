@@ -1,6 +1,7 @@
 use {MESSAGES, REFRESH_KEY};
 
 use channel::{Archive, ArchiveServer};
+use discordown;
 
 use iron::prelude::*;
 use iron::status;
@@ -63,7 +64,9 @@ fn parse_user(server: &ArchiveServer, message: &Message, part: &mut String, inde
       None => return false
     }
   };
-  *part = format!("<span class=\"highlight\">@{}</span>{}", html_escape(name), &part[end + 1..]);
+  *part = format!("<span class=\"highlight\">@{}</span>{}",
+    html_escape(name),
+    html_escape(&part[end + 1..]));
   true
 }
 
@@ -79,7 +82,9 @@ fn parse_channel_mention(server: &ArchiveServer, part: &mut String) -> bool {
 let (id, end) = match find_id(part, 2) { Some(x) => x, None => return false };
   match server.channels.iter().find(|c| c.id.0 == id) {
     Some(channel) => {
-      *part = format!("<span class=\"highlight\">#{}</span>{}", html_escape(&channel.name), &part[end + 1..]);
+      *part = format!("<span class=\"highlight\">#{}</span>{}",
+        html_escape(&channel.name),
+        html_escape(&part[end + 1..]));
       true
     },
     None => false
@@ -91,7 +96,9 @@ fn parse_role_mention(server: &ArchiveServer, part: &mut String) -> bool {
   match server.roles.iter().find(|r| r.id.0 == id) {
     Some(role) => {
       let name = if role.name == "@everyone" { role.name.clone() } else { format!("@{}", role.name) };
-      *part = format!("<span class=\"highlight\">{}</span>{}", html_escape(&name), &part[end + 1..]);
+      *part = format!("<span class=\"highlight\">{}</span>{}",
+        html_escape(&name),
+        html_escape(&part[end + 1..]));
       true
     },
     None => false
@@ -106,7 +113,10 @@ fn parse_custom_emoji(part: &mut String) -> bool {
         Ok(u) => u,
         Err(_) => return false
       };
-      *part = format!("<img class=\"emoji\" alt=\"{}\" src=\"https://cdn.discordapp.com/emojis/{}.png\"/>{}", &part[2..index], id, &part[end + 1..]);
+      *part = format!("<img class=\"emoji\" alt=\"{}\" src=\"https://cdn.discordapp.com/emojis/{}.png\"/>{}",
+        html_escape(&part[2..index]),
+        id,
+        html_escape(&part[end + 1..]));
       true
     },
     None => false
@@ -148,7 +158,7 @@ fn add_messages(channel: PathBuf, server_id: u64, channel_id: u64) {
         }
       }
     }
-    message.content = parts.join(" ");
+    message.content = discordown::parse(&parts.join(" "));
   }
   let mut msgs = MESSAGES.write().unwrap();
   let server = msgs.entry(server_id).or_insert_with(Default::default);

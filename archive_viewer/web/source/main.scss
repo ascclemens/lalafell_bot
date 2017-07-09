@@ -134,6 +134,18 @@ div.message {
         transition: background-color .05s,color .05s;
       }
 
+      span.emphasis {
+        font-style: italic;
+      }
+
+      span.strong {
+        font-weight: bold;
+      }
+
+      span.underline {
+        text-decoration: underline;
+      }
+
       img.emoji {
         object-fit: contain;
         width: 1rem;

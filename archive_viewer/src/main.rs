@@ -1,4 +1,5 @@
 #![feature(box_syntax)]
+#![cfg_attr(test, feature(test))]
 
 extern crate iron;
 #[macro_use]
@@ -25,6 +26,7 @@ mod index;
 mod channel;
 mod refresh;
 mod helpers;
+mod discordown;
 
 use error::*;
 use channel::*;
