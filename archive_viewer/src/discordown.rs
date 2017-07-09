@@ -1,4 +1,6 @@
-const VALID_TAGS: [&'static str; 5] = ["*", "_", "**", "__", "***"];
+// TODO: code blocks
+
+const VALID_TAGS: [&'static str; 8] = ["*", "_", "**", "__", "***", "~~", "`", "``"];
 
 pub fn parse(escaped: &str) -> String {
   let mut symbols = 0;
@@ -42,9 +44,13 @@ pub fn parse(escaped: &str) -> String {
             "__" => "underline",
             "**" => "strong",
             "***" => "strong emphasis",
+            "~~" => "strikethrough",
+            "`" | "``" => "code",
             _ => unreachable!()
           };
-          result += &format!("<span class=\"{}\">{}</span>", styles, parse(content));
+          result += &format!("<span class=\"{}\">{}</span>",
+            styles,
+            if styles != "code" { parse(content) } else { content.to_owned() });
           buffer = String::new();
           symbols = 0;
         }

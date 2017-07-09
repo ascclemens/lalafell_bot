@@ -98,7 +98,7 @@ div.message {
       }
       div.timestamp {
         order: 2;
-        font-size: $fontSize * .75;
+        font-size: 75%;
         color: darken($fontColor, 35);
         padding-left: .5em;
       }
@@ -107,7 +107,7 @@ div.message {
     div.reactions {
       display: flex;
       margin-top: .5em;
-      font-size: $fontSize * 0.875;
+      font-size: 87.5%;
       text-align: center;
 
       div.reaction {
@@ -134,6 +134,27 @@ div.message {
         transition: background-color .05s,color .05s;
       }
 
+      span {
+        &.emphasis {
+          font-style: italic;
+        }
+        &.strong {
+          font-weight: bold;
+        }
+        &.underline {
+          text-decoration: underline;
+        }
+        &.strikethrough {
+          text-decoration: line-through;
+        }
+        &.code {
+          font-family: monospace;
+          background-color: #2f3136;
+          padding: .2em;
+          border-radius: 3px;
+          font-size: 85%;
+        }
+      }
       span.emphasis {
         font-style: italic;
       }
@@ -211,7 +232,7 @@ div.message {
         }
 
         div.footer {
-          font-size: $fontSize * .75;
+          font-size: 75%;
           font-weight: 500;
         }
 
@@ -227,14 +248,14 @@ div.message {
 
       div.link.info {
         div.provider {
-          font-size: $fontSize * .8;
+          font-size: 80%;
         }
         div.title {
           padding-top: .25em;
         }
         div.description {
           padding-top: .25em;
-          font-size: $fontSize * .8;
+          font-size: 80%;
         }
       }
       img.link.thumbnail {

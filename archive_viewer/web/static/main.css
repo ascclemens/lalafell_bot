@@ -68,13 +68,13 @@ div.message {
       font-weight: bold; }
     div.message div.right div.header div.timestamp {
       order: 2;
-      font-size: 0.75em;
+      font-size: 75%;
       color: #5c6268;
       padding-left: .5em; }
   div.message div.right div.reactions {
     display: flex;
     margin-top: .5em;
-    font-size: 0.875em;
+    font-size: 87.5%;
     text-align: center; }
     div.message div.right div.reactions div.reaction {
       margin: 2px;
@@ -90,6 +90,20 @@ div.message {
     background-color: rgba(115, 139, 215, 0.1);
     font-weight: 500;
     transition: background-color .05s,color .05s; }
+  div.message div.right div.content span.emphasis {
+    font-style: italic; }
+  div.message div.right div.content span.strong {
+    font-weight: bold; }
+  div.message div.right div.content span.underline {
+    text-decoration: underline; }
+  div.message div.right div.content span.strikethrough {
+    text-decoration: line-through; }
+  div.message div.right div.content span.code {
+    font-family: monospace;
+    background-color: #2f3136;
+    padding: .2em;
+    border-radius: 3px;
+    font-size: 85%; }
   div.message div.right div.content span.emphasis {
     font-style: italic; }
   div.message div.right div.content span.strong {
@@ -138,19 +152,19 @@ div.message {
         div.message div.right div.embed div.rich div.title + div, div.message div.right div.embed div.rich div.author + div {
           padding-top: 0 !important; }
       div.message div.right div.embed div.rich div.footer {
-        font-size: 0.75em;
+        font-size: 75%;
         font-weight: 500; }
       div.message div.right div.embed div.rich div.field div.name {
         font-weight: bold; }
       div.message div.right div.embed div.rich div.field.inline {
         display: inline-block; }
     div.message div.right div.embed div.link.info div.provider {
-      font-size: 0.8em; }
+      font-size: 80%; }
     div.message div.right div.embed div.link.info div.title {
       padding-top: .25em; }
     div.message div.right div.embed div.link.info div.description {
       padding-top: .25em;
-      font-size: 0.8em; }
+      font-size: 80%; }
     div.message div.right div.embed img.link.thumbnail {
       max-height: 50px;
       padding-left: 1em; }
