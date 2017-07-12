@@ -155,16 +155,21 @@ div.message {
           font-size: 85%;
         }
       }
-      span.emphasis {
-        font-style: italic;
-      }
 
-      span.strong {
-        font-weight: bold;
-      }
-
-      span.underline {
-        text-decoration: underline;
+      pre {
+        background: #2f3136;
+        border: 2px solid #282b30;
+        border-radius: 5px;
+        max-width: 90%;
+        box-sizing: border-box;
+        font-size: 0.75rem;
+        font-family: Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+        white-space: pre-wrap;
+        margin-top: 6px;
+        text-indent: 0;
+        color: #839496;
+        padding: .5em;
+        display: block;
       }
 
       img.emoji {

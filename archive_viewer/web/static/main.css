@@ -104,12 +104,20 @@ div.message {
     padding: .2em;
     border-radius: 3px;
     font-size: 85%; }
-  div.message div.right div.content span.emphasis {
-    font-style: italic; }
-  div.message div.right div.content span.strong {
-    font-weight: bold; }
-  div.message div.right div.content span.underline {
-    text-decoration: underline; }
+  div.message div.right div.content pre {
+    background: #2f3136;
+    border: 2px solid #282b30;
+    border-radius: 5px;
+    max-width: 90%;
+    box-sizing: border-box;
+    font-size: 0.75rem;
+    font-family: Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+    white-space: pre-wrap;
+    margin-top: 6px;
+    text-indent: 0;
+    color: #839496;
+    padding: .5em;
+    display: block; }
   div.message div.right div.content img.emoji {
     object-fit: contain;
     width: 1rem;

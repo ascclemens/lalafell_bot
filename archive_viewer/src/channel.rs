@@ -92,9 +92,6 @@ pub fn channel(req: &mut Request) -> IronResult<Response> {
     end: page == pages - 1
   };
 
-  // TODO: embeds
-  // TODO: reactions
-
   response.set_mut(Template::new("channel", data)).set_mut(status::Ok);
 
   Ok(response)

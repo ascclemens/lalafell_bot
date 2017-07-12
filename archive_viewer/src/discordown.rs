@@ -1,6 +1,4 @@
-// TODO: code blocks
-
-const VALID_TAGS: [&'static str; 8] = ["*", "_", "**", "__", "***", "~~", "`", "``"];
+const VALID_TAGS: [&'static str; 9] = ["*", "_", "**", "__", "***", "~~", "`", "``", "```"];
 
 pub fn parse(escaped: &str) -> String {
   let mut symbols = 0;
@@ -39,18 +37,22 @@ pub fn parse(escaped: &str) -> String {
         if let Some(m) = s.find(&buffer) {
           let content = &s[..m];
           skip = content.chars().count() + buffer.len();
-          let styles = match buffer.as_ref() {
-            "_" | "*" => "emphasis",
-            "__" => "underline",
-            "**" => "strong",
-            "***" => "strong emphasis",
-            "~~" => "strikethrough",
-            "`" | "``" => "code",
+          let (tag, styles) = match buffer.as_ref() {
+            "_" | "*" => ("span", Some("emphasis")),
+            "__" => ("span", Some("underline")),
+            "**" => ("span", Some("strong")),
+            "***" => ("span", Some("strong emphasis")),
+            "~~" => ("span", Some("strikethrough")),
+            "`" | "``" => ("span", Some("code")),
+            "```" => ("pre", None), // FIXME: remove leading and trailing newlines
             _ => unreachable!()
           };
-          result += &format!("<span class=\"{}\">{}</span>",
-            styles,
-            if styles != "code" { parse(content) } else { content.to_owned() });
+          let is_code = if let Some("code") = styles { false } else { true };
+          let class = styles.map(|x| format!(" class=\"{}\"", x)).unwrap_or_else(Default::default);
+          result += &format!("<{tag}{class}>{content}</{tag}>",
+            tag = tag,
+            class = class,
+            content = if is_code { parse(content) } else { content.to_owned() });
           buffer = String::new();
           symbols = 0;
         }
