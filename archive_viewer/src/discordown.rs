@@ -1,5 +1,7 @@
 const VALID_TAGS: [&'static str; 9] = ["*", "_", "**", "__", "***", "~~", "`", "``", "```"];
 
+// FIXME: process line breaks as <br/>
+
 pub fn parse(escaped: &str) -> String {
   let mut symbols = 0;
   let mut skip = 0;
@@ -8,8 +10,7 @@ pub fn parse(escaped: &str) -> String {
   let mut result = String::new();
   let mut buffer = String::new();
 
-  let owned = escaped.to_owned();
-  let mut iter = owned.chars().peekable();
+  let mut iter = escaped.chars().peekable();
   while let Some(c) = iter.next() {
     if skip > 0 {
       skip -= 1;
@@ -52,10 +53,17 @@ pub fn parse(escaped: &str) -> String {
           };
           let is_code = if let Some("code") = styles { false } else { true };
           let class = styles.map(|x| format!(" class=\"{}\"", x)).unwrap_or_else(Default::default);
-          result += &format!("<{tag}{class}>{content}</{tag}>",
+          if is_code {
+            result.push_str(&format!("<{tag}{class}>{content}</{tag}>",
             tag = tag,
             class = class,
-            content = if is_code { parse(content) } else { content.to_owned() });
+            content = content));
+          } else {
+            result.push_str(&format!("<{tag}{class}>{content}</{tag}>",
+            tag = tag,
+            class = class,
+            content = parse(content)));
+          }
           buffer.clear();
           symbols = 0;
         }
