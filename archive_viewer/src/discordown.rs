@@ -51,9 +51,8 @@ pub fn parse(escaped: &str) -> String {
             },
             _ => unreachable!()
           };
-          let is_code = if let Some("code") = styles { false } else { true };
           let class = styles.map(|x| format!(" class=\"{}\"", x)).unwrap_or_else(Default::default);
-          if is_code {
+          if Some("code") == styles {
             result.push_str(&format!("<{tag}{class}>{content}</{tag}>",
             tag = tag,
             class = class,
