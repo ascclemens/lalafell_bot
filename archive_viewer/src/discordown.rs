@@ -18,8 +18,8 @@ pub fn parse(escaped: &str) -> String {
     match c {
       '*' | '_' | '`' => {
         if symbols == 0 {
-          result += &buffer;
-          buffer = String::new();
+          result.push_str(&buffer);
+          buffer.clear();
         }
         symbols += 1;
       },
@@ -27,7 +27,7 @@ pub fn parse(escaped: &str) -> String {
       '>' => in_tag = false,
       _ => {}
     }
-    buffer += &c.to_string();
+    buffer.push(c);
     if in_tag {
       continue;
     }
@@ -56,7 +56,7 @@ pub fn parse(escaped: &str) -> String {
             tag = tag,
             class = class,
             content = if is_code { parse(content) } else { content.to_owned() });
-          buffer = String::new();
+          buffer.clear();
           symbols = 0;
         }
       }
