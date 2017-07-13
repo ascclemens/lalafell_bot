@@ -70,7 +70,7 @@ pub fn parse(escaped: &str) -> String {
       }
     }
   }
-  result += &buffer;
+  result.push_str(&buffer);
   result
 }
 
