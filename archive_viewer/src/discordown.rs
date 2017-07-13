@@ -35,7 +35,7 @@ pub fn parse(escaped: &str) -> String {
       if next != c && symbols > 0 && VALID_TAGS.contains(&buffer.as_ref()) {
         let s = iter.clone().collect::<String>();
         if let Some(m) = s.find(&buffer) {
-          let content = &s[..m];
+          let mut content = &s[..m];
           skip = content.chars().count() + buffer.len();
           let (tag, styles) = match buffer.as_ref() {
             "_" | "*" => ("span", Some("emphasis")),
@@ -44,7 +44,10 @@ pub fn parse(escaped: &str) -> String {
             "***" => ("span", Some("strong emphasis")),
             "~~" => ("span", Some("strikethrough")),
             "`" | "``" => ("span", Some("code")),
-            "```" => ("pre", None), // FIXME: remove leading and trailing newlines
+            "```" => {
+              content = content.trim_matches('\n');
+              ("pre", None)
+            },
             _ => unreachable!()
           };
           let is_code = if let Some("code") = styles { false } else { true };
