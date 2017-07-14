@@ -1,7 +1,7 @@
 use bot::LalafellBot;
 use commands::*;
-use error::*;
-use database::TimeoutUser;
+use lalafell::error::*;
+use database::models::Timeout;
 
 use lalafell::bot::Bot;
 use lalafell::commands::prelude::*;
@@ -9,6 +9,8 @@ use lalafell::commands::prelude::*;
 use discord::builders::EmbedBuilder;
 use discord::model::{Message, LiveServer, PublicChannel};
 use discord::model::permissions;
+
+use diesel::prelude::*;
 
 use chrono::prelude::*;
 
@@ -114,8 +116,17 @@ impl<'a> PublicChannelCommand<'a> for TimeoutCommand {
       Err(_) => return Err("Invalid time length. Try \"15m\" or \"3 hours\" for example.".into())
     };
 
-    let mut database = self.bot.database.write().unwrap();
-    if database.timeouts.iter().any(|u| u.user_id == who.0 && u.server_id == server_id.0) {
+    let timeouts = ::bot::CONNECTION.with(|c| {
+      use database::schema::timeouts::dsl;
+      use diesel::expression::dsl::count;
+      dsl::timeouts
+        .filter(dsl::user_id.eq(who.0 as f64).and(dsl::server_id.eq(server_id.0 as f64)))
+        .select(count(dsl::id))
+        .first(c)
+        .optional()
+        .chain_err(|| "could not load timeouts")
+    })?;
+    if timeouts.unwrap_or(0) > 0 {
       return Err(format!("{} is already timed out.", who.mention()).into());
     }
 

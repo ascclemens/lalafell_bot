@@ -1,0 +1,8 @@
+CREATE TABLE tags (
+  id INTEGER PRIMARY KEY NOT NULL,
+  user_id NUMERIC NOT NULL,
+  server_id NUMERIC NOT NULL,
+  character_id NUMERIC NOT NULL,
+  character VARCHAR NOT NULL,
+  server VARCHAR NOT NULL
+)

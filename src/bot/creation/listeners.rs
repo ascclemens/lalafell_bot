@@ -38,7 +38,6 @@ fn command_listener<'a>(bot: Arc<LalafellBot>) -> CommandListener<'a> {
     "viewtag" => ViewTagCommand,
     "updatetags" => UpdateTagsCommand,
     "updatetag" => UpdateTagCommand,
-    "savedatabase" => SaveDatabaseCommand,
     "verify" => VerifyCommand,
     "referencecount" => ReferenceCountCommand,
     "poll" => PollCommand,

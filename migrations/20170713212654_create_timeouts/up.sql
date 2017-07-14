@@ -1,0 +1,8 @@
+CREATE TABLE timeouts (
+  id INTEGER PRIMARY KEY NOT NULL,
+  user_id NUMERIC NOT NULL,
+  server_id NUMERIC NOT NULL,
+  role_id NUMERIC NOT NULL,
+  seconds INTEGER NOT NULL,
+  start INTEGER NOT NULL
+)

@@ -22,6 +22,13 @@ extern crate envy;
 #[macro_use]
 extern crate error_chain;
 extern crate lalafell;
+#[macro_use]
+extern crate diesel;
+#[macro_use]
+extern crate diesel_codegen;
+
+use diesel::Connection;
+use diesel::sqlite::SqliteConnection;
 
 mod bot;
 mod database;
@@ -80,8 +87,6 @@ fn inner() -> Result<()> {
       error!("could not start bot loop: {}", e);
     }
   }).join().unwrap();
-  info!("Saving database");
-  bot.save_database(None)?;
   info!("Exiting");
   Ok(())
 }

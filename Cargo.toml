@@ -25,3 +25,5 @@ lazy_static = "0.2"
 envy = "0.3"
 selectors = "0.18"
 error-chain = "0.10"
+diesel = { version = "0.14", features = ["sqlite"] }
+diesel_codegen = { version = "0.14", features = ["sqlite"] }

@@ -1,10 +1,14 @@
 use bot::LalafellBot;
 use commands::*;
+use database::models::Tag;
 
 use lalafell::bot::Bot;
 use lalafell::commands::prelude::*;
+use lalafell::error::*;
 
 use discord::model::{Message, LiveServer, PublicChannel};
+
+use diesel::prelude::*;
 
 use std::sync::Arc;
 
@@ -43,10 +47,16 @@ impl<'a> PublicChannelCommand<'a> for ViewTagCommand {
     let server_id = channel.server_id;
     let who = params.who;
 
-    let database = self.bot.database.read().unwrap();
-    let user = database.autotags.users.iter().find(|u| u.user_id == who.0 && u.server_id == server_id.0);
+    let tag: Option<Tag> = ::bot::CONNECTION.with(|c| {
+      use database::schema::tags::dsl;
+      dsl::tags
+        .filter(dsl::user_id.eq(who.0 as f64).and(dsl::server_id.eq(server_id.0 as f64)))
+        .first(c)
+        .optional()
+        .chain_err(|| "could not load tags")
+    })?;
 
-    let msg = match user {
+    let msg = match tag {
       Some(u) => format!("{} is {} on {}.", who.mention(), u.character, u.server),
       None => format!("{} is not tagged.", who.mention())
     };

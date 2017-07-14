@@ -5,7 +5,6 @@ pub mod polling;
 
 pub mod race;
 pub mod viewtag;
-pub mod save_database;
 pub mod verify;
 pub mod reference_count;
 pub mod timeout;
@@ -18,6 +17,5 @@ pub use self::archive::ArchiveCommand;
 
 pub use self::race::RaceCommand;
 pub use self::viewtag::ViewTagCommand;
-pub use self::save_database::SaveDatabaseCommand;
 pub use self::verify::VerifyCommand;
 pub use self::reference_count::ReferenceCountCommand;

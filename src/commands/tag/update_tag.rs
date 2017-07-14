@@ -1,11 +1,15 @@
 use bot::LalafellBot;
 use commands::*;
 use tasks::AutoTagTask;
+use database::models::Tag;
 
 use lalafell::bot::Bot;
 use lalafell::commands::prelude::*;
+use lalafell::error::*;
 
 use discord::model::{Message, LiveServer, PublicChannel, UserId, ServerId, permissions};
+
+use diesel::prelude::*;
 
 use std::sync::Arc;
 
@@ -53,13 +57,15 @@ impl<'a> PublicChannelCommand<'a> for UpdateTagCommand {
       },
       None => message.author.id
     };
-    let user: Option<(UserId, ServerId, u64)> = {
-      let database = self.bot.database.read().unwrap();
-      database.autotags.users.iter()
-        .find(|u| u.user_id == id.0 && u.server_id == channel.server_id.0)
-        .map(|u| (UserId(u.user_id), ServerId(u.server_id), u.character_id))
-    };
-    let (user_id, server_id, character_id) = match user {
+    let tag: Option<Tag> = ::bot::CONNECTION.with(|c| {
+      use database::schema::tags::dsl;
+      dsl::tags
+        .filter(dsl::user_id.eq(id.0 as f64).and(dsl::server_id.eq(channel.server_id.0 as f64)))
+        .first(c)
+        .optional()
+        .chain_err(|| "could not load tags")
+    })?;
+    let tag = match tag {
       Some(u) => u,
       None => return if id == message.author.id {
         Err("You are not set up with a tag. Use `!autotag` to tag yourself.".into())
@@ -72,7 +78,7 @@ impl<'a> PublicChannelCommand<'a> for UpdateTagCommand {
       Some(st) => st,
       None => return Err("I'm not fully synced with Discord! Please try again later.".into())
     };
-    match AutoTagTask::update_tag(self.bot.as_ref(), state, user_id, server_id, character_id) {
+    match AutoTagTask::update_tag(self.bot.as_ref(), state, UserId(tag.user_id as u64), ServerId(tag.server_id as u64), tag.character_id as u64) {
       Ok(Some(err)) => Err(err.into()),
       Err(e) => Err(e.into()),
       Ok(None) => Ok(CommandSuccess::default())

@@ -1,10 +1,13 @@
 use bot::LalafellBot;
 use lodestone::Lodestone;
+use database::models::{Tag, Verification, NewVerification};
+
 use lalafell::error;
 use lalafell::error::*;
-
 use lalafell::bot::Bot;
 use lalafell::commands::prelude::*;
+
+use diesel::prelude::*;
 
 use discord::builders::EmbedBuilder;
 use discord::model::{Message, LiveServer, PublicChannel};
@@ -32,8 +35,14 @@ impl HasBot for VerifyCommand {
 impl<'a> PublicChannelCommand<'a> for VerifyCommand {
   fn run(&self, message: &Message, server: &LiveServer, _: &PublicChannel, _: &[&str]) -> CommandResult<'a> {
     let server_id = server.id;
-    let mut database = self.bot.database.write().unwrap();
-    let user = database.autotags.users.iter_mut().find(|u| u.user_id == message.author.id.0 && u.server_id == server_id.0);
+    let user: Option<Tag> = ::bot::CONNECTION.with(|c| {
+      use database::schema::tags::dsl;
+      dsl::tags
+        .filter(dsl::user_id.eq(message.author.id.0 as f64).and(dsl::server_id.eq(server_id.0 as f64)))
+        .first(c)
+        .optional()
+        .chain_err(|| "could not load tags")
+    })?;
     let mut user = match user {
       Some(u) => u,
       None => return Err(ExternalCommandFailure::default()
@@ -42,13 +51,26 @@ impl<'a> PublicChannelCommand<'a> for VerifyCommand {
           .description("Please tag yourself with an account before verifying it."))
         .wrap())
     };
-    if user.verification.verified {
+    let verification: Verification = ::bot::CONNECTION.with(|c| {
+      Verification::belonging_to(&user)
+        .first(c)
+        .optional()
+        .chain_err(|| "could not load verifications")
+    })?.unwrap_or_default();
+    if verification.verified {
       return Err("You are already verified.".into());
     }
-    let verification_string = match user.verification.verification_string {
+    let verification_string = match verification.verification_string {
       Some(ref v) => v,
       None => {
-        let verification_string = user.verification.create_verification_string();
+        let mut new_verification = verification.into_new(user.id);
+        let verification_string = new_verification.create_verification_string();
+        ::bot::CONNECTION.with(|c| {
+          use database::schema::verifications;
+          ::diesel::insert(&new_verification).into(verifications::table)
+            .execute(c)
+            .chain_err(|| "could not insert verification")
+        })?;
         let chan = self.bot.discord.create_private_channel(message.author.id).chain_err(|| "could not create private channel")?;
         self.bot.discord.send_embed(chan.id, "", |e| e
           .title("Verification instructions")
@@ -57,7 +79,7 @@ impl<'a> PublicChannelCommand<'a> for VerifyCommand {
         return Ok(CommandSuccess::default());
       }
     };
-    let profile = Lodestone::new().character_profile(user.character_id)?;
+    let profile = Lodestone::new().character_profile(user.character_id as u64)?;
     if profile.contains(verification_string) {
       let state_option = self.bot.state.read().unwrap();
       let state = state_option.as_ref().unwrap();
@@ -69,7 +91,13 @@ impl<'a> PublicChannelCommand<'a> for VerifyCommand {
         }
       };
 
-      user.verification.verified = true;
+      ::bot::CONNECTION.with(|c| {
+        use database::schema::verifications::dsl;
+        ::diesel::update(&verification)
+          .set(dsl::verified.eq(true))
+          .execute(c)
+          .chain_err(|| "could not update verification")
+      })?;
       if let Some(r) = server.roles.iter().find(|x| x.name.to_lowercase() == "verified") {
         let mut member = self.bot.discord.get_member(server_id, message.author.id).chain_err(|| "could not get member for tagging")?;
 

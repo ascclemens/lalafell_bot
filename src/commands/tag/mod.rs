@@ -9,7 +9,7 @@ pub use self::update_tags::UpdateTagsCommand;
 pub use self::update_tag::UpdateTagCommand;
 
 use bot::LalafellBot;
-use database::AutotagUser;
+use database::models::Tag;
 
 use lalafell::error::*;
 

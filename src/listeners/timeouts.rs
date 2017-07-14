@@ -1,6 +1,11 @@
 use bot::LalafellBot;
 use listeners::ReceivesEvents;
+use database::models::Timeout;
+use lalafell::error::*;
+
 use discord::model::{Event, Message, Channel, PublicChannel};
+
+use diesel::prelude::*;
 
 use chrono::prelude::*;
 
@@ -23,21 +28,26 @@ impl Timeouts {
       Ok(Channel::Public(c)) => c,
       _ => return
     };
-    let ends = {
-      let database = self.bot.database.read().unwrap();
-      match database.timeouts.iter().find(|t| t.user_id == message.author.id.0 && t.server_id == channel.server_id.0) {
-        Some(t) => t.ends(),
-        None => return
-      }
+    let timeout = ::bot::CONNECTION.with(|c| {
+      use database::schema::timeouts::dsl;
+      dsl::timeouts
+        .filter(dsl::user_id.eq(message.author.id.0 as f64).and(dsl::server_id.eq(channel.server_id.0 as f64)))
+        .first(c)
+    });
+
+    let timeout: Timeout = match timeout {
+      Ok(t) => t,
+      _ => return
     };
 
-    if ends < Utc::now().timestamp() {
-      let mut database = self.bot.database.write().unwrap();
-      let index = match database.timeouts.iter().position(|t| t.user_id == message.author.id.0 && t.server_id == channel.server_id.0) {
-        Some(i) => i,
-        None => return
+    if timeout.ends() < Utc::now().timestamp() {
+      if let Err(e) = ::bot::CONNECTION.with(|c| {
+        ::diesel::delete(&timeout)
+          .execute(c)
+          .chain_err(|| "could not delete timeout")
+      }) {
+        warn!("could not delete timeout: {}", e);
       };
-      database.timeouts.remove(index);
       return;
     }
 
