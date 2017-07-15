@@ -2,11 +2,15 @@ use bot::LalafellBot;
 use tasks::RunsTask;
 use commands::tag::Tagger;
 use lalafell::error::*;
+use database::models::Tag;
 
 use discord::State;
 use discord::model::{UserId, ServerId};
-use chrono::prelude::*;
+
 use chrono::Duration;
+use chrono::Utc;
+
+use diesel::prelude::*;
 
 use std::sync::Arc;
 use std::thread;
@@ -32,21 +36,22 @@ impl AutoTagTask {
 
   pub fn run_once(&mut self, s: Arc<LalafellBot>) {
     thread::sleep(Duration::seconds(self.next_sleep).to_std().unwrap());
+    self.next_sleep = Duration::minutes(10).num_seconds();
     info!("Autotag task running");
-    let time_to_update = {
-      let database = s.database.read().unwrap();
-      database.autotags.last_updated + Duration::hours(12).num_seconds() < Utc::now().timestamp()
+    let users: Vec<Tag> = match ::bot::CONNECTION.with(|c| {
+      use database::schema::tags::dsl;
+      let twelve_hours_ago = Utc::now().timestamp() - Duration::hours(12).num_seconds();
+      dsl::tags
+        .filter(dsl::last_updated.lt(twelve_hours_ago))
+        .load(c)
+    }) {
+      Ok(t) => t,
+      Err(e) => {
+        warn!("could not load tags: {}", e);
+        return;
+      }
     };
-    if !time_to_update {
-      info!("Not yet time to update, sleeping 30 minutes");
-      self.next_sleep = Duration::minutes(30).num_seconds();
-      return;
-    }
-    info!("Time to update autotags");
-    let users: Vec<(UserId, ServerId, u64)> = {
-      let database = s.database.read().unwrap();
-      database.autotags.users.iter().map(|u| (UserId(u.user_id), ServerId(u.server_id), u.character_id)).collect()
-    };
+    info!("{} tag{} to update", users.len(), if users.len() == 1 { "" } else { "s" });
     {
       let option_state = s.state.read().unwrap();
       let state = match option_state.as_ref() {
@@ -57,16 +62,21 @@ impl AutoTagTask {
           return;
         }
       };
-      for (user_id, server_id, character_id) in users {
-        if let Err(e) = AutoTagTask::update_tag(s.as_ref(), state, user_id, server_id, character_id) {
-          warn!("Couldn't update tag for user ID {}: {}", user_id, e);
+      for tag in users {
+        if let Err(e) = AutoTagTask::update_tag(s.as_ref(), state, UserId(*tag.user_id), ServerId(*tag.server_id), *tag.character_id) {
+          warn!("Couldn't update tag for user ID {}: {}", *tag.user_id, e);
+          continue;
+        }
+        if let Err(e) = ::bot::CONNECTION.with(|c| {
+          use database::schema::tags::dsl;
+          ::diesel::update(&tag)
+            .set(dsl::last_updated.eq(Utc::now().timestamp()))
+            .execute(c)
+        }) {
+          warn!("could not update tag last_updated: {}", e);
         }
       }
     }
-    {
-      let mut database = s.database.write().unwrap();
-      database.autotags.last_updated = Utc::now().timestamp();
-    };
     info!("Done updating autotags");
   }
 }

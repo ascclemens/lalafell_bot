@@ -60,7 +60,7 @@ impl<'a> PublicChannelCommand<'a> for UpdateTagCommand {
     let tag: Option<Tag> = ::bot::CONNECTION.with(|c| {
       use database::schema::tags::dsl;
       dsl::tags
-        .filter(dsl::user_id.eq(id.0 as f64).and(dsl::server_id.eq(channel.server_id.0 as f64)))
+        .filter(dsl::user_id.eq(id.0.to_string()).and(dsl::server_id.eq(channel.server_id.0.to_string())))
         .first(c)
         .optional()
         .chain_err(|| "could not load tags")
@@ -78,7 +78,7 @@ impl<'a> PublicChannelCommand<'a> for UpdateTagCommand {
       Some(st) => st,
       None => return Err("I'm not fully synced with Discord! Please try again later.".into())
     };
-    match AutoTagTask::update_tag(self.bot.as_ref(), state, UserId(tag.user_id as u64), ServerId(tag.server_id as u64), tag.character_id as u64) {
+    match AutoTagTask::update_tag(self.bot.as_ref(), state, UserId(*tag.user_id), ServerId(*tag.server_id), *tag.character_id) {
       Ok(Some(err)) => Err(err.into()),
       Err(e) => Err(e.into()),
       Ok(None) => Ok(CommandSuccess::default())

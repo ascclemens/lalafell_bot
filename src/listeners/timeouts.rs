@@ -31,7 +31,7 @@ impl Timeouts {
     let timeout = ::bot::CONNECTION.with(|c| {
       use database::schema::timeouts::dsl;
       dsl::timeouts
-        .filter(dsl::user_id.eq(message.author.id.0 as f64).and(dsl::server_id.eq(channel.server_id.0 as f64)))
+        .filter(dsl::user_id.eq(message.author.id.0.to_string()).and(dsl::server_id.eq(channel.server_id.0.to_string())))
         .first(c)
     });
 

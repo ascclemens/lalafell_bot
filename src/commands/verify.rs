@@ -1,6 +1,6 @@
 use bot::LalafellBot;
 use lodestone::Lodestone;
-use database::models::{Tag, Verification, NewVerification};
+use database::models::{Tag, Verification};
 
 use lalafell::error;
 use lalafell::error::*;
@@ -38,12 +38,12 @@ impl<'a> PublicChannelCommand<'a> for VerifyCommand {
     let user: Option<Tag> = ::bot::CONNECTION.with(|c| {
       use database::schema::tags::dsl;
       dsl::tags
-        .filter(dsl::user_id.eq(message.author.id.0 as f64).and(dsl::server_id.eq(server_id.0 as f64)))
+        .filter(dsl::user_id.eq(message.author.id.0.to_string()).and(dsl::server_id.eq(server_id.0.to_string())))
         .first(c)
         .optional()
         .chain_err(|| "could not load tags")
     })?;
-    let mut user = match user {
+    let user = match user {
       Some(u) => u,
       None => return Err(ExternalCommandFailure::default()
         .message(|e: EmbedBuilder| e
@@ -64,8 +64,8 @@ impl<'a> PublicChannelCommand<'a> for VerifyCommand {
       Some(ref v) => v,
       None => {
         let mut new_verification = verification.into_new(user.id);
-        let verification_string = new_verification.create_verification_string();
-        ::bot::CONNECTION.with(|c| {
+        let verification_string = new_verification.create_verification_string().clone();
+        ::bot::CONNECTION.with(move |c| {
           use database::schema::verifications;
           ::diesel::insert(&new_verification).into(verifications::table)
             .execute(c)
@@ -79,7 +79,7 @@ impl<'a> PublicChannelCommand<'a> for VerifyCommand {
         return Ok(CommandSuccess::default());
       }
     };
-    let profile = Lodestone::new().character_profile(user.character_id as u64)?;
+    let profile = Lodestone::new().character_profile(*user.character_id)?;
     if profile.contains(verification_string) {
       let state_option = self.bot.state.read().unwrap();
       let state = state_option.as_ref().unwrap();

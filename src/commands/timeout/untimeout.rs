@@ -61,17 +61,17 @@ impl<'a> PublicChannelCommand<'a> for UntimeoutCommand {
     let timeouts: Vec<Timeout> = ::bot::CONNECTION.with(|c| {
       use database::schema::timeouts::dsl;
       dsl::timeouts
-        .filter(dsl::user_id.eq(who.0 as f64).and(dsl::server_id.eq(server_id.0 as f64)))
+        .filter(dsl::user_id.eq(who.0.to_string()).and(dsl::server_id.eq(server_id.0.to_string())))
         .load(c)
         .chain_err(|| "could not load timeouts")
     })?;
-    println!("{:#?}", timeouts);
     if timeouts.is_empty() {
       return Err("That user is not timed out.".into());
     }
     let timeout = &timeouts[0];
 
-    self.bot.discord.remove_user_from_role(server_id, *who, RoleId(timeout.role_id as u64)).chain_err(|| "could not remove timeout role")?;
+    ::bot::CONNECTION.with(|c| ::diesel::delete(timeout).execute(c).chain_err(|| "could not delete timeout"))?;
+    self.bot.discord.remove_user_from_role(server_id, *who, RoleId(*timeout.role_id)).chain_err(|| "could not remove timeout role")?;
 
     Ok(CommandSuccess::default())
   }

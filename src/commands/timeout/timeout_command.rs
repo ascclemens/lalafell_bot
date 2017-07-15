@@ -1,7 +1,8 @@
 use bot::LalafellBot;
 use commands::*;
 use lalafell::error::*;
-use database::models::Timeout;
+use database::models::NewTimeout;
+use database::schema::timeouts;
 
 use lalafell::bot::Bot;
 use lalafell::commands::prelude::*;
@@ -120,7 +121,7 @@ impl<'a> PublicChannelCommand<'a> for TimeoutCommand {
       use database::schema::timeouts::dsl;
       use diesel::expression::dsl::count;
       dsl::timeouts
-        .filter(dsl::user_id.eq(who.0 as f64).and(dsl::server_id.eq(server_id.0 as f64)))
+        .filter(dsl::user_id.eq(who.0.to_string()).and(dsl::server_id.eq(server_id.0.to_string())))
         .select(count(dsl::id))
         .first(c)
         .optional()
@@ -130,8 +131,8 @@ impl<'a> PublicChannelCommand<'a> for TimeoutCommand {
       return Err(format!("{} is already timed out.", who.mention()).into());
     }
 
-    let timeout_user = TimeoutUser::new(server_id.0, who.0, role_id.0, duration as i64, Utc::now().timestamp());
-    database.timeouts.push(timeout_user);
+    let timeout_user = NewTimeout::new(who.0, server_id.0, role_id.0, duration as i32, Utc::now().timestamp());
+    ::bot::CONNECTION.with(|c| ::diesel::insert(&timeout_user).into(timeouts::table).execute(c).chain_err(|| "could not insert timeout"))?;
     Ok(CommandSuccess::default())
   }
 }

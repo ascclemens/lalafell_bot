@@ -50,7 +50,7 @@ impl<'a> PublicChannelCommand<'a> for ViewTagCommand {
     let tag: Option<Tag> = ::bot::CONNECTION.with(|c| {
       use database::schema::tags::dsl;
       dsl::tags
-        .filter(dsl::user_id.eq(who.0 as f64).and(dsl::server_id.eq(server_id.0 as f64)))
+        .filter(dsl::user_id.eq(who.0.to_string()).and(dsl::server_id.eq(server_id.0.to_string())))
         .first(c)
         .optional()
         .chain_err(|| "could not load tags")

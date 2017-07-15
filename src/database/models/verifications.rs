@@ -1,6 +1,5 @@
 use database::schema::*;
 use database::models::Tag;
-
 use uuid::Uuid;
 
 #[derive(Debug, Default, Queryable, Identifiable, Associations)]

@@ -31,10 +31,6 @@ impl<'a> Command<'a> for UpdateTagsCommand {
     let thread_bot = self.bot.clone();
     let mut task = AutoTagTask::new();
     task.next_sleep = 0;
-    {
-      let mut database = self.bot.database.write().unwrap();
-      database.autotags.last_updated = 0;
-    }
     ::std::thread::spawn(move || task.run_once(thread_bot));
     Ok("Task started.".into())
   }

@@ -27,9 +27,6 @@ extern crate diesel;
 #[macro_use]
 extern crate diesel_codegen;
 
-use diesel::Connection;
-use diesel::sqlite::SqliteConnection;
-
 mod bot;
 mod database;
 mod listeners;

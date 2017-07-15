@@ -9,12 +9,14 @@ pub use self::update_tags::UpdateTagsCommand;
 pub use self::update_tag::UpdateTagCommand;
 
 use bot::LalafellBot;
-use database::models::Tag;
+use database::models::{Tag, NewTag, Verification};
 
 use lalafell::error::*;
 
 use discord;
 use discord::model::{UserId, LiveServer, Role, RoleId};
+
+use diesel::prelude::*;
 
 use serde_json;
 
@@ -73,12 +75,23 @@ impl Tagger {
   }
 
   pub fn tag(bot: &LalafellBot, who: UserId, on: &LiveServer, char_id: u64, ignore_verified: bool) -> Result<Option<String>> {
-    let is_verified = match bot.database.read().unwrap().autotags.users.iter().find(|u| u.user_id == who.0 && u.server_id == on.id.0) {
-      Some(u) => {
-        if u.verification.verified && !ignore_verified && char_id != u.character_id {
-          return Ok(Some(format!("{} is verified as {} on {}, so they cannot switch to another account.", who.mention(), u.character, u.server)));
+    let tag: Option<Tag> = ::bot::CONNECTION.with(|c| {
+      use database::schema::tags::dsl;
+      dsl::tags
+        .filter(dsl::user_id.eq(who.0.to_string()).and(dsl::server_id.eq(on.id.0.to_string())))
+        .first(c)
+        .optional()
+        .chain_err(|| "could not load tags")
+    })?;
+    let is_verified = match tag {
+      Some(t) => {
+        let verification: Verification = ::bot::CONNECTION.with(|c| {
+          Verification::belonging_to(&t).first(c).optional().chain_err(|| "could not load verifications")
+        })?.unwrap_or_default();
+        if verification.verified && !ignore_verified && char_id != *t.character_id {
+          return Ok(Some(format!("{} is verified as {} on {}, so they cannot switch to another account.", who.mention(), t.character, t.server)));
         }
-        u.verification.verified
+        verification.verified
       },
       None => false
     };
@@ -101,11 +114,13 @@ impl Tagger {
           }
         };
         if remove {
-          let mut database = bot.database.write().unwrap();
-          match database.autotags.users.iter().position(|u| u.user_id == who.0 && u.server_id == on.id.0) {
-            Some(id) => database.autotags.users.remove(id),
-            None => bail!("could not find user {} on server {}, but was not in database", who.0, on.id.0)
-          };
+          ::bot::CONNECTION.with(|c| {
+            use database::schema::tags::dsl;
+            ::diesel::delete(dsl::tags
+              .filter(dsl::user_id.eq(who.0.to_string()).and(dsl::server_id.eq(on.id.0.to_string()))))
+              .execute(c)
+              .chain_err(|| format!("could not remove tag {} on {}, but it was expected to be in database", who.0, on.id.0))
+          })?;
         }
         bail!(message);
       },
@@ -114,13 +129,43 @@ impl Tagger {
 
     let character = bot.xivdb.character(char_id).chain_err(|| "could not look up character")?;
 
-    bot.database.write().unwrap().autotags.update_or_add(AutotagUser::new(
-      who.0,
-      on.id.0,
-      character.lodestone_id,
-      &character.name,
-      &character.server
-    ));
+    let tag: Option<Tag> = ::bot::CONNECTION.with(|c| {
+      use database::schema::tags::dsl;
+      dsl::tags
+        .filter(dsl::user_id.eq(who.0.to_string()).and(dsl::server_id.eq(on.id.0.to_string())))
+        .first(c)
+        .optional()
+        .chain_err(|| "could not load tags")
+    })?;
+    match tag {
+      Some(t) => {
+        let (id, name, server) = (character.lodestone_id.to_string(), &character.name, &character.server);
+        ::bot::CONNECTION.with(move |c| {
+          use database::schema::tags::dsl;
+          ::diesel::update(&t)
+            .set((
+              dsl::character_id.eq(id),
+              dsl::character.eq(name),
+              dsl::server.eq(server)
+            ))
+            .execute(c)
+            .chain_err(|| "could not update tag")
+        })?;
+      },
+      None => {
+        let new_tag = NewTag::new(
+          who.0,
+          on.id.0,
+          character.lodestone_id,
+          &character.name,
+          &character.server
+        );
+        ::bot::CONNECTION.with(|c| {
+          use database::schema::tags;
+          ::diesel::insert(&new_tag).into(tags::table).execute(c).chain_err(|| "could not insert tag")
+        })?;
+      }
+    }
 
     // Get a copy of the roles on the server.
     let mut roles = on.roles.clone();

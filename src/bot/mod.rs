@@ -12,12 +12,6 @@ use discord::{Discord, State};
 use diesel::Connection;
 use diesel::sqlite::SqliteConnection;
 
-use serde_json;
-
-use chrono::prelude::*;
-
-use std::fs::{OpenOptions, File};
-use std::path::Path;
 use std::sync::RwLock;
 use std::sync::mpsc::{channel, Receiver};
 use std::thread;
@@ -75,24 +69,6 @@ impl LalafellBot {
     SqliteConnection::establish(location)
       .chain_err(|| format!("could not connect to sqlite database at {}", location))
   }
-
-  // pub fn load_database(location: &str) -> Result<Database> {
-  //   if !Path::new(location).exists() {
-  //     return Ok(Database::default());
-  //   }
-  //   let f = File::open(location).chain_err(|| "could not open or create database file")?;
-  //   serde_json::from_reader(f).chain_err(|| "could not deserialize database")
-  // }
-
-  // pub fn save_database(&self, location: Option<&str>) -> Result<()> {
-  //   let f = OpenOptions::new()
-  //     .write(true)
-  //     .truncate(true)
-  //     .create(true)
-  //     .open(location.unwrap_or(&self.environment.database_location))
-  //     .chain_err(|| "could not open or create database file")?;
-  //   serde_json::to_writer(f, &self.database).chain_err(|| "could not serialize database")
-  // }
 
   pub fn start_loop(&self, loop_cancel: Receiver<()>) -> Result<()> {
     let (mut connection, ready) = self.discord.connect().chain_err(|| "could not connect to discord")?;
