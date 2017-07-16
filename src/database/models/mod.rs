@@ -1,10 +1,14 @@
 pub mod tags;
 pub mod verifications;
 pub mod timeouts;
+pub mod messages;
+pub mod edits;
 
 pub use self::tags::{Tag, NewTag};
 pub use self::verifications::{Verification, NewVerification};
 pub use self::timeouts::{Timeout, NewTimeout};
+pub use self::messages::{Message, NewMessage};
+pub use self::edits::{Edit, NewEdit};
 
 use std::error::Error;
 use std::ops::Deref;

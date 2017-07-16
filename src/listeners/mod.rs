@@ -12,12 +12,14 @@ pub mod tag_instructions;
 pub mod reaction_authorize;
 pub mod timeouts;
 pub mod poll_tagger;
+pub mod track_changes;
 
 pub use self::debugger::EventDebugger;
 pub use self::tag_instructions::TagInstructions;
 pub use self::reaction_authorize::ReactionAuthorize;
 pub use self::timeouts::Timeouts;
 pub use self::poll_tagger::PollTagger;
+pub use self::track_changes::TrackChanges;
 
 pub struct ListenerManager;
 
@@ -27,6 +29,7 @@ impl ListenerManager {
       "tag_instructions" => box TagInstructions::new(bot.clone(), listener)?,
       "event_debugger" => box EventDebugger,
       "reaction_authorize" => box ReactionAuthorize::new(bot.clone(), listener)?,
+      "track_changes" => box TrackChanges::new(bot.clone()),
       _ => bail!("no listener called {}", listener.name)
     };
     Ok(listener)

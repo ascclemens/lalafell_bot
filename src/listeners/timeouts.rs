@@ -41,13 +41,11 @@ impl Timeouts {
     };
 
     if timeout.ends() < Utc::now().timestamp() {
-      if let Err(e) = ::bot::CONNECTION.with(|c| {
-        ::diesel::delete(&timeout)
-          .execute(c)
-          .chain_err(|| "could not delete timeout")
-      }) {
-        warn!("could not delete timeout: {}", e);
-      };
+      ::bot::CONNECTION.with(|c| {
+        if let Err(e) = ::diesel::delete(&timeout).execute(c).chain_err(|| "could not delete timeout") {
+          warn!("could not delete timeout: {}", e);
+        }
+      });
       return;
     }
 

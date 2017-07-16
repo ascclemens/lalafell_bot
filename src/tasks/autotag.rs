@@ -67,14 +67,15 @@ impl AutoTagTask {
           warn!("Couldn't update tag for user ID {}: {}", *tag.user_id, e);
           continue;
         }
-        if let Err(e) = ::bot::CONNECTION.with(|c| {
+        ::bot::CONNECTION.with(|c| {
           use database::schema::tags::dsl;
-          ::diesel::update(&tag)
+          let res = ::diesel::update(&tag)
             .set(dsl::last_updated.eq(Utc::now().timestamp()))
-            .execute(c)
-        }) {
-          warn!("could not update tag last_updated: {}", e);
-        }
+            .execute(c);
+          if let Err(e) = res {
+            warn!("could not update tag last_updated: {}", e);
+          }
+        });
       }
     }
     info!("Done updating autotags");

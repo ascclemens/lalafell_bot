@@ -1,6 +1,9 @@
 use bot::LalafellBot;
 use listeners::ReceivesEvents;
-use discord::model::Event;
+use discord::model::{Event, Message, MessageId};
+use database::models::{Message as DbMessage, NewMessage, NewEdit};
+
+use diesel::prelude::*;
 
 use std::sync::Arc;
 
@@ -16,69 +19,56 @@ impl TrackChanges {
     }
   }
 
-  fn handle_message_update(&self, update: MessageUpdate) {
+  fn handle_message(&self, message: &Message) {
+    ::bot::CONNECTION.with(|c| {
+      let new_message = NewMessage {
+        message_id: message.id.0.to_string(),
+        channel_id: message.channel_id.0.to_string(),
+        content: message.content.to_owned()
+      };
+      let res = ::diesel::insert(&new_message)
+        .into(::database::schema::messages::table)
+        .execute(c);
+      if let Err(e) = res {
+        warn!("couldn't add message to database: {}", e);
+      }
+    });
+  }
 
+  fn handle_message_update(&self, id: MessageId, content: String) {
+    ::bot::CONNECTION.with(|c| {
+      use database::schema::messages::dsl;
+      let message: Result<DbMessage, _> = dsl::messages
+        .filter(dsl::message_id.eq(id.0.to_string()))
+        .first(c);
+      if let Ok(m) = message {
+        let new_edit = NewEdit {
+          message_id: m.id,
+          content: content
+        };
+        let res = ::diesel::insert(&new_edit)
+          .into(::database::schema::edits::table)
+          .execute(c);
+        if let Err(e) = res {
+          warn!("couldn't add edit to database: {}", e);
+        }
+      }
+    });
   }
 }
 
 impl ReceivesEvents for TrackChanges {
   fn receive(&self, event: &Event) {
     match *event {
+      Event::MessageCreate(ref m) => self.handle_message(m),
       Event::MessageUpdate {
-        id: MessageId,
-        channel_id: ChannelId,
-        kind: Option<MessageType>,
-        content: Option<String>,
-        nonce: Option<String>,
-        tts: Option<bool>,
-        pinned: Option<bool>,
-        timestamp: Option<DateTime<FixedOffset>>,
-        edited_timestamp: Option<DateTime<FixedOffset>>,
-        author: Option<User>,
-        mention_everyone: Option<bool>,
-        mentions: Option<Vec<User>>,
-        mention_roles: Option<Vec<RoleId>>,
-        attachments: Option<Vec<Attachment>>,
-        embeds: Option<Vec<Value>>
+        ref id,
+        ref content,
+        ..
       } => {
-        let update = MessageUpdate {
-          id: id,
-          channel_id: channel_id,
-          kind: kind,
-          content: content,
-          nonce: nonce,
-          tts: tts,
-          pinned: pinned,
-          timestamp: timestamp,
-          edited_timestamp: edited_timestamp,
-          author: author,
-          mention_everyone: mention_everyone,
-          mentions: mentions,
-          mention_roles: mention_roles,
-          attachments: attachments,
-          embeds: embeds
-        };
-        self.handle_message_update(update);
+        self.handle_message_update(*id, content.clone().unwrap_or_default());
       },
       _ => {}
     }
   }
-}
-
-struct MessageUpdate {
-  id: MessageId,
-  channel_id: ChannelId,
-  kind: Option<MessageType>,
-  content: Option<String>,
-  nonce: Option<String>,
-  tts: Option<bool>,
-  pinned: Option<bool>,
-  timestamp: Option<DateTime<FixedOffset>>,
-  edited_timestamp: Option<DateTime<FixedOffset>>,
-  author: Option<User>,
-  mention_everyone: Option<bool>,
-  mentions: Option<Vec<User>>,
-  mention_roles: Option<Vec<RoleId>>,
-  attachments: Option<Vec<Attachment>>,
-  embeds: Option<Vec<Value>>
 }

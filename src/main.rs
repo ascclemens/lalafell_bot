@@ -41,6 +41,8 @@ use error::*;
 
 use std::sync::mpsc::channel;
 
+// TODO: track edits to messages in database
+
 fn main() {
   if let Err(e) = inner() {
     for err in e.iter() {
