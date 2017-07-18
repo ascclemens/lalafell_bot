@@ -63,7 +63,7 @@ impl<'a> PublicChannelCommand<'a> for ViewEditsCommand {
     })?;
     let message = match message {
       Some(m) => m,
-      None => return Err("No message with that ID recoreded.".into())
+      None => return Err("No message with that ID recorded.".into())
     };
 
     let edits: Vec<Edit> = ::bot::CONNECTION.with(|c| Edit::belonging_to(&message).load(c).chain_err(|| "could not load edits"))?;
