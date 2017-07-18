@@ -66,6 +66,10 @@ impl<'a> PublicChannelCommand<'a> for ViewEditsCommand {
       None => return Err("No message with that ID recorded.".into())
     };
 
+    if !server.channels.iter().any(|c| c.id.0 == *message.channel_id) {
+      return Err("You cannot view messages not on the current server.".into());
+    }
+
     let edits: Vec<Edit> = ::bot::CONNECTION.with(|c| Edit::belonging_to(&message).load(c).chain_err(|| "could not load edits"))?;
     if edits.is_empty() {
       return Err("That message has not been edited.".into());
