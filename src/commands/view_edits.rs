@@ -5,7 +5,7 @@ use lalafell::bot::Bot;
 use lalafell::commands::prelude::*;
 use lalafell::error::*;
 
-use discord::model::{Message, LiveServer, PublicChannel, permissions};
+use discord::model::{Message, LiveServer, PublicChannel, permissions, ChannelId, MessageId};
 
 use diesel::prelude::*;
 
@@ -66,9 +66,12 @@ impl<'a> PublicChannelCommand<'a> for ViewEditsCommand {
       None => return Err("No message with that ID recorded.".into())
     };
 
-    if !server.channels.iter().any(|c| c.id.0 == *message.channel_id) {
-      return Err("You cannot view messages not on the current server.".into());
-    }
+    let channel = match server.channels.iter().find(|c| c.id.0 == *message.channel_id) {
+      Some(c) => c,
+      None => return Err("You cannot view messages not on the current server.".into())
+    };
+
+    let discord_message = self.bot.discord.get_message(ChannelId(*message.channel_id), MessageId(params.message_id)).ok();
 
     let edits: Vec<Edit> = ::bot::CONNECTION.with(|c| Edit::belonging_to(&message).load(c).chain_err(|| "could not load edits"))?;
     if edits.is_empty() {
@@ -88,6 +91,12 @@ impl<'a> PublicChannelCommand<'a> for ViewEditsCommand {
       result.push_str("\n\n");
     }
 
-    Ok(format!("```diff\n{}```", result).into())
+    let author = discord_message.map(|m| format!(" by {}", m.author.name)).unwrap_or_default();
+    let channel_name = channel.name.clone();
+
+    Ok(CommandSuccess::default()
+      .message(move |e: EmbedBuilder| e
+        .title(&format!("Message{} in #{}", author, channel_name))
+        .description(&format!("```diff\n{}```", result))))
   }
 }
