@@ -1,6 +1,6 @@
 use bot::LalafellBot;
 use listeners::ReceivesEvents;
-use discord::model::{Event, Message, MessageId};
+use discord::model::{Event, Message, MessageId, UserId};
 use database::models::{Message as DbMessage, NewMessage, NewEdit};
 
 use diesel::prelude::*;
@@ -19,7 +19,16 @@ impl TrackChanges {
     }
   }
 
+  fn get_user_id(&self) -> UserId {
+    let opt_state = self.bot.state.read().unwrap();
+    let state = opt_state.as_ref().unwrap();
+    state.user().id
+  }
+
   fn handle_message(&self, message: &Message) {
+    if message.author.id == self.get_user_id() {
+      return;
+    }
     ::bot::CONNECTION.with(|c| {
       let new_message = NewMessage {
         message_id: message.id.0.to_string(),
