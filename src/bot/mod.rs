@@ -10,6 +10,7 @@ use error::*;
 use discord::{Discord, State};
 
 use diesel::Connection;
+use diesel::connection::SimpleConnection;
 use diesel::sqlite::SqliteConnection;
 
 use std::sync::RwLock;
@@ -66,8 +67,10 @@ impl LalafellBot {
   }
 
   pub fn database_connection(location: &str) -> Result<SqliteConnection> {
-    SqliteConnection::establish(location)
-      .chain_err(|| format!("could not connect to sqlite database at {}", location))
+    let connection = SqliteConnection::establish(location)
+      .chain_err(|| format!("could not connect to sqlite database at {}", location))?;
+    connection.batch_execute("PRAGMA foreign_keys = ON;").chain_err(|| "could not enable foreign keys")?;
+    Ok(connection)
   }
 
   pub fn start_loop(&self, loop_cancel: Receiver<()>) -> Result<()> {
