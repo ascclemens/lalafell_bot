@@ -64,7 +64,7 @@ impl<'a> PublicChannelCommand<'a> for VerifyCommand {
       Some(ref v) => v,
       None => {
         let mut new_verification = verification.into_new(user.id);
-        let verification_string = new_verification.create_verification_string().clone();
+        let msg = format!("Edit your Lodestone profile to contain `{}`.\nRerun the `!verify` command afterward.", new_verification.create_verification_string());
         ::bot::CONNECTION.with(move |c| {
           use database::schema::verifications;
           ::diesel::insert(&new_verification).into(verifications::table)
@@ -74,7 +74,7 @@ impl<'a> PublicChannelCommand<'a> for VerifyCommand {
         let chan = self.bot.discord.create_private_channel(message.author.id).chain_err(|| "could not create private channel")?;
         self.bot.discord.send_embed(chan.id, "", |e| e
           .title("Verification instructions")
-          .description(&format!("Edit your Lodestone profile to contain `{}`.\nRerun the `!verify` command afterward.", verification_string))
+          .description(&msg)
           .url("http://na.finalfantasyxiv.com/lodestone/my/setting/profile/")).ok();
         return Ok(CommandSuccess::default());
       }
@@ -113,8 +113,7 @@ impl<'a> PublicChannelCommand<'a> for VerifyCommand {
           .title("Verified!")
           .description(&format!("You have successfully verified yourself as {} on {}.", char_name, serv_name))))
     } else {
-      Err(ExternalCommandFailure::default()
-        .wrap())
+      Err(ExternalCommandFailure::default().wrap())
     }
   }
 }
