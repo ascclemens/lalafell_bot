@@ -2,13 +2,17 @@ use database::schema::*;
 use database::models::Tag;
 use uuid::Uuid;
 
-#[derive(Debug, Default, Queryable, Identifiable, Associations)]
-#[belongs_to(Tag)]
-pub struct Verification {
-  pub id: i32,
-  pub tag_id: i32,
-  pub verified: bool,
-  pub verification_string: Option<String>
+insertable! {
+  #[derive(Debug, Default, Queryable, Identifiable, Associations)]
+  #[belongs_to(Tag)]
+  pub struct Verification,
+  #[derive(Debug, Insertable)]
+  #[table_name="verifications"]
+  pub struct NewVerification {
+    pub tag_id: i32,
+    pub verified: bool,
+    pub verification_string: Option<String>
+  }
 }
 
 impl Verification {
@@ -19,14 +23,6 @@ impl Verification {
       verification_string: self.verification_string
     }
   }
-}
-
-#[derive(Debug, Insertable)]
-#[table_name="verifications"]
-pub struct NewVerification {
-  pub tag_id: i32,
-  pub verified: bool,
-  pub verification_string: Option<String>
 }
 
 impl NewVerification {
