@@ -1,3 +1,20 @@
+macro_rules! insertable {
+  ($(#[$($meta:meta),+])* pub struct $name:ident, $(#[$($new_meta:meta),+])* pub struct $new_name:ident {
+    $(pub $field_name:ident: $kind:ty),+
+  }) => {
+    $(#[$($meta),+])*
+    pub struct $name {
+      pub id: i32,
+      $(pub $field_name: $kind),+
+    }
+
+    $(#[$($new_meta),+])*
+    pub struct $new_name {
+      $(pub $field_name: $kind),+
+    }
+  }
+}
+
 pub mod tags;
 pub mod verifications;
 pub mod timeouts;
@@ -15,6 +32,8 @@ use std::ops::Deref;
 use std::fmt::{Display, Formatter, Error as FmtError};
 
 use diesel::types::{FromSql, FromSqlRow, HasSqlType, Text};
+use diesel::expression::AsExpression;
+use diesel::expression::helper_types::AsExprOf;
 use diesel::backend::Backend;
 use diesel::row::Row;
 
@@ -68,10 +87,24 @@ impl<DB> FromSqlRow<Text, DB> for U64
   }
 }
 
+impl<'a> AsExpression<Text> for &'a U64 {
+  type Expression = AsExprOf<String, Text>;
+
+  fn as_expression(self) -> Self::Expression {
+    AsExpression::<Text>::as_expression(self.0.to_string())
+  }
+}
+
 impl Deref for U64 {
   type Target = u64;
 
   fn deref(&self) -> &Self::Target {
     &self.0
+  }
+}
+
+impl From<u64> for U64 {
+  fn from(u: u64) -> U64 {
+    U64(u)
   }
 }
