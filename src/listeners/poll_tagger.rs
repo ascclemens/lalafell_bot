@@ -22,18 +22,19 @@ impl PollTagger {
         return;
       }
     };
-    if message.embeds.len() != 1 && message.author.id != current_user.id {
+    if message.embeds.len() != 1 || message.author.id != current_user.id {
       return;
     }
-    let footer = match message.embeds[0].get("footer").and_then(|f| f.get("text")).and_then(|t| t.as_str()) {
+    let first_embed = &message.embeds[0];
+    let footer = match first_embed.get("footer").and_then(|f| f.get("text")).and_then(|t| t.as_str()) {
       Some(f) => f,
       None => return
     };
-    let title = match message.embeds[0].get("title").and_then(|t| t.as_str()) {
+    let title = match first_embed.get("title").and_then(|t| t.as_str()) {
       Some(t) => t,
       None => return
     };
-    let description = match message.embeds[0].get("description").and_then(|d| d.as_str()) {
+    let description = match first_embed.get("description").and_then(|d| d.as_str()) {
       Some(d) => d,
       None => return
     };
