@@ -4,8 +4,7 @@ version = "0.1.0"
 authors = ["Kyle Clemens <me@kyleclemens.com>"]
 
 [dependencies]
-# lalafell = { version = "*", git = "https://github.com/jkcclemens/lalafell" }
-lalafell = { path = "../lalafell" }
+lalafell = { version = "*", git = "https://github.com/jkcclemens/lalafell" }
 discord = { version = "*", git = "https://github.com/jkcclemens/discord-rs" }
 xivdb = { version = "*", git = "https://github.com/jkcclemens/xivdb-rs" }
 dotenv = "0.10"
