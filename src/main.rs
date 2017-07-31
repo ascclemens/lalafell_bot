@@ -44,6 +44,10 @@ use error::*;
 
 use std::sync::mpsc::channel;
 
+// TODO: move delete_all_messages to database
+// TODO: move tag_instructions to database
+// TODO: change tag_instructions name
+
 fn main() {
   if let Err(e) = inner() {
     for err in e.iter() {
