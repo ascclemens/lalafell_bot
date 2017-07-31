@@ -1,5 +1,8 @@
 use bot::LalafellBot;
+use database::models::ServerConfig;
 use error::*;
+
+use diesel::prelude::*;
 
 use discord::model::{RoleId, LiveServer, PermissionOverwrite, PermissionOverwriteType};
 use discord::model::permissions::{self, Permissions};
@@ -28,15 +31,23 @@ lazy_static! {
 }
 
 pub fn set_up_timeouts(bot: &LalafellBot, server: &LiveServer) -> Result<RoleId> {
-  let role_name = match bot.config.bot.timeouts.timed_out_role {
-    Some(ref r) => r,
+  let server_config: Option<ServerConfig> = ::bot::CONNECTION.with(|c| {
+    use database::schema::server_configs::dsl;
+    dsl::server_configs
+      .filter(dsl::server_id.eq(server.id.0.to_string()))
+      .first(c)
+      .optional()
+      .chain_err(|| "could not load server configs")
+  })?;
+  let role_name = match server_config.and_then(|c| c.timeout_role) {
+    Some(ref r) => r.to_string(),
     None => return Err("no timed-out role name".into())
   };
   let lower = role_name.to_lowercase();
 
   let role_id = match server.roles.iter().find(|r| r.name.to_lowercase() == lower) {
     Some(r) => r.id,
-    None => bot.discord.create_role(server.id, Some(role_name), Some(*ROLE_PERMISSIONS), None, None, None).chain_err(|| "could not create role")?.id
+    None => bot.discord.create_role(server.id, Some(&role_name), Some(*ROLE_PERMISSIONS), None, None, None).chain_err(|| "could not create role")?.id
   };
 
   let target = PermissionOverwrite {

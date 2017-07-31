@@ -19,7 +19,6 @@ pub struct Bot {
 #[derive(Debug, Default, Deserialize)]
 #[serde(default)]
 pub struct Timeouts {
-  pub timed_out_role: Option<String>,
   pub role_check_interval: Option<i64>
 }
 

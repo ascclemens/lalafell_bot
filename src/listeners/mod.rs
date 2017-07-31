@@ -28,7 +28,6 @@ impl ListenerManager {
     let listener: Box<ReceivesEvents + Send + Sync> = match listener.name.to_lowercase().as_ref() {
       "tag_instructions" => box TagInstructions::new(bot.clone(), listener)?,
       "event_debugger" => box EventDebugger,
-      "reaction_authorize" => box ReactionAuthorize::new(bot.clone(), listener)?,
       "track_changes" => box TrackChanges::new(bot.clone()),
       _ => bail!("no listener called {}", listener.name)
     };

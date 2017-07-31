@@ -1,5 +1,5 @@
 use bot::LalafellBot;
-use database::models::{ChannelConfig, NewChannelConfig, ServerConfig, NewServerConfig, Reaction};
+use database::models::{ChannelConfig, NewChannelConfig, ServerConfig, NewServerConfig, Reaction, NewReaction};
 
 use diesel;
 use diesel::prelude::*;
@@ -80,6 +80,7 @@ impl ConfigureCommand {
     Ok(format!("Set `!imagedump` status in {} to {}.", channel.mention(), if enabled { "enabled" } else { "disabled" }).into())
   }
 
+  // FIXME: don't require channel subcommand
   fn reactions<'a>(&self, channel: ChannelId, server: &LiveServer, args: &[String]) -> CommandResult<'a> {
     if args.len() < 3 {
       let reactions: Vec<Reaction> = ::bot::CONNECTION.with(|c| {
@@ -91,12 +92,52 @@ impl ConfigureCommand {
         .collect();
       return Ok(strings.join("\n").into());
     }
-    let subcommand = match args[2].to_lowercase().as_str() {
-      "add" | "create" => {},
-      "remove" | "delete" => {},
-      _ => return Err("Invalid subcommand.".into())
-    };
-    return Err("Unimplemented.".into());
+    match args[2].to_lowercase().as_str() {
+      "add" | "create" => {
+        if args.len() < 6 {
+          return Err("!configure channel [channel] reaction add [emoji] [messageID] [role]".into());
+        }
+        let emoji = &args[3];
+        let message_id: u64 = args[4].parse().map_err(|_| into!(CommandFailure, "Invalid message ID."))?;
+        let role = args[5..].join(" ").to_lowercase();
+        let role = match server.roles.iter().find(|r| r.name.to_lowercase() == role) {
+          Some(r) => r.name.clone(),
+          None => return Err("No such role.".into())
+        };
+        let new_reaction = NewReaction {
+          server_id: server.id.into(),
+          channel_id: channel.into(),
+          message_id: message_id.into(),
+          emoji: emoji.to_string(),
+          role: role
+        };
+        ::bot::CONNECTION.with(|c| {
+          diesel::insert(&new_reaction)
+            .into(::database::schema::reactions::table)
+            .execute(c)
+            .chain_err(|| "could not insert reaction")
+        })?;
+        Ok(CommandSuccess::default())
+      },
+      "remove" | "delete" => {
+        if args.len() < 4 {
+          return Err("!configure channel [channel] reaction remove [id]".into());
+        }
+        let id: i32 = args[3].parse().map_err(|_| into!(CommandFailure, "Invalid ID."))?;
+        let affected = ::bot::CONNECTION.with(|c| {
+          use database::schema::reactions::dsl;
+          diesel::delete(dsl::reactions.filter(dsl::id.eq(id)))
+            .execute(c)
+            .chain_err(|| "could not delete reaction")
+        })?;
+        if affected > 0 {
+          Ok(CommandSuccess::default())
+        } else {
+          Err("No reactions were deleted.".into())
+        }
+      },
+      _ => Err("Invalid subcommand.".into())
+    }
   }
 
   fn channel<'a>(&self, author: UserId, server: &LiveServer, args: &[String]) -> CommandResult<'a> {
