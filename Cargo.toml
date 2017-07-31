@@ -4,7 +4,8 @@ version = "0.1.0"
 authors = ["Kyle Clemens <me@kyleclemens.com>"]
 
 [dependencies]
-lalafell = { version = "*", git = "https://github.com/jkcclemens/lalafell" }
+# lalafell = { version = "*", git = "https://github.com/jkcclemens/lalafell" }
+lalafell = { path = "../lalafell" }
 discord = { version = "*", git = "https://github.com/jkcclemens/discord-rs" }
 xivdb = { version = "*", git = "https://github.com/jkcclemens/xivdb-rs" }
 dotenv = "0.10"
@@ -17,7 +18,7 @@ log = "0.3"
 fern = "0.4"
 ansi_term = "0.9"
 hyper = "0.11"
-hyper-rustls = "0.8"
+hyper-rustls = "0.9"
 make_hyper_great_again = "0.11"
 scraper = "0.4"
 uuid = { version = "0.5", features = ["v4"] }
@@ -27,3 +28,5 @@ selectors = "0.18"
 error-chain = "0.10"
 diesel = { version = "0.15", features = ["sqlite"] }
 diesel_codegen = { version = "0.15", features = ["sqlite"] }
+url = "1.5"
+url_serde = "0.2"

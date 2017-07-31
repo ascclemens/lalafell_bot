@@ -46,10 +46,7 @@ impl<'a> Command<'a> for RaceCommand {
     let res = self.bot.xivdb.search(&name, params).chain_err(|| "could not search XIVDB")?;
     let search_chars = match res.characters {
       Some(c) => c.results,
-      None => {
-        let err: error::Error = "no characters field in search result".into();
-        return Err(err.into());
-      }
+      None => return Err(into!(error::Error, "no characters field in search result").into())
     };
     if search_chars.is_empty() {
       return Err(format!("Could not find any character by the name {}.", name).into());

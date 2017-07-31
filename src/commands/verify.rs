@@ -85,10 +85,7 @@ impl<'a> PublicChannelCommand<'a> for VerifyCommand {
       let state = state_option.as_ref().unwrap();
       let server = match state.servers().iter().find(|x| x.id == server_id) {
         Some(s) => s,
-        None => {
-          let err: error::Error = "could not find server for channel".into();
-          return Err(err.into());
-        }
+        None => return Err(into!(error::Error, "could not find server for channel").into())
       };
 
       ::bot::CONNECTION.with(|c| {

@@ -20,12 +20,16 @@ pub mod verifications;
 pub mod timeouts;
 pub mod messages;
 pub mod edits;
+pub mod config;
 
 pub use self::tags::{Tag, NewTag};
 pub use self::verifications::{Verification, NewVerification};
 pub use self::timeouts::{Timeout, NewTimeout};
 pub use self::messages::{Message, NewMessage};
 pub use self::edits::{Edit, NewEdit};
+pub use self::config::{ServerConfig, NewServerConfig, ChannelConfig, NewChannelConfig, Reaction, NewReaction};
+
+use discord::model::{UserId, ServerId, ChannelId, MessageId, RoleId, EmojiId};
 
 use std::error::Error;
 use std::ops::Deref;
@@ -36,9 +40,7 @@ use diesel::expression::AsExpression;
 use diesel::expression::helper_types::AsExprOf;
 use diesel::backend::Backend;
 use diesel::row::Row;
-
-#[derive(Debug)]
-pub struct U64(u64);
+use diesel::sqlite::Sqlite;
 
 #[derive(Debug)]
 struct SqlError(String);
@@ -65,7 +67,8 @@ impl Error for SqlError {
   }
 }
 
-use diesel::sqlite::Sqlite;
+#[derive(Debug)]
+pub struct U64(u64);
 
 impl FromSql<Text, Sqlite> for U64 {
   fn from_sql(bytes: Option<&<Sqlite as Backend>::RawValue>) -> Result<Self, Box<Error + Send + Sync>> {
@@ -107,4 +110,25 @@ impl From<u64> for U64 {
   fn from(u: u64) -> U64 {
     U64(u)
   }
+}
+
+macro_rules! from {
+  ($($name: ident;)*) => {
+    $(
+      impl From<$name> for U64 {
+        fn from(u: $name) -> U64 {
+          U64(u.0)
+        }
+      }
+    )*
+  }
+}
+
+from! {
+	UserId;
+	ServerId;
+	ChannelId;
+	MessageId;
+	RoleId;
+	EmojiId;
 }

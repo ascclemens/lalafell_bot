@@ -13,6 +13,7 @@ extern crate log;
 extern crate fern;
 extern crate hyper;
 extern crate make_hyper_great_again;
+extern crate hyper_rustls;
 extern crate ansi_term;
 extern crate scraper;
 extern crate uuid;
@@ -26,6 +27,8 @@ extern crate lalafell;
 extern crate diesel;
 #[macro_use]
 extern crate diesel_codegen;
+extern crate url;
+extern crate url_serde;
 
 mod bot;
 mod database;

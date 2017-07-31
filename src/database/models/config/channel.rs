@@ -1,0 +1,14 @@
+use database::schema::*;
+use database::models::U64;
+
+insertable! {
+  #[derive(Debug, Queryable, Identifiable)]
+  pub struct ChannelConfig,
+  #[derive(Debug, Insertable)]
+  #[table_name = "channel_configs"]
+  pub struct NewChannelConfig {
+    pub server_id: U64,
+    pub channel_id: U64,
+    pub image_dump_allowed: Option<bool>
+  }
+}

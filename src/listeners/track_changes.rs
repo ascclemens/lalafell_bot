@@ -31,8 +31,8 @@ impl TrackChanges {
     }
     ::bot::CONNECTION.with(|c| {
       let new_message = NewMessage {
-        message_id: message.id.0.into(),
-        channel_id: message.channel_id.0.into(),
+        message_id: message.id.into(),
+        channel_id: message.channel_id.into(),
         content: message.content.to_owned()
       };
       let res = ::diesel::insert(&new_message)
