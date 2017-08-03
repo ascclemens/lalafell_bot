@@ -31,7 +31,14 @@ impl ConfigureCommand {
     Ok("Help".into())
   }
 
-  fn image_dump<'a>(&self, channel: ChannelId, server: &LiveServer, args: &[String]) -> CommandResult<'a> {
+  fn image_dump<'a>(&self, author: UserId, channel: ChannelId, server: &LiveServer, args: &[String]) -> CommandResult<'a> {
+    if !server.permissions_for(channel, author).contains(permissions::MANAGE_MESSAGES) {
+      return Err(ExternalCommandFailure::default()
+        .message(|e: EmbedBuilder| e
+          .title("Not enough permissions.")
+          .description("You don't have enough permissions to use this command."))
+        .wrap());
+    }
     let config: Option<ChannelConfig> = ::bot::CONNECTION.with(|c| {
       use database::schema::channel_configs::dsl;
       dsl::channel_configs
@@ -80,9 +87,15 @@ impl ConfigureCommand {
     Ok(format!("Set `!imagedump` status in {} to {}.", channel.mention(), if enabled { "enabled" } else { "disabled" }).into())
   }
 
-  // FIXME: don't require channel subcommand
-  fn reactions<'a>(&self, channel: ChannelId, server: &LiveServer, args: &[String]) -> CommandResult<'a> {
-    if args.len() < 3 {
+  fn reactions<'a>(&self, author: UserId, server: &LiveServer, args: &[String]) -> CommandResult<'a> {
+    if !server.permissions_for(server.id.main(), author).contains(permissions::MANAGE_ROLES) {
+      return Err(ExternalCommandFailure::default()
+        .message(|e: EmbedBuilder| e
+          .title("Not enough permissions.")
+          .description("You don't have enough permissions to use this command."))
+        .wrap());
+    }
+    if args.len() < 2 {
       let reactions: Vec<Reaction> = ::bot::CONNECTION.with(|c| {
         use database::schema::reactions::dsl;
         dsl::reactions.load(c).chain_err(|| "could not load reactions")
@@ -92,11 +105,12 @@ impl ConfigureCommand {
         .collect();
       return Ok(strings.join("\n").into());
     }
-    match args[2].to_lowercase().as_str() {
+    match args[1].to_lowercase().as_str() {
       "add" | "create" => {
         if args.len() < 6 {
-          return Err("!configure channel [channel] reaction add [emoji] [messageID] [role]".into());
+          return Err("!configure server reaction add [channel] [emoji] [messageID] [role]".into());
         }
+        let channel = ChannelOrId::parse(&args[2]).map_err(|_| into!(CommandFailure, "Invalid channel reference."))?;
         let emoji = &args[3];
         let message_id: u64 = args[4].parse().map_err(|_| into!(CommandFailure, "Invalid message ID."))?;
         let role = args[5..].join(" ").to_lowercase();
@@ -120,10 +134,10 @@ impl ConfigureCommand {
         Ok(CommandSuccess::default())
       },
       "remove" | "delete" => {
-        if args.len() < 4 {
-          return Err("!configure channel [channel] reaction remove [id]".into());
+        if args.len() < 3 {
+          return Err("!configure server reaction remove [id]".into());
         }
-        let id: i32 = args[3].parse().map_err(|_| into!(CommandFailure, "Invalid ID."))?;
+        let id: i32 = args[2].parse().map_err(|_| into!(CommandFailure, "Invalid ID."))?;
         let affected = ::bot::CONNECTION.with(|c| {
           use database::schema::reactions::dsl;
           diesel::delete(dsl::reactions.filter(dsl::id.eq(id)))
@@ -145,36 +159,19 @@ impl ConfigureCommand {
       return Err("`!configure channel [channel] [subcommand]`".into());
     }
     let channel = ChannelOrId::parse(&args[0]).map_err(|_| into!(CommandFailure, "Invalid channel reference."))?;
-    // FIXME: imagedump is manage messages, but reactions is manage roles
-    let has_permissions = server.permissions_for(channel, author).contains(permissions::MANAGE_MESSAGES);
-    if !has_permissions {
-      return Err(ExternalCommandFailure::default()
-        .message(|e: EmbedBuilder| e
-          .title("Not enough permissions.")
-          .description("You don't have enough permissions to use this command."))
-        .wrap());
-    }
     match args[1].to_lowercase().as_str() {
-      "imagedump" | "image_dump" => self.image_dump(channel, server, args),
-      "reaction" | "reactions" => self.reactions(channel, server, args),
+      "imagedump" | "image_dump" => self.image_dump(author, channel, server, args),
       _ => return Err("Invalid subcommand.".into())
     }
   }
 
-  fn server<'a>(&self, author: UserId, server: &LiveServer, args: &[String]) -> CommandResult<'a> {
-    if args.is_empty() {
-      return Err("`!configure server [subcommand]`".into());
-    }
+  fn timeout_role<'a>(&self, author: UserId, server: &LiveServer, args: &[String]) -> CommandResult<'a> {
     if author != server.owner_id {
       return Err(ExternalCommandFailure::default()
         .message(|e: EmbedBuilder| e
           .title("Not enough permissions.")
           .description("You don't have enough permissions to use this command."))
         .wrap());
-    }
-    match args[0].to_lowercase().as_str() {
-      "timeoutrole" | "timeout_role" => {} // TODO: move into separate methods,
-      _ => return Err("Invalid subcommand.".into())
     }
     let config: Option<ServerConfig> = ::bot::CONNECTION.with(|c| {
       use database::schema::server_configs::dsl;
@@ -220,6 +217,17 @@ impl ConfigureCommand {
       }
     }
     Ok(format!("Set timeout role in {} to {}.", server.name, role.name).into())
+  }
+
+  fn server<'a>(&self, author: UserId, server: &LiveServer, args: &[String]) -> CommandResult<'a> {
+    if args.is_empty() {
+      return Err("`!configure server [subcommand]`".into());
+    }
+    match args[0].to_lowercase().as_str() {
+      "reaction" | "reactions" => self.reactions(author, server, args),
+      "timeoutrole" | "timeout_role" => self.timeout_role(author, server, args),
+      _ => return Err("Invalid subcommand.".into())
+    }
   }
 }
 
