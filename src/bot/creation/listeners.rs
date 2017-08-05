@@ -49,6 +49,7 @@ fn command_listener<'a>(bot: Arc<LalafellBot>) -> CommandListener<'a> {
     "archive" => ArchiveCommand,
     "viewedits" => ViewEditsCommand,
     "imagedump", "dump" => ImageDumpCommand,
-    "configure", "config" => ConfigureCommand
+    "configure", "config" => ConfigureCommand,
+    "randomreaction", "reaction" => RandomReactionCommand
   }
 }

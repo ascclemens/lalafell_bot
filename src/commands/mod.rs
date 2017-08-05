@@ -19,6 +19,7 @@ pub mod timeout;
 pub mod archive;
 pub mod view_edits;
 pub mod image_dump;
+pub mod random_reaction;
 
 pub use self::tag::{TagCommand, AutoTagCommand, UpdateTagsCommand, UpdateTagCommand};
 pub use self::polling::{PollCommand, PollResultsCommand};
@@ -28,6 +29,7 @@ pub use self::timeout::{TimeoutCommand, UntimeoutCommand};
 pub use self::archive::ArchiveCommand;
 pub use self::view_edits::ViewEditsCommand;
 pub use self::image_dump::ImageDumpCommand;
+pub use self::random_reaction::RandomReactionCommand;
 
 pub use self::race::RaceCommand;
 pub use self::viewtag::ViewTagCommand;

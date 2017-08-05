@@ -29,6 +29,7 @@ extern crate diesel;
 extern crate diesel_codegen;
 extern crate url;
 extern crate url_serde;
+extern crate rand;
 
 mod bot;
 mod database;
