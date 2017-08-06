@@ -34,11 +34,11 @@ impl TaskManager {
   }
 
   pub fn start_from_config(&self, task: &Task) -> Result<()> {
-    match task.name.to_lowercase().as_ref() {
-      "delete_all_messages" => self.start_task(DeleteAllMessagesTask::from_config(task)?),
-      _ => bail!("no task named {}", task.name)
-    }
-    Ok(())
+    bail!("no task named {}", task.name);
+    // match task.name.to_lowercase().as_str() {
+    //   _ => bail!("no task named {}", task.name)
+    // }
+    // Ok(())
   }
 
   pub fn start_task<T: RunsTask + Send + 'static>(&self, task: T) {

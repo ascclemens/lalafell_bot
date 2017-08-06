@@ -1,3 +1,5 @@
+#![allow(unused_doc_comment)]
+
 use xivdb;
 use lalafell;
 

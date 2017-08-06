@@ -43,7 +43,7 @@ impl HasParams for RandomReactionCommand {
 }
 
 impl<'a> PublicChannelCommand<'a> for RandomReactionCommand {
-  fn run(&self, message: &Message, server: &LiveServer, channel: &PublicChannel, params: &[&str]) -> CommandResult<'a> {
+  fn run(&self, _: &Message, server: &LiveServer, _: &PublicChannel, params: &[&str]) -> CommandResult<'a> {
     let params = self.params(USAGE, params)?;
     let reactions = self.bot.discord.get_reactions(*params.channel, MessageId(params.message_id), ReactionEmoji::Unicode(params.emoji), Some(100), None)
       .map_err(|_| into!(CommandFailure, "Could not get reactions."))?;

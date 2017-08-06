@@ -36,6 +36,8 @@ impl ConfigureCommand {
     let channel = ChannelOrId::parse(&args[0]).map_err(|_| into!(CommandFailure, "Invalid channel reference."))?;
     match args[1].to_lowercase().as_str() {
       "imagedump" | "image_dump" => channel::image_dump(author, channel, server, args),
+      "autoreply" | "auto_reply" => channel::auto_reply(author, channel, server, args),
+      "deleteallmessages" | "delete_all_messages" => channel::delete_all_messages(author, channel, server, args),
       _ => Err("Invalid subcommand.".into())
     }
   }

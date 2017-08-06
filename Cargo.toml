@@ -29,4 +29,5 @@ diesel = { version = "0.15", features = ["sqlite"] }
 diesel_codegen = { version = "0.15", features = ["sqlite"] }
 url = "1.5"
 url_serde = "0.2"
+byteorder = "1.1"
 rand = "0.3"

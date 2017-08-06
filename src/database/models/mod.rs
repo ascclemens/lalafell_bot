@@ -21,6 +21,8 @@ pub mod timeouts;
 pub mod messages;
 pub mod edits;
 pub mod config;
+pub mod auto_replies;
+pub mod delete_all_messages;
 
 pub use self::tags::{Tag, NewTag};
 pub use self::verifications::{Verification, NewVerification};
@@ -28,6 +30,8 @@ pub use self::timeouts::{Timeout, NewTimeout};
 pub use self::messages::{Message, NewMessage};
 pub use self::edits::{Edit, NewEdit};
 pub use self::config::{ServerConfig, NewServerConfig, ChannelConfig, NewChannelConfig, Reaction, NewReaction};
+pub use self::auto_replies::{AutoReply, NewAutoReply};
+pub use self::delete_all_messages::{DeleteAllMessages, NewDeleteAllMessages};
 
 use discord::model::{UserId, ServerId, ChannelId, MessageId, RoleId, EmojiId};
 

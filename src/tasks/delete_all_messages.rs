@@ -1,21 +1,31 @@
 use bot::LalafellBot;
-use tasks::{RunsTask, FromConfig};
-use config::Task;
+use tasks::RunsTask;
+use database::models::DeleteAllMessages;
+
 use discord::GetMessages;
 use discord::model::ChannelId;
+
 use chrono::prelude::*;
 use chrono::Duration;
 
 use error::*;
-use serde_json;
+
+use diesel::prelude::*;
 
 use std::sync::Arc;
 use std::thread;
 
 #[derive(Debug)]
 pub struct DeleteAllMessagesTask {
-  config: DeleteAllMessagesTaskConfig,
   next_sleep: i64
+}
+
+impl DeleteAllMessagesTask {
+  pub fn new() -> Self {
+    DeleteAllMessagesTask {
+      next_sleep: 30
+    }
+  }
 }
 
 impl RunsTask for DeleteAllMessagesTask {
@@ -23,60 +33,51 @@ impl RunsTask for DeleteAllMessagesTask {
     loop {
       thread::sleep(Duration::seconds(self.next_sleep).to_std().unwrap());
       info!("Delete messages task running");
-      let channel = ChannelId(self.config.channel);
-      let messages = match s.discord.get_messages(channel, GetMessages::MostRecent, None) {
-        Ok(m) => m,
+      let dams: ::std::result::Result<Vec<DeleteAllMessages>, _> = ::bot::CONNECTION.with(|c| {
+        use database::schema::delete_all_messages::dsl;
+        dsl::delete_all_messages.load(c).chain_err(|| "could not load delete_all_messages")
+      });
+      let dams = match dams {
+        Ok(d) => d,
         Err(e) => {
-          warn!("Could not get messages for channel {}: {}", channel, e);
-          self.next_sleep = 30;
+          warn!("could not load delete_all_messages: {}", e);
           continue;
         }
       };
-      let mut to_delete = Vec::new();
-      for message in messages {
-        if self.config.except.contains(&message.id.0) {
-          continue;
-        }
-        if message.timestamp.with_timezone(&Utc) + Duration::seconds(self.config.after) > Utc::now() {
-          continue;
-        }
-        to_delete.push(message);
-      }
-      for chunk in to_delete.chunks(100) {
-        let result = if chunk.len() == 1 {
-          s.discord.delete_message(channel, chunk[0].id)
-        } else {
-          let ids: Vec<_> = chunk.iter().map(|m| m.id).collect();
-          s.discord.delete_messages(channel, &ids)
+      for dam in dams {
+        let channel = ChannelId(*dam.channel_id);
+        let messages = match s.discord.get_messages(channel, GetMessages::MostRecent, None) {
+          Ok(m) => m,
+          Err(e) => {
+            warn!("Could not get messages for channel {}: {}", channel, e);
+            continue;
+          }
         };
-        if let Err(e) = result {
-          warn!("Could not delete messages: {}", e);
+        let mut to_delete = Vec::new();
+        let exclude = dam.exclude();
+        for message in messages {
+          if exclude.contains(&message.id.0) {
+            continue;
+          }
+          if message.timestamp.with_timezone(&Utc) + Duration::seconds(dam.after as i64) > Utc::now() {
+            continue;
+          }
+          to_delete.push(message);
         }
+        for chunk in to_delete.chunks(100) {
+          let result = if chunk.len() == 1 {
+            s.discord.delete_message(channel, chunk[0].id)
+          } else {
+            let ids: Vec<_> = chunk.iter().map(|m| m.id).collect();
+            s.discord.delete_messages(channel, &ids)
+          };
+          if let Err(e) = result {
+            warn!("Could not delete messages: {}", e);
+          }
+        }
+        info!("Delete messages task done");
       }
       self.next_sleep = 60;
-      info!("Delete messages task done");
     }
   }
-}
-
-impl FromConfig for DeleteAllMessagesTask {
-  fn from_config(task: &Task) -> Result<Self> {
-    let val = match task.config {
-      None => bail!("delete_all_messages task is missing configuration"),
-      Some(ref val) => val
-    };
-    let config: DeleteAllMessagesTaskConfig = serde_json::from_value(val.clone()).chain_err(|| "could not parse delete_all_messages configuration")?;
-    Ok(DeleteAllMessagesTask {
-      config: config,
-      next_sleep: Default::default()
-    })
-  }
-}
-
-#[derive(Debug, Deserialize)]
-pub struct DeleteAllMessagesTaskConfig {
-  pub channel: u64,
-  pub after: i64,
-  #[serde(default)]
-  pub except: Vec<u64>
 }

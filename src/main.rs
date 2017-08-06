@@ -29,7 +29,18 @@ extern crate diesel;
 extern crate diesel_codegen;
 extern crate url;
 extern crate url_serde;
+extern crate byteorder;
 extern crate rand;
+
+macro_rules! try_or {
+  ($e: expr, $o: expr) => {{
+    #[allow(unused_variables)]
+    match $e {
+      Ok(x) => x,
+      Err(e) => $o
+    }
+  }}
+}
 
 mod bot;
 mod database;
@@ -45,9 +56,8 @@ use error::*;
 
 use std::sync::mpsc::channel;
 
-// TODO: move delete_all_messages to database
-// TODO: move tag_instructions to database
-// TODO: change tag_instructions name
+// TODO: make delete_all_messages configure command
+// TODO: make auto_reply configure command
 
 fn main() {
   if let Err(e) = inner() {
