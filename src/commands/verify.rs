@@ -51,7 +51,7 @@ impl<'a> PublicChannelCommand<'a> for VerifyCommand {
           .description("Please tag yourself with an account before verifying it."))
         .wrap())
     };
-    let verification: Verification = ::bot::CONNECTION.with(|c| {
+    let mut verification: Verification = ::bot::CONNECTION.with(|c| {
       Verification::belonging_to(&user)
         .first(c)
         .optional()
@@ -88,13 +88,9 @@ impl<'a> PublicChannelCommand<'a> for VerifyCommand {
         None => return Err(into!(error::Error, "could not find server for channel").into())
       };
 
-      ::bot::CONNECTION.with(|c| {
-        use database::schema::verifications::dsl;
-        ::diesel::update(&verification)
-          .set(dsl::verified.eq(true))
-          .execute(c)
-          .chain_err(|| "could not update verification")
-      })?;
+      verification.verified = true;
+      ::bot::CONNECTION.with(|c| verification.save_changes::<Verification>(c).chain_err(|| "could not update verification"))?;
+
       if let Some(r) = server.roles.iter().find(|x| x.name.to_lowercase() == "verified") {
         let mut member = self.bot.discord.get_member(server_id, message.author.id).chain_err(|| "could not get member for tagging")?;
 

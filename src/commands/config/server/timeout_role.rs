@@ -37,14 +37,9 @@ pub fn timeout_role<'a>(author: UserId, server: &LiveServer, args: &[String]) ->
     None => return Err(format!("No role by the name `{}`.", &args[2]).into())
   };
   match config {
-    Some(conf) => {
-      ::bot::CONNECTION.with(|c| {
-        use database::schema::server_configs::dsl;
-        diesel::update(&conf)
-          .set(dsl::timeout_role.eq(Some(role.name.clone())))
-          .execute(c)
-          .chain_err(|| "could not update config")
-      })?;
+    Some(mut conf) => {
+      conf.timeout_role = Some(role.name.clone());
+      ::bot::CONNECTION.with(|c| conf.save_changes::<ServerConfig>(c).chain_err(|| "could not update config"))?;
     },
     None => {
       ::bot::CONNECTION.with(|c| {

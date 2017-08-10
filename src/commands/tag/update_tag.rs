@@ -20,7 +20,7 @@ pub struct UpdateTagCommand {
 impl UpdateTagCommand {
   pub fn new(bot: Arc<LalafellBot>) -> UpdateTagCommand {
     UpdateTagCommand {
-      bot: bot
+      bot
     }
   }
 }

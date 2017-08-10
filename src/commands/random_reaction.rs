@@ -1,10 +1,11 @@
 use bot::LalafellBot;
+use filters::Filter;
 
 use lalafell::bot::Bot;
 use lalafell::commands::prelude::*;
-use lalafell::commands::{ChannelOrId, MentionOrId};
+use lalafell::commands::ChannelOrId;
 
-use discord::model::{Message, LiveServer, PublicChannel, MessageId, ReactionEmoji, Member, Role};
+use discord::model::{Message, LiveServer, PublicChannel, MessageId, ReactionEmoji, Member};
 
 use rand::{thread_rng, Rng};
 
@@ -69,73 +70,5 @@ impl<'a> PublicChannelCommand<'a> for RandomReactionCommand {
       None => return Err("Could not randomly choose a reaction.".into())
     };
     Ok(format!("I've randomly selected {}!", member.user.mention()).into())
-  }
-}
-
-enum Filter {
-  Include(FilterKind),
-  Exclude(FilterKind)
-}
-
-impl Filter {
-  fn parse(s: &str) -> Option<Filter> {
-    if s.starts_with('!') {
-      let fk = match FilterKind::parse(&s[1..]) {
-        Some(f) => f,
-        None => return None
-      };
-      Some(Filter::Exclude(fk))
-    } else {
-      let fk = match FilterKind::parse(s) {
-        Some(f) => f,
-        None => return None
-      };
-      Some(Filter::Include(fk))
-    }
-  }
-
-  fn matches(&self, member: &Member, roles: &[Role]) -> bool {
-    let (include, fk) = match *self {
-      Filter::Include(ref fk) => (true, fk),
-      Filter::Exclude(ref fk) => (false, fk)
-    };
-    match *fk {
-      FilterKind::Role(ref role_name) => {
-        let role_name = role_name.to_lowercase();
-        let role = match roles.iter().find(|r| r.name.to_lowercase() == role_name) {
-          Some(r) => r,
-          None => return include == false
-        };
-        member.roles.iter().any(|r| *r == role.id) == include
-      },
-      FilterKind::User(id) => (member.user.id.0 == id) == include
-    }
-  }
-}
-
-enum FilterKind {
-  Role(String),
-  User(u64)
-}
-
-impl FilterKind {
-  fn parse(s: &str) -> Option<FilterKind> {
-    let parts: Vec<_> = s.split(':').collect();
-    if parts.len() != 2 {
-      return None;
-    }
-    let kind = &parts[0];
-    let value = &parts[1];
-    match kind.to_lowercase().as_str() {
-      "role" => Some(FilterKind::Role(value.to_string())),
-      "user" | "member" => {
-        let id = match MentionOrId::parse(value) {
-          Ok(i) => i,
-          Err(_) => return None
-        };
-        Some(FilterKind::User(id.0))
-      },
-      _ => None
-    }
   }
 }

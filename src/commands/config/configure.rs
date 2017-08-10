@@ -21,7 +21,7 @@ pub struct ConfigureCommand {
 impl ConfigureCommand {
   pub fn new(bot: Arc<LalafellBot>) -> ConfigureCommand {
     ConfigureCommand {
-      bot: bot
+      bot
     }
   }
 
@@ -36,19 +36,21 @@ impl ConfigureCommand {
     let channel = ChannelOrId::parse(&args[0]).map_err(|_| into!(CommandFailure, "Invalid channel reference."))?;
     match args[1].to_lowercase().as_str() {
       "imagedump" | "image_dump" => channel::image_dump(author, channel, server, args),
-      "autoreply" | "auto_reply" => channel::auto_reply(author, channel, server, args),
-      "deleteallmessages" | "delete_all_messages" => channel::delete_all_messages(author, channel, server, args),
       _ => Err("Invalid subcommand.".into())
     }
   }
 
-  fn server<'a>(&self, author: UserId, server: &LiveServer, args: &[String]) -> CommandResult<'a> {
+  fn server<'a>(&self, author: UserId, server: &LiveServer, args: &[String], message: &Message) -> CommandResult<'a> {
     if args.is_empty() {
       return Err("`!configure server [subcommand]`".into());
     }
-    match args[0].to_lowercase().as_str() {
+    let subcommand = &args[0];
+    let args = &args[1..];
+    match subcommand.to_lowercase().as_str() {
       "reaction" | "reactions" => server::reaction(author, server, args),
       "timeoutrole" | "timeout_role" => server::timeout_role(author, server, args),
+      "deleteallmessages" | "delete_all_messages" => server::delete_all_messages(author, server, args),
+      "autoreply" | "auto_reply" => server::auto_reply(author, server, &message.content),
       _ => Err("Invalid subcommand.".into())
     }
   }
@@ -77,7 +79,7 @@ impl<'a> PublicChannelCommand<'a> for ConfigureCommand {
     match params.subcommand.to_lowercase().as_str() {
       "help" => self.help(),
       "channel" => self.channel(message.author.id, server, &args),
-      "server" => self.server(message.author.id, server, &args),
+      "server" => self.server(message.author.id, server, &args, message),
       _ => Err("No such subcommand. Try `help`.".into())
     }
   }

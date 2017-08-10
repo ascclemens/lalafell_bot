@@ -1,4 +1,6 @@
 #![feature(mpsc_select, box_syntax, fnbox)]
+// areyoufuckingkiddingme.jpg
+#![cfg_attr(feature = "cargo-clippy", allow(unreadable_literal))]
 
 extern crate discord;
 extern crate xivdb;
@@ -42,6 +44,16 @@ macro_rules! try_or {
   }}
 }
 
+macro_rules! some_or {
+  ($e: expr, $o: expr) => {{
+    #[allow(unused_variables)]
+    match $e {
+      Some(x) => x,
+      None => $o
+    }
+  }}
+}
+
 mod bot;
 mod database;
 mod listeners;
@@ -49,6 +61,7 @@ mod tasks;
 mod commands;
 mod lodestone;
 mod config;
+mod filters;
 mod error;
 
 use bot::LalafellBot;

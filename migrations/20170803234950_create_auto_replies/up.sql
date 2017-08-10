@@ -3,5 +3,7 @@ CREATE TABLE auto_replies (
   server_id TEXT NOT NULL,
   channel_id TEXT NOT NULL,
   message TEXT NOT NULL,
-  on_join BOOLEAN NOT NULL
+  on_join BOOLEAN NOT NULL,
+  delay INTEGER NOT NULL,
+  filters TEXT
 )

@@ -38,14 +38,9 @@ pub fn image_dump<'a>(author: UserId, channel: ChannelId, server: &LiveServer, a
     _ => return Err("Unknown enabled state provided".into())
   };
   match config {
-    Some(conf) => {
-      ::bot::CONNECTION.with(|c| {
-        use database::schema::channel_configs::dsl;
-        diesel::update(&conf)
-          .set(dsl::image_dump_allowed.eq(Some(enabled)))
-          .execute(c)
-          .chain_err(|| "could not update config")
-      })?;
+    Some(mut conf) => {
+      conf.image_dump_allowed = Some(enabled);
+      ::bot::CONNECTION.with(|c| conf.save_changes::<ChannelConfig>(c).chain_err(|| "could not update config"))?;
     },
     None => {
       ::bot::CONNECTION.with(|c| {

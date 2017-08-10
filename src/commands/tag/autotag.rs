@@ -18,7 +18,7 @@ pub struct AutoTagCommand {
 impl AutoTagCommand {
   pub fn new(bot: Arc<LalafellBot>) -> AutoTagCommand {
     AutoTagCommand {
-      bot: bot
+      bot
     }
   }
 }

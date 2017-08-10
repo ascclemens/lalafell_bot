@@ -12,7 +12,7 @@ pub mod polling;
 pub mod config;
 
 pub mod race;
-pub mod viewtag;
+pub mod view_tag;
 pub mod verify;
 pub mod reference_count;
 pub mod timeout;
@@ -32,6 +32,6 @@ pub use self::image_dump::ImageDumpCommand;
 pub use self::random_reaction::RandomReactionCommand;
 
 pub use self::race::RaceCommand;
-pub use self::viewtag::ViewTagCommand;
+pub use self::view_tag::ViewTagCommand;
 pub use self::verify::VerifyCommand;
 pub use self::reference_count::ReferenceCountCommand;

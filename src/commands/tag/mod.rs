@@ -138,19 +138,12 @@ impl Tagger {
         .chain_err(|| "could not load tags")
     })?;
     match tag {
-      Some(t) => {
-        let (id, name, server) = (character.lodestone_id.to_string(), &character.name, &character.server);
-        ::bot::CONNECTION.with(move |c| {
-          use database::schema::tags::dsl;
-          ::diesel::update(&t)
-            .set((
-              dsl::character_id.eq(id),
-              dsl::character.eq(name),
-              dsl::server.eq(server)
-            ))
-            .execute(c)
-            .chain_err(|| "could not update tag")
-        })?;
+      Some(mut t) => {
+        let (id, name, server) = (character.lodestone_id, character.name.clone(), character.server.clone());
+        t.character_id = id.into();
+        t.character = name;
+        t.server = server;
+        ::bot::CONNECTION.with(|c| t.save_changes::<Tag>(c).chain_err(|| "could not update tag"))?;
       },
       None => {
         let new_tag = NewTag::new(

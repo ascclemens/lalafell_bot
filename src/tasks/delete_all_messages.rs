@@ -33,7 +33,7 @@ impl RunsTask for DeleteAllMessagesTask {
     loop {
       thread::sleep(Duration::seconds(self.next_sleep).to_std().unwrap());
       info!("Delete messages task running");
-      let dams: ::std::result::Result<Vec<DeleteAllMessages>, _> = ::bot::CONNECTION.with(|c| {
+      let dams: Result<Vec<DeleteAllMessages>> = ::bot::CONNECTION.with(|c| {
         use database::schema::delete_all_messages::dsl;
         dsl::delete_all_messages.load(c).chain_err(|| "could not load delete_all_messages")
       });

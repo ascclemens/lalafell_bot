@@ -25,8 +25,10 @@ impl DeleteAllMessages {
 
 impl NewDeleteAllMessages {
   pub fn new(server_id: u64, channel_id: u64, after: i32, exclude: &[u64]) -> Self {
-    let mut bytes = Vec::with_capacity(exclude.len() * 8);
-    LittleEndian::write_u64_into(exclude, &mut bytes);
+    let mut bytes = vec![0; exclude.len() * 8];
+    if !exclude.is_empty() {
+      LittleEndian::write_u64_into(exclude, &mut bytes);
+    }
     NewDeleteAllMessages {
       server_id: server_id.into(),
       channel_id: channel_id.into(),

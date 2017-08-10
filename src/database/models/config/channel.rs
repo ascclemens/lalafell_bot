@@ -2,7 +2,7 @@ use database::schema::*;
 use database::models::U64;
 
 insertable! {
-  #[derive(Debug, Queryable, Identifiable)]
+  #[derive(Debug, Queryable, Identifiable, AsChangeset)]
   pub struct ChannelConfig,
   #[derive(Debug, Insertable)]
   #[table_name = "channel_configs"]

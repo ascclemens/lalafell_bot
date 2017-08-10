@@ -3,11 +3,11 @@ use database::models::Tag;
 use uuid::Uuid;
 
 insertable! {
-  #[derive(Debug, Default, Queryable, Identifiable, Associations)]
+  #[derive(Debug, Default, Queryable, Identifiable, Associations, AsChangeset)]
   #[belongs_to(Tag)]
   pub struct Verification,
   #[derive(Debug, Insertable)]
-  #[table_name="verifications"]
+  #[table_name = "verifications"]
   pub struct NewVerification {
     pub tag_id: i32,
     pub verified: bool,

@@ -4,7 +4,7 @@ use database::models::U64;
 use chrono::Utc;
 
 insertable! {
-  #[derive(Debug, Queryable, Identifiable)]
+  #[derive(Debug, Queryable, Identifiable, AsChangeset)]
   pub struct Tag,
   #[derive(Debug, Insertable)]
   #[table_name = "tags"]

@@ -62,20 +62,16 @@ impl AutoTagTask {
           return;
         }
       };
-      for tag in users {
+      for mut tag in users {
         if let Err(e) = AutoTagTask::update_tag(s.as_ref(), state, UserId(*tag.user_id), ServerId(*tag.server_id), *tag.character_id) {
           warn!("Couldn't update tag for user ID {}: {}", *tag.user_id, e);
           continue;
         }
-        ::bot::CONNECTION.with(|c| {
-          use database::schema::tags::dsl;
-          let res = ::diesel::update(&tag)
-            .set(dsl::last_updated.eq(Utc::now().timestamp()))
-            .execute(c);
-          if let Err(e) = res {
-            warn!("could not update tag last_updated: {}", e);
-          }
-        });
+        tag.last_updated = Utc::now().timestamp();
+        let res: ::std::result::Result<Tag, _> = ::bot::CONNECTION.with(|c| tag.save_changes(c));
+        if let Err(e) = res {
+          warn!("could not update tag last_updated: {}", e);
+        }
       }
     }
     info!("Done updating autotags");

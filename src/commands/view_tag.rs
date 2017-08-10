@@ -21,7 +21,7 @@ pub struct ViewTagCommand {
 impl ViewTagCommand {
   pub fn new(bot: Arc<LalafellBot>) -> ViewTagCommand {
     ViewTagCommand {
-      bot: bot
+      bot
     }
   }
 }
