@@ -106,7 +106,7 @@ impl LalafellBot {
       };
       {
         let mut state_option = self.state.write().unwrap();
-        let mut state = state_option.as_mut().unwrap();
+        let state = state_option.as_mut().unwrap();
         state.update(&event);
       }
       {

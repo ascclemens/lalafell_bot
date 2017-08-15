@@ -191,7 +191,7 @@ impl Tagger {
     // If we created any roles, the server may or may not update with them fast enough, so store a copy in the limbo
     // roles.
     {
-      let mut limbo = &mut *LIMBO_ROLES.lock().unwrap();
+      let limbo = &mut *LIMBO_ROLES.lock().unwrap();
       for created in &created_roles {
         limbo.push(created.clone());
       }
