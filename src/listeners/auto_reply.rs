@@ -15,7 +15,7 @@ use std::collections::HashMap;
 
 pub struct AutoReplyListener {
   bot: Arc<LalafellBot>,
-  last_sends: Mutex<HashMap<UserId, i64>>
+  last_sends: Mutex<HashMap<(UserId, ChannelId), i64>>
 }
 
 impl AutoReplyListener {
@@ -107,7 +107,7 @@ impl ReceivesEvents for AutoReplyListener {
           None => warn!("invalid filters: `{}`", filters_string)
         }
       }
-      let mut last_send = last_sends.entry(member.user.id).or_insert(0);
+      let last_send = last_sends.entry((member.user.id, ChannelId(*reply.channel_id))).or_insert(0);
       if *last_send + reply.delay as i64 >= Utc::now().timestamp() {
         continue;
       }
