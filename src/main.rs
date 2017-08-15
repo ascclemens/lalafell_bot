@@ -69,9 +69,6 @@ use error::*;
 
 use std::sync::mpsc::channel;
 
-// TODO: make delete_all_messages configure command
-// TODO: make auto_reply configure command
-
 fn main() {
   if let Err(e) = inner() {
     for err in e.iter() {
