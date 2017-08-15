@@ -58,22 +58,34 @@ pub fn auto_reply<'a>(author: UserId, server: &LiveServer, content: &str) -> Com
         "false" | "no" | "n" => false,
         _ => return Err("Invalid on-join parameter.".into())
       };
-      let delay: u64 = match args[2].parse() {
+      let (message, delay_str) = if args[2].contains('\n') {
+        let joined = args[2..].join(" ");
+        let parts: Vec<&str> = joined.splitn(2, '\n').collect();
+        assert_eq!(2, parts.len()); // contains \n, so splitn should always return two parts
+        (Some(parts[1].to_string()), parts[0].to_string())
+      } else {
+        (None, args[2].to_string())
+      };
+      let delay: u64 = match delay_str.parse() {
         Ok(d) => d,
         Err(_) => return Err("Invalid delay.".into())
       };
-      let args = &args[3..];
-      let joined_args = args.join(" ");
-      let parts: Vec<&str> = joined_args.splitn(2, '\n').collect();
-      let (filters, message) = if parts.len() == 1 {
-        (None, &parts[0])
-      } else {
-        let filters: Option<Vec<Filter>> = parts[0].split(' ').map(Filter::parse).collect();
-        let filters = match filters {
-          Some(f) => f.into_iter().map(|x| x.to_string()).collect::<Vec<_>>().join(" "),
-          None => return Err("Invalid filters.".into())
-        };
-        (Some(filters), &parts[1])
+      let (filters, message) = match message {
+        Some(m) => (None, m.to_string()),
+        None => {
+          let args = &args[3..];
+          let joined_args = args.join(" ");
+          let parts: Vec<&str> = joined_args.splitn(2, '\n').collect();
+          if parts.len() == 1 {
+            return Err("Missing message.".into());
+          }
+          let filters: Option<Vec<Filter>> = parts[0].split(' ').map(Filter::parse).collect();
+          let filters = match filters {
+            Some(f) => f.into_iter().map(|x| x.to_string()).collect::<Vec<_>>().join(" "),
+            None => return Err("Invalid filters.".into())
+          };
+          (Some(filters), parts[1].to_string())
+        }
       };
       let nar = NewAutoReply {
         server_id: server.id.0.into(),
