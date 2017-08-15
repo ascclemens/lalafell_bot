@@ -63,17 +63,6 @@ pub fn auto_reply<'a>(author: UserId, server: &LiveServer, content: &str) -> Com
         Err(_) => return Err("Invalid delay.".into())
       };
       let args = &args[3..];
-      let ars: Vec<AutoReply> = ::bot::CONNECTION.with(|c| {
-        use database::schema::auto_replies::dsl;
-        dsl::auto_replies
-          .filter(dsl::channel_id.eq(channel.0.to_string())
-            .and(dsl::server_id.eq(server.id.0.to_string())))
-          .load(c)
-          .chain_err(|| "could not load auto_replies")
-      })?;
-      if !ars.is_empty() {
-        return Err("An auto-reply already exists for that channel.".into());
-      }
       let joined_args = args.join(" ");
       let parts: Vec<&str> = joined_args.splitn(2, '\n').collect();
       let (filters, message) = if parts.len() == 1 {
