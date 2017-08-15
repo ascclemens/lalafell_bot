@@ -21,7 +21,7 @@ fn list_all() -> Result<String> {
     dsl::auto_replies.load(c).chain_err(|| "could not load auto_replies")
   })?;
   Ok(ars.iter()
-    .map(|r| format!("{id}. Replying to messages in {channel}{filters} with a delay of {delay} second{plural}.\n```{message}```",
+    .map(|r| format!("{id}. Replying to messages in {channel}{filters} with a delay of {delay} second{plural}.\n```{message}\n```",
                      id = r.id,
                      channel = ChannelId(*r.channel_id).mention(),
                      filters = r.filters.as_ref().map(|f| format!(" with filters `{}`", f)).unwrap_or_default(),
