@@ -45,11 +45,10 @@ impl Filter {
 
 impl ToString for Filter {
   fn to_string(&self) -> String {
-    let (start, fk) = match *self {
-      Filter::Include(ref fk) => ("", fk),
-      Filter::Exclude(ref fk) => ("!", fk)
-    };
-    format!("{}{}", start, fk.to_string())
+    match *self {
+      Filter::Include(ref fk) => fk.to_string(),
+      Filter::Exclude(ref fk) => format!("!{}", fk.to_string())
+    }
   }
 }
 
