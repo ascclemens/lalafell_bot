@@ -21,7 +21,6 @@ scraper = "0.4"
 uuid = { version = "0.5", features = ["v4"] }
 lazy_static = "0.2"
 envy = "0.3"
-selectors = "0.18"
 error-chain = "0.11"
 diesel = { version = "0.16", features = ["sqlite"] }
 diesel_codegen = { version = "0.16", features = ["sqlite"] }
