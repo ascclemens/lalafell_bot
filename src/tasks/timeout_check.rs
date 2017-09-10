@@ -32,7 +32,7 @@ impl RunsTask for TimeoutCheckTask {
         Ok(t) => t,
         Err(e) => {
           warn!("could not load timeouts: {}", e);
-          return;
+          continue;
         }
       };
       for timeout in timeouts {
