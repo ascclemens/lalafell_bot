@@ -1,6 +1,7 @@
 #![feature(mpsc_select, box_syntax, fnbox)]
 // areyoufuckingkiddingme.jpg
 #![cfg_attr(feature = "cargo-clippy", allow(unreadable_literal))]
+#![recursion_limit = "1024"]
 
 extern crate discord;
 extern crate xivdb;
@@ -12,11 +13,9 @@ extern crate ctrlc;
 extern crate chrono;
 #[macro_use]
 extern crate log;
-extern crate fern;
 extern crate hyper;
 extern crate make_hyper_great_again;
 extern crate hyper_rustls;
-extern crate ansi_term;
 extern crate scraper;
 extern crate uuid;
 #[macro_use]
