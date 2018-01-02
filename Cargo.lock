@@ -211,7 +211,7 @@ dependencies = [
 [[package]]
 name = "discord"
 version = "0.8.0"
-source = "git+https://github.com/jkcclemens/discord-rs#2df3d459bceff759bcbe33da4074e10fbd825a91"
+source = "git+https://github.com/jkcclemens/discord-rs#a8289f4f0be7d6a6f894f3494bd838aad540c829"
 dependencies = [
  "base64-rs 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "bitflags 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
