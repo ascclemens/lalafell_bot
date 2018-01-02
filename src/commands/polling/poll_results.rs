@@ -49,7 +49,7 @@ pub struct PollResultsCommand {
 impl PollResultsCommand {
   pub fn new(bot: Arc<LalafellBot>) -> PollResultsCommand {
     PollResultsCommand {
-      bot: bot
+      bot
     }
   }
 }

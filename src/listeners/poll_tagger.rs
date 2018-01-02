@@ -11,7 +11,7 @@ pub struct PollTagger {
 
 impl PollTagger {
   pub fn new(bot: Arc<LalafellBot>) -> Self {
-    PollTagger { bot: bot }
+    PollTagger { bot }
   }
 
   fn tag_poll(&self, message: &Message) {

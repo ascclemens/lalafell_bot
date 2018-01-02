@@ -19,7 +19,7 @@ pub struct Timeouts {
 impl Timeouts {
   pub fn new(bot: Arc<LalafellBot>) -> Self {
     Timeouts {
-      bot: bot
+      bot
     }
   }
 

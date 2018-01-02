@@ -21,7 +21,7 @@ pub struct AutoReplyListener {
 impl AutoReplyListener {
   pub fn new(bot: Arc<LalafellBot>) -> AutoReplyListener {
     AutoReplyListener {
-      bot: bot,
+      bot,
       last_sends: Mutex::default()
     }
   }
@@ -108,7 +108,7 @@ impl ReceivesEvents for AutoReplyListener {
         }
       }
       let last_send = last_sends.entry((member.user.id, reply.id)).or_insert(0);
-      if *last_send + reply.delay as i64 >= Utc::now().timestamp() {
+      if *last_send + i64::from(reply.delay) >= Utc::now().timestamp() {
         continue;
       }
       self.bot.discord.send_embed(ChannelId(*reply.channel_id), "", |e| e.description(&reply.message.replace("{mention}", &member.user.mention().to_string()))).ok();

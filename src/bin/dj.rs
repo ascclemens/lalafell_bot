@@ -274,9 +274,7 @@ impl BufferedQueuedAudioSource {
         None => return None
       };
       let read = std::cmp::min(buffer.len(), rem.len());
-      for i in 0..read {
-        buffer[i] = rem[i];
-      }
+      buffer[..read].clone_from_slice(&rem[..read]);
       read
     };
     self.consume(nread);

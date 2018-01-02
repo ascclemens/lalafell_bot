@@ -45,7 +45,7 @@ pub fn reaction<'a>(author: UserId, server: &LiveServer, args: &[String]) -> Com
         channel_id: channel.into(),
         message_id: message_id.into(),
         emoji: emoji.to_string(),
-        role: role
+        role
       };
       ::bot::CONNECTION.with(|c| {
         diesel::insert(&new_reaction)

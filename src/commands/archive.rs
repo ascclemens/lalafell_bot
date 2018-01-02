@@ -25,7 +25,7 @@ pub struct ArchiveCommand {
 impl ArchiveCommand {
   pub fn new(bot: Arc<LalafellBot>) -> ArchiveCommand {
     ArchiveCommand {
-      bot: bot
+      bot
     }
   }
 }
@@ -108,7 +108,7 @@ impl<'a> PublicChannelCommand<'a> for ArchiveCommand {
         name: channel.name.clone(),
         topic: channel.topic.clone()
       },
-      messages: messages
+      messages
     };
 
     let file = File::create(archive_path)

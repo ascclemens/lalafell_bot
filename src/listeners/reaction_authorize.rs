@@ -17,7 +17,7 @@ pub struct ReactionAuthorize {
 impl ReactionAuthorize {
   pub fn new(bot: Arc<LalafellBot>) -> ReactionAuthorize {
     ReactionAuthorize {
-      bot: bot
+      bot
     }
   }
 }

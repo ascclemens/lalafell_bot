@@ -15,7 +15,7 @@ pub struct TrackChanges {
 impl TrackChanges {
   pub fn new(bot: Arc<LalafellBot>) -> Self {
     TrackChanges {
-      bot: bot
+      bot
     }
   }
 

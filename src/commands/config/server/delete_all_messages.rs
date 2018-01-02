@@ -67,7 +67,7 @@ pub fn delete_all_messages<'a>(author: UserId, server: &LiveServer, args: &[Stri
         return Err("A delete all messages already exists for that channel.".into());
       }
 
-      let ndam = NewDeleteAllMessages::new(server.id.0, params.channel.0, params.after as i32, &params.except.unwrap_or_default());
+      let ndam = NewDeleteAllMessages::new(server.id.0, params.channel.0, i32::from(params.after), &params.except.unwrap_or_default());
       ::bot::CONNECTION.with(|c| {
         use database::schema::delete_all_messages;
         diesel::insert(&ndam)

@@ -91,9 +91,9 @@ pub fn auto_reply<'a>(author: UserId, server: &LiveServer, content: &str) -> Com
         server_id: server.id.0.into(),
         channel_id: channel.0.into(),
         message: message.to_string(),
-        on_join: on_join,
+        on_join,
         delay: delay as i32,
-        filters: filters
+        filters
       };
       ::bot::CONNECTION.with(|c| {
         use database::schema::auto_replies;

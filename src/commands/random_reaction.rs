@@ -20,7 +20,7 @@ pub struct RandomReactionCommand {
 impl RandomReactionCommand {
   pub fn new(bot: Arc<LalafellBot>) -> RandomReactionCommand {
     RandomReactionCommand {
-      bot: bot
+      bot
     }
   }
 }

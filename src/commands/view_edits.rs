@@ -20,7 +20,7 @@ pub struct ViewEditsCommand {
 impl ViewEditsCommand {
   pub fn new(bot: Arc<LalafellBot>) -> ViewEditsCommand {
     ViewEditsCommand {
-      bot: bot
+      bot
     }
   }
 }

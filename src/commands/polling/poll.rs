@@ -19,7 +19,7 @@ pub struct PollCommand {
 impl PollCommand {
   pub fn new(bot: Arc<LalafellBot>) -> PollCommand {
     PollCommand {
-      bot: bot
+      bot
     }
   }
 }
@@ -73,7 +73,7 @@ struct Poll {
 impl Poll {
   fn new(author: String, text: &str, options: &[&str]) -> Poll {
     Poll {
-      author: author,
+      author,
       text: text.to_string(),
       options: options.iter().map(|x| x.to_string()).collect()
     }

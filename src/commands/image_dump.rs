@@ -30,7 +30,7 @@ pub struct ImageDumpCommand {
 impl ImageDumpCommand {
   pub fn new(bot: Arc<LalafellBot>) -> ImageDumpCommand {
     ImageDumpCommand {
-      bot: bot
+      bot
     }
   }
 }

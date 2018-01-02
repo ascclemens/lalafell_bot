@@ -23,7 +23,7 @@ pub struct UntimeoutCommand {
 impl UntimeoutCommand {
   pub fn new(bot: Arc<LalafellBot>) -> UntimeoutCommand {
     UntimeoutCommand {
-      bot: bot
+      bot
     }
   }
 }

@@ -14,7 +14,7 @@ pub struct ReferenceCountCommand {
 impl ReferenceCountCommand {
   pub fn new(bot: Arc<LalafellBot>) -> ReferenceCountCommand {
     ReferenceCountCommand {
-      bot: bot
+      bot
     }
   }
 }

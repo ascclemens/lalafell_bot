@@ -26,7 +26,7 @@ pub struct TimeoutCommand {
 impl TimeoutCommand {
   pub fn new(bot: Arc<LalafellBot>) -> TimeoutCommand {
     TimeoutCommand {
-      bot: bot
+      bot
     }
   }
 

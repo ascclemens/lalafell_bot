@@ -57,9 +57,9 @@ impl LalafellBot {
   pub fn new(environment: Environment, config: Config) -> Result<LalafellBot> {
     let discord = Discord::from_bot_token(&environment.discord_bot_token).chain_err(|| "could not start discord from bot token")?;
     Ok(LalafellBot {
-      environment: environment,
-      config: config,
-      discord: discord,
+      environment,
+      config,
+      discord,
       state: RwLock::default(),
       xivdb: XivDb::default(),
       listeners: RwLock::default()

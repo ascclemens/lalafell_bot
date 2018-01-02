@@ -59,7 +59,7 @@ impl RunsTask for DeleteAllMessagesTask {
           if exclude.contains(&message.id.0) {
             continue;
           }
-          if message.timestamp.with_timezone(&Utc) + Duration::seconds(dam.after as i64) > Utc::now() {
+          if message.timestamp.with_timezone(&Utc) + Duration::seconds(i64::from(dam.after)) > Utc::now() {
             continue;
           }
           to_delete.push(message);

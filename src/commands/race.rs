@@ -18,7 +18,7 @@ pub struct RaceCommand {
 impl RaceCommand {
   pub fn new(bot: Arc<LalafellBot>) -> RaceCommand {
     RaceCommand {
-      bot: bot
+      bot
     }
   }
 }

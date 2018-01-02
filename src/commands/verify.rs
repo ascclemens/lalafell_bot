@@ -21,7 +21,7 @@ pub struct VerifyCommand {
 impl VerifyCommand {
   pub fn new(bot: Arc<LalafellBot>) -> VerifyCommand {
     VerifyCommand {
-      bot: bot
+      bot
     }
   }
 }
