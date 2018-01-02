@@ -58,11 +58,14 @@ impl<'a> PublicChannelCommand<'a> for TagCommand {
     let ff_server = params.server;
     let name = params.name.join(" ");
 
-    match Tagger::search_tag(self.bot.as_ref(), *who, server, &ff_server, &name, can_manage_roles)? {
-      Some(error) => Err(ExternalCommandFailure::default()
+    match Tagger::search_tag(self.bot.as_ref(), *who, server, &ff_server, &name, can_manage_roles) {
+      Ok(Some(error)) => Err(ExternalCommandFailure::default()
         .message(move |e: EmbedBuilder| e.description(&error))
         .wrap()),
-      None => Ok(CommandSuccess::default())
+      Ok(None) => Ok(CommandSuccess::default()),
+      Err(_) => Err(ExternalCommandFailure::default()
+        .message(move |e: EmbedBuilder| e.description("There was an error while tagging. The user most likely does not exist or is not on the server."))
+        .wrap())
     }
   }
 }
