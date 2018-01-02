@@ -1,6 +1,6 @@
 use lalafell::error::*;
 
-use hyper::client::HttpConnector;
+use hyper_rustls::HttpsConnector;
 use make_hyper_great_again::Client;
 
 use scraper::{Html, Selector};
@@ -8,19 +8,19 @@ use scraper::{Html, Selector};
 use std::io::Read;
 
 pub struct Lodestone {
-  client: Client<HttpConnector>
+  client: Client<HttpsConnector>
 }
 
 impl Lodestone {
   pub fn new() -> Lodestone {
     Lodestone {
-      client: Client::new().unwrap()
+      client: Client::create_connector(|c| HttpsConnector::new(4, &c.handle())).unwrap()
     }
   }
 
   pub fn character_profile(&self, id: u64) -> Result<String> {
     let mut res = self.client
-      .get(&format!("http://na.finalfantasyxiv.com/lodestone/character/{}/", id))
+      .get(&format!("https://na.finalfantasyxiv.com/lodestone/character/{}/", id))
       .send()
       .chain_err(|| "could not download from lodestone")?;
     let mut content = String::new();
