@@ -20,8 +20,14 @@ use diesel::prelude::*;
 
 use serde_json;
 
+use url::Url;
+
+use make_hyper_great_again::Client;
+use hyper_rustls::HttpsConnector;
+
 use std::sync::Mutex;
 use std::collections::HashSet;
+use std::thread;
 
 lazy_static! {
   // Limbo roles are roles that may or may not be added to the Discord bot state.
@@ -31,6 +37,19 @@ lazy_static! {
 pub struct Tagger;
 
 impl Tagger {
+  fn add_to_xivdb<N: Into<String>, S: Into<String>>(name: N, server: S) {
+    let name: String = name.into();
+    let server: String = server.into();
+    thread::spawn(move || {
+      let mut url = Url::parse("https://xivsync.com/character/search").unwrap();
+      url.query_pairs_mut()
+        .append_pair("name", &name)
+        .append_pair("server", &server);
+      let client = Client::create_connector(|c| HttpsConnector::new(4, &c.handle())).unwrap();
+      client.get(url).send().ok();
+    });
+  }
+
   pub fn search_tag(bot: &LalafellBot, who: UserId, on: &LiveServer, server: &str, character_name: &str, ignore_verified: bool) -> Result<Option<String>> {
     let params = &[
       ("one", "characters"),
@@ -42,7 +61,8 @@ impl Tagger {
 
     let search_chars = res.characters.unwrap().results;
     if search_chars.is_empty() {
-      return Ok(Some(format!("Could not find any character by the name {} on {}.", character_name, server)));
+      Tagger::add_to_xivdb(character_name, server);
+      return Ok(Some(format!("Could not find any character by the name {} on {}.\nIf you typed everything correctly, wait up to five minutes and try again.", character_name, server)));
     }
 
     let char_id = match search_chars[0]["id"].as_u64() {
@@ -155,7 +175,7 @@ impl Tagger {
         );
         ::bot::CONNECTION.with(|c| {
           use database::schema::tags;
-          ::diesel::insert(&new_tag).into(tags::table).execute(c).chain_err(|| "could not insert tag")
+          ::diesel::insert_into(tags::table).values(&new_tag).execute(c).chain_err(|| "could not insert tag")
         })?;
       }
     }
