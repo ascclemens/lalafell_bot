@@ -7,6 +7,8 @@ use lalafell::commands::prelude::*;
 use discord::model::{Message, LiveServer, PublicChannel};
 use discord::model::permissions;
 
+use chrono::DateTime;
+
 use std::sync::Arc;
 
 const USAGE: &'static str = "!search <filters>";
@@ -57,7 +59,9 @@ impl<'a> PublicChannelCommand<'a> for SearchCommand {
     };
     let matches: Vec<String> = server.members.iter()
       .filter(|m| filters.iter().all(|f| f.matches(m, &server.roles)))
-      .map(|m| m.user.mention().to_string())
+      .map(|m| format!("{} - {}",
+        m.user.mention(),
+        DateTime::parse_from_rfc3339(&m.joined_at).map(|d| d.format("%B %e, %Y %H:%M").to_string()).unwrap_or_else(|_| String::from("unknown"))))
       .collect();
     Ok(matches.join("\n").into())
   }
