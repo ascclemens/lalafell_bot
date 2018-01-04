@@ -67,7 +67,8 @@ impl<'a> PublicChannelCommand<'a> for VerifyCommand {
         let msg = format!("Edit your Lodestone profile to contain `{}`.\nRerun the `!verify` command afterward.", new_verification.create_verification_string());
         ::bot::CONNECTION.with(move |c| {
           use database::schema::verifications;
-          ::diesel::insert(&new_verification).into(verifications::table)
+          ::diesel::insert_into(verifications::table)
+            .values(&new_verification)
             .execute(c)
             .chain_err(|| "could not insert verification")
         })?;

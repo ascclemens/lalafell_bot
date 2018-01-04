@@ -97,8 +97,8 @@ pub fn auto_reply<'a>(author: UserId, server: &LiveServer, content: &str) -> Com
       };
       ::bot::CONNECTION.with(|c| {
         use database::schema::auto_replies;
-        diesel::insert(&nar)
-          .into(auto_replies::table)
+        diesel::insert_into(auto_replies::table)
+          .values(&nar)
           .execute(c)
           .chain_err(|| "could not insert new dam")
       })?;

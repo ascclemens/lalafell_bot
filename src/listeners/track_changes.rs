@@ -35,8 +35,8 @@ impl TrackChanges {
         channel_id: message.channel_id.into(),
         content: message.content.to_owned()
       };
-      let res = ::diesel::insert(&new_message)
-        .into(::database::schema::messages::table)
+      let res = ::diesel::insert_into(::database::schema::messages::table)
+        .values(&new_message)
         .execute(c);
       if let Err(e) = res {
         warn!("couldn't add message to database: {}", e);
@@ -55,8 +55,8 @@ impl TrackChanges {
           message_id: m.id,
           content: content
         };
-        let res = ::diesel::insert(&new_edit)
-          .into(::database::schema::edits::table)
+        let res = ::diesel::insert_into(::database::schema::edits::table)
+          .values(&new_edit)
           .execute(c);
         if let Err(e) = res {
           warn!("couldn't add edit to database: {}", e);

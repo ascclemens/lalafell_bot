@@ -26,8 +26,6 @@ extern crate error_chain;
 extern crate lalafell;
 #[macro_use]
 extern crate diesel;
-#[macro_use]
-extern crate diesel_codegen;
 extern crate url;
 extern crate url_serde;
 extern crate byteorder;

@@ -49,8 +49,8 @@ pub fn image_dump<'a>(author: UserId, channel: ChannelId, server: &LiveServer, a
           channel_id: channel.into(),
           image_dump_allowed: Some(enabled)
         };
-        diesel::insert(&new)
-          .into(::database::schema::channel_configs::table)
+        diesel::insert_into(::database::schema::channel_configs::table)
+          .values(&new)
           .execute(c)
           .chain_err(|| "could not add config")
       })?;

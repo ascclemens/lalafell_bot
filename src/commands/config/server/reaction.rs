@@ -48,8 +48,8 @@ pub fn reaction<'a>(author: UserId, server: &LiveServer, args: &[String]) -> Com
         role
       };
       ::bot::CONNECTION.with(|c| {
-        diesel::insert(&new_reaction)
-          .into(::database::schema::reactions::table)
+        diesel::insert_into(::database::schema::reactions::table)
+          .values(&new_reaction)
           .execute(c)
           .chain_err(|| "could not insert reaction")
       })?;

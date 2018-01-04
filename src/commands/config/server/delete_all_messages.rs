@@ -70,8 +70,8 @@ pub fn delete_all_messages<'a>(author: UserId, server: &LiveServer, args: &[Stri
       let ndam = NewDeleteAllMessages::new(server.id.0, params.channel.0, i32::from(params.after), &params.except.unwrap_or_default());
       ::bot::CONNECTION.with(|c| {
         use database::schema::delete_all_messages;
-        diesel::insert(&ndam)
-          .into(delete_all_messages::table)
+        diesel::insert_into(delete_all_messages::table)
+          .values(&ndam)
           .execute(c)
           .chain_err(|| "could not insert new dam")
       })?;

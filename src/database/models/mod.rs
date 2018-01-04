@@ -40,6 +40,7 @@ use std::ops::Deref;
 use std::fmt::{Display, Formatter, Error as FmtError};
 
 use diesel::types::{FromSql, FromSqlRow, HasSqlType, Text};
+use diesel::query_source::Queryable;
 use diesel::expression::AsExpression;
 use diesel::expression::helper_types::AsExprOf;
 use diesel::backend::Backend;
@@ -73,6 +74,17 @@ impl Error for SqlError {
 
 #[derive(Debug)]
 pub struct U64(u64);
+
+impl<DB> Queryable<Text, DB> for U64
+  where DB: Backend + HasSqlType<Text>,
+        U64: FromSql<Text, DB>
+{
+  type Row = Self;
+
+  fn build(row: Self::Row) -> Self {
+    row
+  }
+}
 
 impl FromSql<Text, Sqlite> for U64 {
   fn from_sql(bytes: Option<&<Sqlite as Backend>::RawValue>) -> Result<Self, Box<Error + Send + Sync>> {

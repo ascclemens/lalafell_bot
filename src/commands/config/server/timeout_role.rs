@@ -47,8 +47,8 @@ pub fn timeout_role<'a>(author: UserId, server: &LiveServer, args: &[String]) ->
           server_id: server.id.into(),
           timeout_role: Some(role.name.clone())
         };
-        diesel::insert(&new)
-          .into(::database::schema::server_configs::table)
+        diesel::insert_into(::database::schema::server_configs::table)
+          .values(&new)
           .execute(c)
           .chain_err(|| "could not add config")
       })?;

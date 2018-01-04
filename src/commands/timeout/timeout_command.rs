@@ -132,7 +132,7 @@ impl<'a> PublicChannelCommand<'a> for TimeoutCommand {
     }
 
     let timeout_user = NewTimeout::new(who.0, server_id.0, role_id.0, duration as i32, Utc::now().timestamp());
-    ::bot::CONNECTION.with(|c| ::diesel::insert(&timeout_user).into(timeouts::table).execute(c).chain_err(|| "could not insert timeout"))?;
+    ::bot::CONNECTION.with(|c| ::diesel::insert_into(timeouts::table).values(&timeout_user).execute(c).chain_err(|| "could not insert timeout"))?;
     Ok(CommandSuccess::default())
   }
 }

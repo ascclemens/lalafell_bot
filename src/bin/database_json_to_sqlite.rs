@@ -3,7 +3,7 @@
 #[macro_use]
 extern crate diesel;
 #[macro_use]
-extern crate diesel_codegen;
+extern crate diesel_infer_schema;
 #[macro_use]
 extern crate serde_derive;
 extern crate serde_json;
@@ -37,7 +37,7 @@ fn main() {
   for user in old.autotags.users {
     println!("  Migrating {} on {} ({} on {})", user.user_id, user.server_id, user.character, user.server);
     let new_tag = new_database::NewTag::new(user.user_id, user.server_id, user.character_id, &user.character, &user.server, old.autotags.last_updated);
-    diesel::insert(&new_tag).into(schema::tags::table).execute(&connection).unwrap();
+    diesel::insert_into(schema::tags::table).values(&new_tag).execute(&connection).unwrap();
     if user.verification.verification_string.is_some() {
       println!("    User has verification info, so migrating verification");
       let tag: new_database::Tag = schema::tags::dsl::tags
@@ -49,14 +49,14 @@ fn main() {
         verified: user.verification.verified,
         verification_string: user.verification.verification_string
       };
-      diesel::insert(&new_verification).into(schema::verifications::table).execute(&connection).unwrap();
+      diesel::insert_into(schema::verifications::table).values(&new_verification).execute(&connection).unwrap();
     }
   }
   println!("Migrating timeouts");
   for timeout in old.timeouts {
     println!("  Migrating timeout for {} on {}", timeout.user_id, timeout.server_id);
     let new_timeout = new_database::NewTimeout::new(timeout.user_id, timeout.server_id, timeout.role_id, timeout.seconds as i32, timeout.start);
-    diesel::insert(&new_timeout).into(schema::timeouts::table).execute(&connection).unwrap();
+    diesel::insert_into(schema::timeouts::table).values(&new_timeout).execute(&connection).unwrap();
   }
 }
 
