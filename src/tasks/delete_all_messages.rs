@@ -64,7 +64,9 @@ impl RunsTask for DeleteAllMessagesTask {
           }
           to_delete.push(message);
         }
-        info!("{} message{} to delete", to_delete.len(), if to_delete.len() == 1 { "" } else { "s" });
+        if !to_delete.is_empty() {
+          info!("{} message{} to delete", to_delete.len(), if to_delete.len() == 1 { "" } else { "s" });
+        }
         for chunk in to_delete.chunks(100) {
           info!("Deleting chunk of {} message{}", chunk.len(), if chunk.len() == 1 { "" } else { "s" });
           let result = if chunk.len() == 1 {
@@ -77,8 +79,8 @@ impl RunsTask for DeleteAllMessagesTask {
             warn!("Could not delete messages: {}", e);
           }
         }
-        info!("Delete messages task done");
       }
+      info!("Delete messages task done");
       self.next_sleep = 60;
     }
   }
