@@ -39,7 +39,7 @@ impl RunsTask for TimeoutCheckTask {
         if timeout.ends() >= now {
           continue;
         }
-        if let Err(e) = s.discord.remove_user_from_role(ServerId(*timeout.server_id), UserId(*timeout.user_id), RoleId(*timeout.role_id)) {
+        if let Err(e) = s.discord.remove_member_role(ServerId(*timeout.server_id), UserId(*timeout.user_id), RoleId(*timeout.role_id)) {
           warn!("could not remove timeout role from {}: {}", *timeout.user_id, e);
         }
         ::bot::CONNECTION.with(|c| {

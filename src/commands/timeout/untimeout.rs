@@ -71,7 +71,7 @@ impl<'a> PublicChannelCommand<'a> for UntimeoutCommand {
     let timeout = &timeouts[0];
 
     ::bot::CONNECTION.with(|c| ::diesel::delete(timeout).execute(c).chain_err(|| "could not delete timeout"))?;
-    self.bot.discord.remove_user_from_role(server_id, *who, RoleId(*timeout.role_id)).chain_err(|| "could not remove timeout role")?;
+    self.bot.discord.remove_member_role(server_id, *who, RoleId(*timeout.role_id)).chain_err(|| "could not remove timeout role")?;
 
     Ok(CommandSuccess::default())
   }

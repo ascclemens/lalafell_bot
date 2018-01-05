@@ -100,7 +100,7 @@ impl<'a> PublicChannelCommand<'a> for TimeoutCommand {
 
       match timeout::set_up_timeouts(self.bot.as_ref(), live_server) {
         Ok(r) => {
-          if let Err(e) = self.bot.discord.add_user_to_role(live_server.id, *who, r) {
+          if let Err(e) = self.bot.discord.add_member_role(live_server.id, *who, r) {
             warn!("could not add user {} to timeout role: {}", who.0, e);
           }
           r

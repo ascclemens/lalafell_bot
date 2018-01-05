@@ -77,9 +77,9 @@ impl ReceivesEvents for ReactionAuthorize {
         }
       };
       let result = if added {
-        self.bot.discord.add_user_to_role(channel.server_id, reaction.user_id, role.id)
+        self.bot.discord.add_member_role(channel.server_id, reaction.user_id, role.id)
       } else {
-        self.bot.discord.remove_user_from_role(channel.server_id, reaction.user_id, role.id)
+        self.bot.discord.remove_member_role(channel.server_id, reaction.user_id, role.id)
       };
       if let Err(e) = result {
         warn!("could not change role: {}", e);
