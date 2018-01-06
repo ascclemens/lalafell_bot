@@ -4,8 +4,12 @@ use commands::*;
 
 use lalafell::listeners::CommandListener;
 
+use serenity::prelude::RwLock;
 use serenity::client::{EventHandler, Context};
-use serenity::model::channel::Message;
+use serenity::model::id::GuildId;
+use serenity::model::event::MessageUpdateEvent;
+use serenity::model::channel::{Message, GuildChannel, Reaction};
+use serenity::model::guild::Member;
 use serenity::model::gateway::{Game, Ready};
 
 use std::sync::Arc;
@@ -36,6 +40,36 @@ impl EventHandler for Handler {
   fn message(&self, ctx: Context, msg: Message) {
     for listener in &self.listeners {
       listener.message(ctx.clone(), msg.clone());
+    }
+  }
+
+  fn message_update(&self, ctx: Context, update: MessageUpdateEvent) {
+    for listener in &self.listeners {
+      listener.message_update(ctx.clone(), update.clone());
+    }
+  }
+
+  fn guild_member_addition(&self, ctx: Context, guild: GuildId, member: Member) {
+    for listener in &self.listeners {
+      listener.guild_member_addition(ctx.clone(), guild, member.clone());
+    }
+  }
+
+  fn reaction_add(&self, ctx: Context, reaction: Reaction) {
+    for listener in &self.listeners {
+      listener.reaction_add(ctx.clone(), reaction.clone());
+    }
+  }
+
+  fn reaction_remove(&self, ctx: Context, reaction: Reaction) {
+    for listener in &self.listeners {
+      listener.reaction_remove(ctx.clone(), reaction.clone());
+    }
+  }
+
+  fn channel_create(&self, ctx: Context, channel: Arc<RwLock<GuildChannel>>) {
+    for listener in &self.listeners {
+      listener.channel_create(ctx.clone(), channel.clone());
     }
   }
 
