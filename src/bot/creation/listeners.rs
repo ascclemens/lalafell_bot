@@ -10,11 +10,12 @@ use serenity::model::id::GuildId;
 use serenity::model::event::MessageUpdateEvent;
 use serenity::model::channel::{Message, GuildChannel, Reaction};
 use serenity::model::guild::Member;
-use serenity::model::gateway::{Game, Ready};
+use serenity::model::gateway::Ready;
 
 use std::sync::Arc;
 
 pub struct Handler {
+  env: Arc<BotEnv>,
   listeners: Vec<Box<EventHandler + Send + Sync>>
 }
 
@@ -32,7 +33,10 @@ impl Handler {
     //   let listener = ListenerManager::from_config(bot.clone(), listener).chain_err(|| format!("could not create listener {}", listener.name))?;
     //   listeners.push(listener);
     // }
-    Handler { listeners }
+    Handler {
+      env,
+      listeners
+    }
   }
 }
 
@@ -74,7 +78,9 @@ impl EventHandler for Handler {
   }
 
   fn ready(&self, ctx: Context, _: Ready) {
-    ctx.shard.set_game(Some(Game::playing("with other Lalafell.")));
+    if let Some(g) = ::tasks::random_presence::random_game(self.env.as_ref()) {
+      ctx.shard.set_game(Some(g));
+    }
   }
 }
 

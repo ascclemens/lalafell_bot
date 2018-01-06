@@ -13,7 +13,34 @@ pub struct Config {
 #[serde(default)]
 pub struct Bot {
   pub administrators: Vec<u64>,
-  pub timeouts: Timeouts
+  pub timeouts: Timeouts,
+  pub presence: Presence
+}
+
+#[derive(Debug, Default, Deserialize)]
+#[serde(default)]
+pub struct Presence {
+  pub change_frequency: i64,
+  pub list: Vec<PresenceEntry>
+}
+
+#[derive(Debug, Deserialize)]
+pub struct PresenceEntry {
+  #[serde(rename = "type")]
+  pub kind: PresenceKind,
+  pub content: String,
+  #[serde(default)]
+  pub url: Option<String>
+}
+
+#[derive(Debug, Deserialize)]
+pub enum PresenceKind {
+  #[serde(rename = "playing")]
+  Playing,
+  #[serde(rename = "streaming")]
+  Streaming,
+  #[serde(rename = "listening")]
+  Listening
 }
 
 #[derive(Debug, Default, Deserialize)]
