@@ -14,10 +14,11 @@ use database::models::{Tag, NewTag, Verification};
 use lalafell::error::*;
 use lalafell::commands::prelude::*;
 
-use serenity;
 use serenity::prelude::Mentionable;
 use serenity::model::guild::Role;
 use serenity::model::id::{RoleId, UserId};
+use serenity::Error as SError;
+use serenity::http::{HttpError, StatusCode};
 
 use diesel::prelude::*;
 
@@ -121,7 +122,7 @@ impl Tagger {
     // This is still a disaster, just slightly less so
     let member = match on.member(who) {
       Ok(m) => m,
-      Err(serenity::Error::Json(_)) => {
+      Err(SError::Http(HttpError::UnsuccessfulRequest(ref r))) if r.status == StatusCode::NotFound => {
         ::bot::CONNECTION.with(|c| {
           use database::schema::tags::dsl;
           ::diesel::delete(dsl::tags
