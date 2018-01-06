@@ -88,8 +88,6 @@ macro_rules! command_listener {
   }}
 }
 
-// 15/17 (not 18, not porting archive yet) = 94.12% ported
-
 fn command_listener<'a>(env: Arc<BotEnv>) -> CommandListener<'a> {
   command_listener! {
     env => env,
