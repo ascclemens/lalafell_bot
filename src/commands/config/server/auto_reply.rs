@@ -82,8 +82,7 @@ pub fn auto_reply<'a>(author: UserId, guild: GuildId, content: &str) -> CommandR
           if parts.len() == 1 {
             return Err("Missing message.".into());
           }
-          let filters: Option<Vec<Filter>> = parts[0].split(' ').map(Filter::parse).collect();
-          let filters = match filters {
+          let filters = match Filter::all_filters(parts[0]) {
             Some(f) => f.into_iter().map(|x| x.to_string()).collect::<Vec<_>>().join(" "),
             None => return Err("Invalid filters.".into())
           };

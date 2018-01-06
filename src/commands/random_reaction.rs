@@ -39,8 +39,7 @@ impl<'a> PublicChannelCommand<'a> for RandomReactionCommand {
     // FIXME: support > 100
     let reactions = params.channel.reaction_users(params.message_id, params.emoji, Some(100), None)
       .map_err(|_| into!(CommandFailure, "Could not get reactions."))?;
-    let filters: Option<Vec<Filter>> = params.filters.unwrap_or_default().iter().map(|x| Filter::parse(x)).collect();
-    let filters = match filters {
+    let filters = match Filter::all_filters(&params.filters.unwrap_or_default().join(" ")) {
       Some(f) => f,
       None => return Err("Invalid filters.".into())
     };

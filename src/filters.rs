@@ -8,6 +8,75 @@ pub enum Filter {
 }
 
 impl Filter {
+  fn find_all_filters(input: &str) -> Option<Vec<String>> {
+    let mut roles = Vec::new();
+    let mut last_index = 0;
+    loop {
+      let index = input[last_index..].find("role:").or_else(|| input[last_index..].find("user:"));
+      let mut i = match index {
+        Some(i) => i,
+        None => break
+      };
+      if i + last_index != 0 && &input[i + last_index - 1..i + last_index] == "!" {
+        i -= 1;
+      }
+      if !input[last_index..last_index + i].trim().is_empty() {
+        return None;
+      }
+      if let Some(role) = Filter::lexical_parse(&input[last_index + i..]) {
+        last_index += role.len();
+        roles.push(role);
+      }
+      last_index += i;
+    }
+    if input.len() - last_index != 0 {
+      None
+    } else {
+      Some(roles)
+    }
+  }
+
+  fn lexical_parse(input: &str) -> Option<String> {
+    let mut acc = String::new();
+    let mut escaped = false;
+    let mut take_whitespace = false;
+    for c in input.chars() {
+      if c == '`' {
+        if take_whitespace {
+          break;
+        } else {
+          take_whitespace = true;
+          continue;
+        }
+      }
+      if c == '\\' && !escaped {
+        escaped = true;
+        continue;
+      }
+      if escaped {
+        acc.push(c);
+        escaped = false;
+        continue;
+      }
+      if !take_whitespace && c == ' ' {
+        break;
+      }
+      acc.push(c);
+    }
+    if acc.is_empty() {
+      None
+    } else {
+      Some(acc)
+    }
+  }
+
+  pub fn all_filters(s: &str) -> Option<Vec<Filter>> {
+    some_or!(Filter::find_all_filters(s), return None)
+      .into_iter()
+      .map(|x| Filter::parse(&x))
+      .collect()
+  }
+
   pub fn parse(s: &str) -> Option<Filter> {
     if s.starts_with('!') {
       let fk = match FilterKind::parse(&s[1..]) {

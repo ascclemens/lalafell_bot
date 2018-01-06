@@ -31,9 +31,9 @@ impl<'a> PublicChannelCommand<'a> for SearchCommand {
   fn run(&self, _: &Context, _: &Message, guild: GuildId, _: Arc<RwLock<GuildChannel>>, params: &[&str]) -> CommandResult<'a> {
     let params = self.params(USAGE, params)?;
 
-    let filters: Vec<Filter> = match params.filter_strings.iter().map(|x| Filter::parse(x)).collect::<Option<_>>() {
+    let filters = match Filter::all_filters(&params.filter_strings.join(" ")) {
       Some(f) => f,
-      None => return Err("Invalid filter.".into())
+      None => return Err("Invalid filters.".into())
     };
     let guild = some_or!(guild.find(), bail!("could not find guild"));
     let roles: Vec<Role> = guild.read().roles.values().cloned().collect();

@@ -90,7 +90,7 @@ impl AutoReplyListener {
     let mut last_sends = self.last_sends.lock().unwrap();
     for reply in replies {
       if let Some(ref filters_string) = reply.filters {
-        match filters_string.split(' ').map(Filter::parse).collect::<Option<Vec<_>>>() {
+        match Filter::all_filters(&filters_string) {
           Some(filters) => if !filters.iter().all(|f| f.matches(&member, &roles)) {
             continue;
           },
