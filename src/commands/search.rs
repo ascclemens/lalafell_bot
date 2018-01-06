@@ -8,6 +8,8 @@ use serenity::prelude::Mentionable;
 use serenity::model::guild::Role;
 use serenity::builder::CreateEmbed;
 
+use chrono::Utc;
+
 const USAGE: &'static str = "!search <filters>";
 
 pub struct SearchCommand;
@@ -46,12 +48,33 @@ impl<'a> PublicChannelCommand<'a> for SearchCommand {
     };
     let guild = some_or!(guild.find(), bail!("could not find guild"));
     let roles: Vec<Role> = guild.read().roles.values().cloned().collect();
+    let now = Utc::now();
     let matches: Vec<String> = guild.read().members.values()
       .filter(|m| filters.iter().all(|f| f.matches(m, &roles)))
       .map(|m| format!("{} - {}",
         m.mention(),
         m.joined_at
-          .map(|d| d.format("%B %e, %Y %H:%M").to_string())
+          .map(|d| now.clone().signed_duration_since(d))
+          .map(|d| {
+            let mut res = String::new();
+            let seconds = d.num_seconds() % 60;
+            let minutes = d.num_minutes() % 60;
+            let hours = d.num_hours() % 24;
+            let days = d.num_days();
+            if days > 0 {
+              res.push_str(&format!("{} day{}, ", days, if days == 1 { "" } else { "s" }));
+            }
+            if hours > 0 {
+              res.push_str(&format!("{} hour{}, ", hours, if hours == 1 { "" } else { "s" }));
+            }
+            if minutes > 0 {
+              res.push_str(&format!("{} minute{}, ", minutes, if minutes == 1 { "" } else { "s" }));
+            }
+            if seconds > 0 {
+              res.push_str(&format!("{} second{}", seconds, if seconds == 1 { "" } else { "s" }));
+            }
+            res
+          })
           .unwrap_or_else(|| String::from("unknown"))))
       .collect();
     Ok(matches.join("\n").into())
