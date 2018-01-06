@@ -115,6 +115,7 @@ fn command_listener<'a>(env: Arc<BotEnv>) -> CommandListener<'a> {
     "configure", "config" => ConfigureCommand,
     "randomreaction", "reaction" => RandomReactionCommand,
     "search" => SearchCommand,
-    "presence" => PresenceCommand
+    "presence" => PresenceCommand,
+    "ping" => PingCommand
   }
 }

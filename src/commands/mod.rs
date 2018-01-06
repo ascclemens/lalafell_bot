@@ -23,6 +23,7 @@ pub mod image_dump;
 pub mod random_reaction;
 pub mod search;
 pub mod presence;
+pub mod ping;
 
 pub use self::tag::{TagCommand, AutoTagCommand, UpdateTagsCommand, UpdateTagCommand};
 pub use self::polling::{PollCommand, PollResultsCommand};
@@ -35,6 +36,7 @@ pub use self::image_dump::ImageDumpCommand;
 pub use self::random_reaction::RandomReactionCommand;
 pub use self::search::SearchCommand;
 pub use self::presence::PresenceCommand;
+pub use self::ping::PingCommand;
 
 pub use self::race::RaceCommand;
 pub use self::view_tag::ViewTagCommand;

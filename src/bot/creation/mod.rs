@@ -11,6 +11,7 @@ mod listeners;
 mod tasks;
 
 use self::tasks::tasks;
+use bot::data::data;
 
 pub use self::listeners::Handler;
 
@@ -21,6 +22,8 @@ pub fn create_bot(environment: Environment) -> Result<LalafellBot> {
   let bot = LalafellBot::new(environment, config).chain_err(|| "could not create bot")?;
   info!("Starting tasks");
   tasks(&bot)?;
+  info!("Registering global data");
+  data(&bot);
   Ok(bot)
 }
 

@@ -14,6 +14,8 @@ use std::env;
 
 mod creation;
 
+pub mod data;
+
 thread_local! {
   pub static CONNECTION: PgConnection = PgConnection::establish(&env::var("LB_DATABASE_LOCATION").unwrap()).unwrap();
 }

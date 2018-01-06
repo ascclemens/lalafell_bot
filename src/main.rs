@@ -30,6 +30,7 @@ extern crate url;
 extern crate url_serde;
 extern crate byteorder;
 extern crate rand;
+extern crate typemap;
 
 // macro_rules! try_or {
 //   ($e: expr, $o: expr) => {{
