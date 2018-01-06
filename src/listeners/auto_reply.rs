@@ -45,6 +45,9 @@ impl EventHandler for AutoReplyListener {
   }
 
   fn message(&self, _: Context, m: Message) {
+    if m.author.id == ::serenity::CACHE.read().user.id {
+      return;
+    }
     let inner = move || {
       let replies: Vec<AutoReply> = ::bot::CONNECTION.with(|c| {
         use database::schema::auto_replies::dsl;
