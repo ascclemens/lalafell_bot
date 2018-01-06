@@ -1,46 +1,42 @@
-use bot::LalafellBot;
+use bot::BotEnv;
 
 use lalafell::commands::prelude::*;
 
-use discord::model::{Message, ServerId, UserId, ReactionEmoji, Channel};
-use discord::builders::EmbedBuilder;
+use serenity::model::id::UserId;
+use serenity::model::channel::Channel;
+use serenity::builder::CreateEmbed;
 
 use lalafell::error::*;
 
-use std::sync::Arc;
 use std::boxed::FnBox;
 
 const USAGE: &'static str = "!poll <poll text>\n<option>\n<option>...";
 
-pub struct PollCommand {
-  bot: Arc<LalafellBot>
-}
+pub struct PollCommand;
 
 impl PollCommand {
-  pub fn new(bot: Arc<LalafellBot>) -> PollCommand {
-    PollCommand {
-      bot
-    }
+  pub fn new(_: Arc<BotEnv>) -> Self {
+    PollCommand
   }
 }
 
 impl PollCommand {
-  fn nick_or_name(&self, server: ServerId, user: UserId) -> Option<String> {
-    match self.bot.discord.get_member(server, user) {
-      Ok(m) => Some(m.nick.unwrap_or(m.user.name)),
+  fn nick_or_name(&self, guild: GuildId, user: UserId) -> Option<String> {
+    match guild.member(user) {
+      Ok(m) => Some(m.display_name().to_string()),
       Err(_) => None
     }
   }
 }
 
 impl<'a> Command<'a> for PollCommand {
-  fn run(&self, msg: &Message, _: &[&str]) -> CommandResult<'a> {
+  fn run(&self, _: &Context, msg: &Message, _: &[&str]) -> CommandResult<'a> {
     let lines: Vec<&str> = msg.content.split('\n').collect();
     let params: Vec<&str> = lines[0].split_whitespace().skip(1).collect();
     let options = &lines[1..];
     if params.is_empty() || options.len() < 2 {
       return Err(ExternalCommandFailure::default()
-        .message(|e: EmbedBuilder| e
+        .message(|e: CreateEmbed| e
           .title("Not enough parameters.")
           .description(USAGE))
         .wrap());
@@ -49,16 +45,16 @@ impl<'a> Command<'a> for PollCommand {
       return Err("No more than nine poll options can be specified.".into());
     }
     let message = params.join(" ");
-    let channel = match self.bot.discord.get_channel(msg.channel_id) {
-      Ok(Channel::Public(c)) => c,
-      _ => return Err("This command must be used in a public channel.".into())
+    let channel = match msg.channel_id.get() {
+      Ok(Channel::Guild(c)) => c,
+      _ => return Err("This command must be used in a guild channel.".into())
     };
-    self.bot.discord.delete_message(msg.channel_id, msg.id).chain_err(|| "could not delete original message")?;
-    let name = self.nick_or_name(channel.server_id, msg.author.id).unwrap_or_else(|| "someone".into());
+    msg.delete().chain_err(|| "could not delete original message")?;
+    let name = self.nick_or_name(channel.read().guild_id, msg.author.id).unwrap_or_else(|| "someone".into());
     let poll = Poll::new(name, &message, options);
-    let embed = self.bot.discord.send_embed(channel.id, "", poll.create_embed()).chain_err(|| "could not send embed")?;
+    let embed = channel.read().send_message(|c| c.embed(poll.create_embed())).chain_err(|| "could not send embed")?;
     for i in 0..poll.options.len() {
-      self.bot.discord.add_reaction(embed.channel_id, embed.id, ReactionEmoji::Unicode(format!("{}⃣", i + 1))).chain_err(|| "could not add reaction")?;
+      embed.react(format!("{}⃣", i + 1)).chain_err(|| "could not add reaction")?;
     }
     Ok(CommandSuccess::default())
   }
@@ -79,7 +75,7 @@ impl Poll {
     }
   }
 
-  fn create_embed(&self) -> Box<FnBox(EmbedBuilder) -> EmbedBuilder> {
+  fn create_embed(&self) -> Box<FnBox(CreateEmbed) -> CreateEmbed> {
     let name = self.author.clone();
     let options = self.options.iter()
       .enumerate()
@@ -87,7 +83,7 @@ impl Poll {
       .collect::<Vec<_>>()
       .join("\n");
     let desc = format!("{}\n{}", self.text, options);
-    box move |e: EmbedBuilder| {
+    box move |e: CreateEmbed| {
       e
         .title(&format!("Poll by {}", name))
         .description(&desc)

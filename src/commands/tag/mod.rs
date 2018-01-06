@@ -8,17 +8,18 @@ pub use self::autotag::AutoTagCommand;
 pub use self::update_tags::UpdateTagsCommand;
 pub use self::update_tag::UpdateTagCommand;
 
-use bot::LalafellBot;
+use bot::BotEnv;
 use database::models::{Tag, NewTag, Verification};
 
 use lalafell::error::*;
+use lalafell::commands::prelude::*;
 
-use discord;
-use discord::model::{UserId, LiveServer, Role, RoleId};
+use serenity;
+use serenity::prelude::Mentionable;
+use serenity::model::guild::Role;
+use serenity::model::id::{RoleId, UserId};
 
 use diesel::prelude::*;
-
-use serde_json;
 
 use url::Url;
 
@@ -50,14 +51,14 @@ impl Tagger {
     });
   }
 
-  pub fn search_tag(bot: &LalafellBot, who: UserId, on: &LiveServer, server: &str, character_name: &str, ignore_verified: bool) -> Result<Option<String>> {
+  pub fn search_tag(env: &BotEnv, who: UserId, on: GuildId, server: &str, character_name: &str, ignore_verified: bool) -> Result<Option<String>> {
     let params = &[
       ("one", "characters"),
       ("strict", "on"),
       ("server|et", server)
     ];
 
-    let res = bot.xivdb.search(character_name, params).chain_err(|| "could not query XIVDB")?;
+    let res = env.xivdb.search(character_name, params).chain_err(|| "could not query XIVDB")?;
 
     let search_chars = res.characters.unwrap().results;
     if search_chars.is_empty() {
@@ -79,26 +80,27 @@ impl Tagger {
       return Ok(Some(format!("Could not find any character by the name {} on {}.", character_name, server)));
     }
 
-    Tagger::tag(bot, who, on, char_id, ignore_verified)
+    Tagger::tag(env, who, on, char_id, ignore_verified)
   }
 
-  fn find_or_create_role(bot: &LalafellBot, server: &LiveServer, name: &str, add_roles: &mut Vec<Role>, created_roles: &mut Vec<Role>) -> Result<()> {
+  fn find_or_create_role(guild: GuildId, name: &str, add_roles: &mut Vec<Role>, created_roles: &mut Vec<Role>) -> Result<()> {
     let lower_name = name.to_lowercase();
-    match server.roles.iter().find(|x| x.name.to_lowercase() == lower_name) {
+    let guild = guild.get().chain_err(|| "could not get guild")?;
+    match guild.roles.values().find(|x| x.name.to_lowercase() == lower_name) {
       Some(r) => add_roles.push(r.clone()),
       None => {
-        let role = bot.discord.create_role(server.id, Some(&lower_name), None, None, None, None).chain_err(|| "could not create role")?;
+        let role = guild.create_role(|r| r.name(&lower_name)).chain_err(|| "could not create role")?;
         created_roles.push(role);
       }
     }
     Ok(())
   }
 
-  pub fn tag(bot: &LalafellBot, who: UserId, on: &LiveServer, char_id: u64, ignore_verified: bool) -> Result<Option<String>> {
+  pub fn tag(env: &BotEnv, who: UserId, on: GuildId, char_id: u64, ignore_verified: bool) -> Result<Option<String>> {
     let tag: Option<Tag> = ::bot::CONNECTION.with(|c| {
       use database::schema::tags::dsl;
       dsl::tags
-        .filter(dsl::user_id.eq(who.0.to_string()).and(dsl::server_id.eq(on.id.0.to_string())))
+        .filter(dsl::user_id.eq(who.0.to_string()).and(dsl::server_id.eq(on.0.to_string())))
         .first(c)
         .optional()
         .chain_err(|| "could not load tags")
@@ -117,42 +119,27 @@ impl Tagger {
     };
 
     // This is still a disaster, just slightly less so
-    let member = match bot.discord.get_member(on.id, who) {
+    let member = match on.member(who) {
       Ok(m) => m,
-      Err(discord::Error::Status(_, Some(discord_error))) => {
-        let error: DiscordNotFoundError = serde_json::from_value(discord_error)
-          .chain_err(|| "could not get member for tagging and could not parse error")?;
-        let (remove, message) = match error.code {
-          // Unknown user
-          10013 => (true, format!("could not find user {}: removing from database", who.0)),
-          // User not a member on this server
-          10007 => (true, format!("user {} is not on server {}: removing from database", who.0, on.id.0)),
-          _ => {
-            let message = error.message.map(|x| format!(" ({})", x)).unwrap_or_default();
-            let error_message = format!("could not get member for tagging with unknown error code: {}{}", error.code, message);
-            (false, error_message)
-          }
-        };
-        if remove {
-          ::bot::CONNECTION.with(|c| {
-            use database::schema::tags::dsl;
-            ::diesel::delete(dsl::tags
-              .filter(dsl::user_id.eq(who.0.to_string()).and(dsl::server_id.eq(on.id.0.to_string()))))
-              .execute(c)
-              .chain_err(|| format!("could not remove tag {} on {}, but it was expected to be in database", who.0, on.id.0))
-          })?;
-        }
-        bail!(message);
+      Err(serenity::Error::Json(_)) => {
+        ::bot::CONNECTION.with(|c| {
+          use database::schema::tags::dsl;
+          ::diesel::delete(dsl::tags
+            .filter(dsl::user_id.eq(who.0.to_string()).and(dsl::server_id.eq(on.0.to_string()))))
+            .execute(c)
+            .chain_err(|| format!("could not remove tag {} on {}, but it was expected to be in database", who.0, on.0))
+        })?;
+        bail!("could not get user {} as a member of {}: removing their tag", who.0, on.0);
       },
       Err(e) => return Err(e).chain_err(|| "could not get member for tagging")
     };
 
-    let character = bot.xivdb.character(char_id).chain_err(|| "could not look up character")?;
+    let character = env.xivdb.character(char_id).chain_err(|| "could not look up character")?;
 
     let tag: Option<Tag> = ::bot::CONNECTION.with(|c| {
       use database::schema::tags::dsl;
       dsl::tags
-        .filter(dsl::user_id.eq(who.0.to_string()).and(dsl::server_id.eq(on.id.0.to_string())))
+        .filter(dsl::user_id.eq(who.0.to_string()).and(dsl::server_id.eq(on.0.to_string())))
         .first(c)
         .optional()
         .chain_err(|| "could not load tags")
@@ -168,7 +155,7 @@ impl Tagger {
       None => {
         let new_tag = NewTag::new(
           who.0,
-          on.id.0,
+          on.0,
           character.lodestone_id,
           &character.name,
           &character.server
@@ -181,7 +168,11 @@ impl Tagger {
     }
 
     // Get a copy of the roles on the server.
-    let mut roles = on.roles.clone();
+    let mut roles: Vec<Role> = match on.find() {
+      Some(g) => g.read().roles.values().cloned().collect(),
+      None => on.get().chain_err(|| "could not get guild")?.roles.values().cloned().collect()
+    };
+
     // Check for existing limbo roles.
     {
       let limbo = &mut *LIMBO_ROLES.lock().unwrap();
@@ -200,12 +191,12 @@ impl Tagger {
     // Find or create the necessary roles
     let mut created_roles = Vec::new();
     let mut add_roles = Vec::new();
-    Tagger::find_or_create_role(bot, on, &character.data.race, &mut add_roles, &mut created_roles)?;
-    Tagger::find_or_create_role(bot, on, &character.data.gender, &mut add_roles, &mut created_roles)?;
-    Tagger::find_or_create_role(bot, on, &character.server, &mut add_roles, &mut created_roles)?;
+    Tagger::find_or_create_role(on, &character.data.race, &mut add_roles, &mut created_roles)?;
+    Tagger::find_or_create_role(on, &character.data.gender, &mut add_roles, &mut created_roles)?;
+    Tagger::find_or_create_role(on, &character.server, &mut add_roles, &mut created_roles)?;
 
     if is_verified {
-      Tagger::find_or_create_role(bot, on, "verified", &mut add_roles, &mut created_roles)?;
+      Tagger::find_or_create_role(on, "verified", &mut add_roles, &mut created_roles)?;
     }
 
     // If we created any roles, the server may or may not update with them fast enough, so store a copy in the limbo
@@ -224,7 +215,7 @@ impl Tagger {
     // Extend the roles to add with the roles we created.
     add_roles.extend(created_roles);
     // Get all the roles that are part of groups
-    let all_group_roles: Vec<String> = bot.config.roles.groups.iter().flat_map(|x| x).map(|x| x.to_lowercase()).collect();
+    let all_group_roles: Vec<String> = env.config.roles.groups.iter().flat_map(|x| x).map(|x| x.to_lowercase()).collect();
     // Filter all roles on the server to only the roles the member has
     let keep: Vec<&Role> = roles.iter().filter(|x| member.roles.contains(&x.id)).collect();
     // Filter all the roles the member has, keeping the ones not in a group. These roles will not be touched when
@@ -247,7 +238,7 @@ impl Tagger {
       member_roles != actual_role_set
     };
     if different {
-      bot.discord.edit_member_roles(on.id, who, &role_set).chain_err(|| "could not add roles")?;
+      on.edit_member(who, |m| m.roles(&role_set)).chain_err(|| "could not add roles")?;
     }
 
     // cannot edit nickname of those with a higher role
@@ -256,7 +247,7 @@ impl Tagger {
       None => Default::default()
     };
     if nick != character.name {
-      bot.discord.edit_member(on.id, who, |e| e.nickname(&character.name)).ok();
+      on.edit_member(who, |m| m.nickname(&character.name)).ok();
     }
     Ok(None)
   }

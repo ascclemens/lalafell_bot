@@ -1,58 +1,42 @@
-use bot::LalafellBot;
-use listeners::ReceivesEvents;
-use discord::model::{Event, Message};
-use discord::builders::EmbedBuilder;
+use error::*;
 
-use std::sync::Arc;
+use serenity::client::{Context, EventHandler};
+use serenity::model::channel::Message;
 
-pub struct PollTagger {
-  bot: Arc<LalafellBot>
-}
+pub struct PollTagger;
 
-impl PollTagger {
-  pub fn new(bot: Arc<LalafellBot>) -> Self {
-    PollTagger { bot }
-  }
-
-  fn tag_poll(&self, message: &Message) {
-    let current_user = match self.bot.discord.get_current_user() {
-      Ok(c) => c,
-      Err(e) => {
-        warn!("couldn't get current user: {}", e);
-        return;
+impl EventHandler for PollTagger {
+  fn message(&self, _: Context, mut message: Message) {
+    let mut inner = || {
+      let current_user = ::serenity::CACHE.read().user.clone();
+      if message.embeds.len() != 1 || message.author.id != current_user.id {
+        return Ok(());
       }
+      let first_embed = message.embeds[0].clone();
+      let footer = match first_embed.footer.map(|f| f.text) {
+        Some(f) => f,
+        None => return Ok(())
+      };
+      let title = match first_embed.title {
+        Some(t) => t,
+        None => return Ok(())
+      };
+      let description = match first_embed.description {
+        Some(d) => d,
+        None => return Ok(())
+      };
+      if footer != "Loading poll ID..." {
+        return Ok(());
+      }
+      let id = message.id.0;
+      message.edit(|c| c.embed(|e| e
+        .title(title)
+        .description(description)
+        .footer(|f| f.text(&format!("{}", id)))))
+        .chain_err(|| "could not edit poll")
     };
-    if message.embeds.len() != 1 || message.author.id != current_user.id {
-      return;
-    }
-    let first_embed = &message.embeds[0];
-    let footer = match first_embed.get("footer").and_then(|f| f.get("text")).and_then(|t| t.as_str()) {
-      Some(f) => f,
-      None => return
-    };
-    let title = match first_embed.get("title").and_then(|t| t.as_str()) {
-      Some(t) => t,
-      None => return
-    };
-    let description = match first_embed.get("description").and_then(|d| d.as_str()) {
-      Some(d) => d,
-      None => return
-    };
-    if footer != "Loading poll ID..." {
-      return;
-    }
-    self.bot.discord.edit_embed(message.channel_id, message.id, |e: EmbedBuilder| e
-      .title(title)
-      .description(description)
-      .footer(|f| f.text(&format!("{}", message.id.0))))
-      .ok();
-  }
-}
-
-impl ReceivesEvents for PollTagger {
-  fn receive(&self, event: &Event) {
-    if let Event::MessageCreate(ref msg) = *event {
-      self.tag_poll(msg);
+    if let Err(e) = inner() {
+      warn!("PollTagger error: {}", e);
     }
   }
 }

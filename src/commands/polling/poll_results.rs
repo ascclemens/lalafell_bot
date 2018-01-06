@@ -20,14 +20,12 @@ No custom emoji
 :thumbsdown: No
 */
 
-use bot::LalafellBot;
+use bot::BotEnv;
 use commands::*;
 
 use lalafell::commands::prelude::*;
 
-use discord::model::{Message, MessageId, ReactionEmoji};
-
-use std::sync::Arc;
+use serenity::model::channel::ReactionType;
 
 const USAGE: &'static str = "!pollresults <channel> <message id>";
 const VALID_EMOJI: &'static [&'static str] = &[
@@ -42,15 +40,11 @@ const VALID_EMOJI: &'static [&'static str] = &[
   "9⃣"
 ];
 
-pub struct PollResultsCommand {
-  bot: Arc<LalafellBot>
-}
+pub struct PollResultsCommand;
 
 impl PollResultsCommand {
-  pub fn new(bot: Arc<LalafellBot>) -> PollResultsCommand {
-    PollResultsCommand {
-      bot
-    }
+  pub fn new(_: Arc<BotEnv>) -> Self {
+    PollResultsCommand
   }
 }
 
@@ -65,17 +59,17 @@ impl HasParams for PollResultsCommand {
 }
 
 impl<'a> Command<'a> for PollResultsCommand {
-  fn run(&self, _: &Message, params: &[&str]) -> CommandResult<'a> {
+  fn run(&self, _: &Context, _: &Message, params: &[&str]) -> CommandResult<'a> {
     let params = self.params(USAGE, params)?;
     let channel = params.channel;
     let message_id = params.message_id;
-    let message = match self.bot.discord.get_message(*channel, MessageId(message_id)) {
+    let message = match channel.message(message_id) {
       Ok(m) => m,
       Err(_) => return Err("Could not get that message.".into())
     };
     let mut reactions: Vec<(&String, u64)> = message.reactions.iter()
-      .map(|r| match r.emoji {
-        ReactionEmoji::Unicode(ref s) if VALID_EMOJI.contains(&s.as_str()) && r.me => Some((s, r.count - 1)),
+      .map(|r| match r.reaction_type {
+        ReactionType::Unicode(ref s) if VALID_EMOJI.contains(&s.as_str()) && r.me => Some((s, r.count - 1)),
         _ => None
       })
       .filter(|x| x.is_some())

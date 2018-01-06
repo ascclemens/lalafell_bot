@@ -1,44 +1,29 @@
-use bot::LalafellBot;
+use bot::BotEnv;
 use lodestone::Lodestone;
 use database::models::{Tag, Verification};
 
 use lalafell::error;
 use lalafell::error::*;
-use lalafell::bot::Bot;
 use lalafell::commands::prelude::*;
 
 use diesel::prelude::*;
 
-use discord::builders::EmbedBuilder;
-use discord::model::{Message, LiveServer, PublicChannel};
+use serenity::builder::CreateEmbed;
 
-use std::sync::Arc;
-
-pub struct VerifyCommand {
-  bot: Arc<LalafellBot>
-}
+pub struct VerifyCommand;
 
 impl VerifyCommand {
-  pub fn new(bot: Arc<LalafellBot>) -> VerifyCommand {
-    VerifyCommand {
-      bot
-    }
-  }
-}
-
-impl HasBot for VerifyCommand {
-  fn bot(&self) -> &Bot {
-    self.bot.as_ref()
+  pub fn new(_: Arc<BotEnv>) -> Self {
+    VerifyCommand
   }
 }
 
 impl<'a> PublicChannelCommand<'a> for VerifyCommand {
-  fn run(&self, message: &Message, server: &LiveServer, _: &PublicChannel, _: &[&str]) -> CommandResult<'a> {
-    let server_id = server.id;
+  fn run(&self, _: &Context, message: &Message, guild: GuildId, _: Arc<RwLock<GuildChannel>>, _: &[&str]) -> CommandResult<'a> {
     let user: Option<Tag> = ::bot::CONNECTION.with(|c| {
       use database::schema::tags::dsl;
       dsl::tags
-        .filter(dsl::user_id.eq(message.author.id.0.to_string()).and(dsl::server_id.eq(server_id.0.to_string())))
+        .filter(dsl::user_id.eq(message.author.id.0.to_string()).and(dsl::server_id.eq(guild.0.to_string())))
         .first(c)
         .optional()
         .chain_err(|| "could not load tags")
@@ -46,7 +31,7 @@ impl<'a> PublicChannelCommand<'a> for VerifyCommand {
     let user = match user {
       Some(u) => u,
       None => return Err(ExternalCommandFailure::default()
-        .message(|e: EmbedBuilder| e
+        .message(|e: CreateEmbed| e
           .title("Not tagged.")
           .description("Please tag yourself with an account before verifying it."))
         .wrap())
@@ -72,38 +57,34 @@ impl<'a> PublicChannelCommand<'a> for VerifyCommand {
             .execute(c)
             .chain_err(|| "could not insert verification")
         })?;
-        let chan = self.bot.discord.create_private_channel(message.author.id).chain_err(|| "could not create private channel")?;
-        self.bot.discord.send_embed(chan.id, "", |e| e
+        message.author.direct_message(|c| c.embed(|e| e
           .title("Verification instructions")
           .description(&msg)
-          .url("http://na.finalfantasyxiv.com/lodestone/my/setting/profile/")).ok();
+          .url("http://na.finalfantasyxiv.com/lodestone/my/setting/profile/"))).ok();
         return Ok(CommandSuccess::default());
       }
     };
     let profile = Lodestone::new().character_profile(*user.character_id)?;
     if profile.contains(verification_string) {
-      let state_option = self.bot.state.read().unwrap();
-      let state = state_option.as_ref().unwrap();
-      let server = match state.servers().iter().find(|x| x.id == server_id) {
-        Some(s) => s,
+      let guild = match guild.find() {
+        Some(g) => g,
         None => return Err(into!(error::Error, "could not find server for channel").into())
       };
 
       verification.verified = true;
       ::bot::CONNECTION.with(|c| verification.save_changes::<Verification>(c).chain_err(|| "could not update verification"))?;
 
-      if let Some(r) = server.roles.iter().find(|x| x.name.to_lowercase() == "verified") {
-        let mut member = self.bot.discord.get_member(server_id, message.author.id).chain_err(|| "could not get member for tagging")?;
+      if let Some(r) = guild.read().roles.values().find(|x| x.name.to_lowercase() == "verified") {
+        let mut member = guild.read().member(&message.author).chain_err(|| "could not get member for tagging")?;
 
         if !member.roles.contains(&r.id) {
-          member.roles.push(r.id);
-          self.bot.discord.edit_member_roles(server_id, message.author.id, &member.roles).chain_err(|| "could not add roles")?;
+          member.add_role(r).chain_err(|| "could not add roles")?;
         }
       }
       let char_name = user.character.clone();
       let serv_name = user.server.clone();
       Ok(CommandSuccess::default()
-        .message(move |e: EmbedBuilder| e
+        .message(move |e: CreateEmbed| e
           .title("Verified!")
           .description(&format!("You have successfully verified yourself as {} on {}.", char_name, serv_name))))
     } else {

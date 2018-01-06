@@ -1,6 +1,7 @@
 use database::models::{Reaction, NewReaction};
 
-use discord::model::{permissions, UserId, ChannelId, LiveServer};
+use serenity::prelude::Mentionable;
+use serenity::model::id::{ChannelId, UserId};
 
 use diesel;
 use diesel::prelude::*;
@@ -9,10 +10,12 @@ use lalafell::error::*;
 use lalafell::commands::prelude::*;
 use lalafell::commands::ChannelOrId;
 
-pub fn reaction<'a>(author: UserId, server: &LiveServer, args: &[String]) -> CommandResult<'a> {
-  if !server.permissions_for(server.id.main(), author).contains(permissions::MANAGE_ROLES) {
+pub fn reaction<'a>(author: UserId, guild: GuildId, args: &[String]) -> CommandResult<'a> {
+  let member = guild.member(author).chain_err(|| "could not get member")?;
+  let guild = some_or!(guild.find(), bail!("could not find guild"));
+  if !member.permissions().chain_err(|| "could not get permissions")?.manage_roles() {
     return Err(ExternalCommandFailure::default()
-      .message(|e: EmbedBuilder| e
+      .message(|e: CreateEmbed| e
         .title("Not enough permissions.")
         .description("You don't have enough permissions to use this command."))
       .wrap());
@@ -36,12 +39,12 @@ pub fn reaction<'a>(author: UserId, server: &LiveServer, args: &[String]) -> Com
       let emoji = &args[3];
       let message_id: u64 = args[4].parse().map_err(|_| into!(CommandFailure, "Invalid message ID."))?;
       let role = args[5..].join(" ").to_lowercase();
-      let role = match server.roles.iter().find(|r| r.name.to_lowercase() == role) {
+      let role = match guild.read().roles.values().find(|r| r.name.to_lowercase() == role) {
         Some(r) => r.name.clone(),
         None => return Err("No such role.".into())
       };
       let new_reaction = NewReaction {
-        server_id: server.id.into(),
+        server_id: guild.read().id.into(),
         channel_id: channel.into(),
         message_id: message_id.into(),
         emoji: emoji.to_string(),

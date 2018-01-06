@@ -1,40 +1,24 @@
 use bot::LalafellBot;
 
-use lalafell::bot::Bot;
 use lalafell::commands::prelude::*;
 use lalafell::commands::ChannelOrId;
 use lalafell::error::*;
 
-use discord::GetMessages;
-use discord::model::{permissions, Message, PublicChannel, Member, Emoji, Role, ChannelId};
+use serenity::client::Context;
+use serenity::model::{ChannelId, Emoji, Member, GuildId, Role, Message, GuildChannel, Channel};
+use serenity::builder::CreateEmbed;
 
 use chrono::Utc;
 
 use serde_json;
 
-use std::sync::Arc;
+use std::sync::{Arc, RwLock};
 use std::fs::{self, File};
 use std::path::Path;
 
 const USAGE: &'static str = "!archive <channel>";
 
-pub struct ArchiveCommand {
-  bot: Arc<LalafellBot>
-}
-
-impl ArchiveCommand {
-  pub fn new(bot: Arc<LalafellBot>) -> ArchiveCommand {
-    ArchiveCommand {
-      bot
-    }
-  }
-}
-
-impl HasBot for ArchiveCommand {
-  fn bot(&self) -> &Bot {
-    self.bot.as_ref()
-  }
-}
+pub struct ArchiveCommand;
 
 #[derive(Debug, Deserialize)]
 pub struct Params {
@@ -46,23 +30,32 @@ impl HasParams for ArchiveCommand {
 }
 
 impl<'a> PublicChannelCommand<'a> for ArchiveCommand {
-  fn run(&self, message: &Message, server: &LiveServer, _: &PublicChannel, params: &[&str]) -> CommandResult<'a> {
+  fn run(&self, context: &Context, message: &Message, guild: GuildId, _: Arc<RwLock<GuildChannel>>, params: &[&str]) -> CommandResult<'a> {
     let params = self.params(USAGE, params)?;
-    let channel = match server.channels.iter().find(|c| c.id == *params.channel) {
-      Some(c) => c,
-      None => return Err("This command must be run in the server the channel is in.".into())
+    let channel = match params.channel.get().chain_err(|| "could not get channel")? {
+      Channel::Guild(g) => g.read().unwrap(),
+      _ => return Err("This channel must be a guild channel.".into())
     };
-    let can_manage_chans = server.permissions_for(*params.channel, message.author.id).contains(permissions::MANAGE_CHANNELS);
-    if !can_manage_chans {
+    let member = match channel.guild_id.member(message.author.id){
+      Ok(m) => m,
+      Err(_) => return Err("You must be a member of the guild to archive its channels.".into())
+    };
+    let perms = member.permissions().chain_err(|| "could not get permissions")?;
+    if !perms.manage_channels() {
       return Err(ExternalCommandFailure::default()
-        .message(|e: EmbedBuilder| e
+        .message(|e: CreateEmbed| e
           .title("Not enough permissions.")
           .description("You don't have enough permissions to use this command."))
         .wrap());
     }
 
+    let guild = match channel.guild_id.find() {
+      Some(g) => g,
+      None => return Err("The guild must be cached.".into())
+    };
+
     let archive_path = Path::new("./archives")
-      .join(&server.id.to_string())
+      .join(&guild.read().unwrap().id.to_string())
       .join(&params.channel.to_string())
       .with_extension("json");
     if let Some(parent) = archive_path.parent() {
@@ -75,13 +68,11 @@ impl<'a> PublicChannelCommand<'a> for ArchiveCommand {
       return Err("This channel is already archived.".into());
     }
 
-    let mut messages = self.bot.discord.get_messages(*params.channel, GetMessages::MostRecent, Some(100))
-      .chain_err(|| "could not download first set of messages")?;
+    let mut messages = channel.messages(|gm| gm.limit(100)).chain_err(|| "could not download first set of messages")?;
     if messages.len() >= 100 {
       loop {
         let last_message_id = messages[messages.len() - 1].id;
-        let mut next_batch = self.bot.discord.get_messages(*params.channel, GetMessages::Before(last_message_id), Some(100))
-          .chain_err(|| "could not download more messages")?;
+        let mut next_batch = channel.messages(|gm| gm.before(last_message_id)).chain_err(|| "could not download more messages")?;
         if next_batch.is_empty() {
           break;
         }
@@ -91,17 +82,21 @@ impl<'a> PublicChannelCommand<'a> for ArchiveCommand {
 
     let num_messages = messages.len();
 
+    let guild = guild.read().unwrap();
     let archive = Archive {
       timestamp: Utc::now().timestamp(),
       server: ArchiveServer {
-        name: server.name.clone(),
-        roles: server.roles.clone(),
-        members: server.members.clone(),
-        channels: server.channels.iter()
-          .map(|c| ArchiveChannel { id: c.id, name: c.name.clone(), topic: c.topic.clone() })
+        name: guild.name.clone(),
+        roles: guild.roles.values().cloned().collect(),
+        members: guild.members.values().cloned().collect(),
+        channels: guild.channels.iter()
+          .map(|(_, c)| {
+            let c = c.read().unwrap();
+            ArchiveChannel { id: c.id, name: c.name.clone(), topic: c.topic.clone() }
+          })
           .collect(),
-        icon: server.icon.clone(),
-        emojis: server.emojis.clone()
+        icon: guild.icon.clone(),
+        emojis: guild.emojis.values().cloned().collect()
       },
       channel: ArchiveChannel {
         id: channel.id,

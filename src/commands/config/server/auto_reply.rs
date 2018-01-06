@@ -1,7 +1,9 @@
 use database::models::{AutoReply, NewAutoReply};
 use filters::Filter;
 
-use discord::model::{permissions, UserId, ChannelId, LiveServer};
+use serenity::prelude::Mentionable;
+use serenity::builder::CreateEmbed;
+use serenity::model::id::{UserId, ChannelId};
 
 use diesel;
 use diesel::prelude::*;
@@ -33,10 +35,11 @@ fn list_all() -> Result<String> {
     .join("\n"))
 }
 
-pub fn auto_reply<'a>(author: UserId, server: &LiveServer, content: &str) -> CommandResult<'a> {
-  if !server.permissions_for(server.id.main(), author).contains(permissions::MANAGE_MESSAGES) {
+pub fn auto_reply<'a>(author: UserId, guild: GuildId, content: &str) -> CommandResult<'a> {
+  let member = guild.member(author).chain_err(|| "could not get member")?;
+  if !member.permissions().chain_err(|| "could not get permissions")?.manage_messages() {
     return Err(ExternalCommandFailure::default()
-      .message(|e: EmbedBuilder| e
+      .message(|e: CreateEmbed| e
         .title("Not enough permissions.")
         .description("You don't have enough permissions to use this command."))
       .wrap());
@@ -88,7 +91,7 @@ pub fn auto_reply<'a>(author: UserId, server: &LiveServer, content: &str) -> Com
         }
       };
       let nar = NewAutoReply {
-        server_id: server.id.0.into(),
+        server_id: guild.into(),
         channel_id: channel.0.into(),
         message: message.to_string(),
         on_join,

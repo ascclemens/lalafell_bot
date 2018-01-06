@@ -1,4 +1,4 @@
-use bot::LalafellBot;
+use bot::BotEnv;
 use config::Task;
 use error::Result;
 
@@ -11,7 +11,7 @@ pub trait FromConfig {
 }
 
 pub trait RunsTask {
-  fn start(self, s: Arc<LalafellBot>);
+  fn start(self, env: Arc<BotEnv>);
 }
 
 pub mod delete_all_messages;
@@ -23,14 +23,12 @@ pub use self::autotag::AutoTagTask;
 pub use self::timeout_check::TimeoutCheckTask;
 
 pub struct TaskManager {
-  bot: Arc<LalafellBot>
+  env: Arc<BotEnv>
 }
 
 impl TaskManager {
-  pub fn new(bot: Arc<LalafellBot>) -> TaskManager {
-    TaskManager {
-      bot: bot
-    }
+  pub fn new(env: Arc<BotEnv>) -> Self {
+    TaskManager { env }
   }
 
   pub fn start_from_config(&self, task: &Task) -> Result<()> {
@@ -42,9 +40,9 @@ impl TaskManager {
   }
 
   pub fn start_task<T: RunsTask + Send + 'static>(&self, task: T) {
-    let s = self.bot.clone();
+    let thread_env = self.env.clone();
     thread::spawn(move || {
-      task.start(s);
+      task.start(thread_env);
     });
   }
 }

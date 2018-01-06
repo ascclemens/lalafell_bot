@@ -1,35 +1,28 @@
-use bot::LalafellBot;
+use bot::BotEnv;
 
 use lalafell::commands::prelude::*;
 
-use discord::model::Message;
-use discord::builders::EmbedBuilder;
-
-use std::sync::Arc;
-
 pub struct ReferenceCountCommand {
-  bot: Arc<LalafellBot>
+  env: Arc<BotEnv>
 }
 
 impl ReferenceCountCommand {
-  pub fn new(bot: Arc<LalafellBot>) -> ReferenceCountCommand {
-    ReferenceCountCommand {
-      bot
-    }
+  pub fn new(env: Arc<BotEnv>) -> ReferenceCountCommand {
+    ReferenceCountCommand { env }
   }
 }
 
 impl<'a> Command<'a> for ReferenceCountCommand {
-  fn run(&self, message: &Message, _: &[&str]) -> CommandResult<'a> {
-    if !self.bot.config.bot.administrators.contains(&message.author.id.0) {
+  fn run(&self, _: &Context, message: &Message, _: &[&str]) -> CommandResult<'a> {
+    if !self.env.config.bot.administrators.contains(&message.author.id.0) {
       return Err(ExternalCommandFailure::default()
-        .message(|e: EmbedBuilder| e
+        .message(|e: CreateEmbed| e
           .title("Not enough permissions.")
           .description("You don't have enough permissions to use this command."))
         .wrap());
     }
-    let strong_references = Arc::strong_count(&self.bot);
-    let weak_references = Arc::weak_count(&self.bot);
+    let strong_references = Arc::strong_count(&self.env);
+    let weak_references = Arc::weak_count(&self.env);
     Ok(format!("There are currently {} strong references and {} weak references.",
                                                              strong_references,
                                                              weak_references).into())

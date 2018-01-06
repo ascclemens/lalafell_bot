@@ -1,6 +1,7 @@
 use database::models::{ServerConfig, NewServerConfig};
 
-use discord::model::{UserId, LiveServer};
+use serenity::builder::CreateEmbed;
+use serenity::model::id::UserId;
 
 use diesel;
 use diesel::prelude::*;
@@ -8,10 +9,11 @@ use diesel::prelude::*;
 use lalafell::error::*;
 use lalafell::commands::prelude::*;
 
-pub fn timeout_role<'a>(author: UserId, server: &LiveServer, args: &[String]) -> CommandResult<'a> {
-  if author != server.owner_id {
+pub fn timeout_role<'a>(author: UserId, guild: GuildId, args: &[String]) -> CommandResult<'a> {
+  let guild = some_or!(guild.find(), bail!("could not find guild"));
+  if author != guild.read().owner_id {
     return Err(ExternalCommandFailure::default()
-      .message(|e: EmbedBuilder| e
+      .message(|e: CreateEmbed| e
         .title("Not enough permissions.")
         .description("You don't have enough permissions to use this command."))
       .wrap());
@@ -19,7 +21,7 @@ pub fn timeout_role<'a>(author: UserId, server: &LiveServer, args: &[String]) ->
   let config: Option<ServerConfig> = ::bot::CONNECTION.with(|c| {
     use database::schema::server_configs::dsl;
     dsl::server_configs
-      .filter(dsl::server_id.eq(server.id.0.to_string()))
+      .filter(dsl::server_id.eq(guild.read().id.0.to_string()))
       .first(c)
       .optional()
       .chain_err(|| "could not load channel configs")
@@ -29,11 +31,11 @@ pub fn timeout_role<'a>(author: UserId, server: &LiveServer, args: &[String]) ->
       Some(role) => role,
       None => String::from("unset (disabled)")
     };
-    return Ok(format!("Timeout role on {}: {}", server.name, status).into());
+    return Ok(format!("Timeout role on {}: {}", guild.read().name, status).into());
   }
   let role_name = args[1].to_lowercase();
-  let role = match server.roles.iter().find(|r| r.name.to_lowercase() == role_name) {
-    Some(r) => r,
+  let role = match guild.read().roles.values().find(|r| r.name.to_lowercase() == role_name) {
+    Some(r) => r.clone(),
     None => return Err(format!("No role by the name `{}`.", &args[2]).into())
   };
   match config {
@@ -44,7 +46,7 @@ pub fn timeout_role<'a>(author: UserId, server: &LiveServer, args: &[String]) ->
     None => {
       ::bot::CONNECTION.with(|c| {
         let new = NewServerConfig {
-          server_id: server.id.into(),
+          server_id: guild.read().id.into(),
           timeout_role: Some(role.name.clone())
         };
         diesel::insert_into(::database::schema::server_configs::table)
@@ -54,5 +56,6 @@ pub fn timeout_role<'a>(author: UserId, server: &LiveServer, args: &[String]) ->
       })?;
     }
   }
-  Ok(format!("Set timeout role in {} to {}.", server.name, role.name).into())
+  let guild = guild.read();
+  Ok(format!("Set timeout role in {} to {}.", guild.name, role.name).into())
 }

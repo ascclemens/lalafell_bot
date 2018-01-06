@@ -3,7 +3,7 @@
 #![cfg_attr(feature = "cargo-clippy", allow(unreadable_literal))]
 #![recursion_limit = "1024"]
 
-extern crate discord;
+extern crate serenity;
 extern crate xivdb;
 extern crate dotenv;
 #[macro_use]
@@ -31,15 +31,15 @@ extern crate url_serde;
 extern crate byteorder;
 extern crate rand;
 
-macro_rules! try_or {
-  ($e: expr, $o: expr) => {{
-    #[allow(unused_variables)]
-    match $e {
-      Ok(x) => x,
-      Err(e) => $o
-    }
-  }}
-}
+// macro_rules! try_or {
+//   ($e: expr, $o: expr) => {{
+//     #[allow(unused_variables)]
+//     match $e {
+//       Ok(x) => x,
+//       Err(e) => $o
+//     }
+//   }}
+// }
 
 macro_rules! some_or {
   ($e: expr, $o: expr) => {{
@@ -64,7 +64,7 @@ mod error;
 use bot::LalafellBot;
 use error::*;
 
-use std::sync::mpsc::channel;
+use std::sync::{Arc, Mutex};
 
 fn main() {
   if let Err(e) = inner() {
@@ -91,24 +91,28 @@ fn inner() -> Result<()> {
 
   let environment: Environment = envy::from_env().expect("Invalid or missing environment variables");
 
-  info!("Creating bot");
+  let bot = match bot::create_bot(environment) {
+    Ok(b) => b,
+    Err(e) => bail!("could not create bot: {}", e)
+  };
 
-  let bot = bot::create_bot(environment)?;
-
-  let (loop_cancel_tx, loop_cancel_rx) = channel();
+  let shard_manager = bot.discord.shard_manager.clone();
 
   ctrlc::set_handler(move || {
     info!("Stopping main loop");
-    loop_cancel_tx.send(()).unwrap();
+    shard_manager.lock().shutdown_all();
   }).expect("could not set interrupt handler");
 
+  let bot = Arc::new(Mutex::new(bot));
+
   info!("Spinning up bot");
-  let thread_bot = bot.clone();
   std::thread::spawn(move || {
-    if let Err(e) = thread_bot.start_loop(loop_cancel_rx) {
-      error!("could not start bot loop: {}", e);
+    let mut bot = bot.lock().unwrap();
+    if let Err(e) = bot.discord.start_autosharded() {
+      error!("could not start bot: {}", e);
     }
   }).join().unwrap();
+
   info!("Exiting");
   Ok(())
 }

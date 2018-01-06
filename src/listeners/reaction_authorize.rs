@@ -1,96 +1,65 @@
-use bot::LalafellBot;
-use listeners::ReceivesEvents;
-use database::models::Reaction;
+use database::models::Reaction as DbReaction;
 
 use diesel::prelude::*;
 
-use discord::model::{Event, Channel, ReactionEmoji};
+use serenity::client::{Context, EventHandler};
+use serenity::model::channel::{Channel, Reaction, ReactionType};
 
 use error::*;
 
-use std::sync::Arc;
+pub struct ReactionAuthorize;
 
-pub struct ReactionAuthorize {
-  bot: Arc<LalafellBot>
+impl EventHandler for ReactionAuthorize {
+  fn reaction_add(&self, context: Context, reaction: Reaction) {
+    ReactionAuthorize::receive(context, reaction, true);
+  }
+
+  fn reaction_remove(&self, context: Context, reaction: Reaction) {
+    ReactionAuthorize::receive(context, reaction, false);
+  }
 }
 
 impl ReactionAuthorize {
-  pub fn new(bot: Arc<LalafellBot>) -> ReactionAuthorize {
-    ReactionAuthorize {
-      bot
-    }
-  }
-}
-
-impl ReceivesEvents for ReactionAuthorize {
-  fn receive(&self, event: &Event) {
-    let (added, reaction) = match *event {
-      Event::ReactionAdd(ref reaction) => (true, reaction),
-      Event::ReactionRemove(ref reaction) => (false, reaction),
-      _ => return
-    };
-    let channel = match self.bot.discord.get_channel(reaction.channel_id) {
-      Ok(Channel::Public(c)) => c,
-      Ok(_) => {
-        warn!("invalid channel: {}", reaction.channel_id.0);
-        return;
-      },
-      Err(e) => {
-        warn!("couldn't get channel: {}", e);
-        return;
-      }
-    };
-    let emoji = match reaction.emoji {
-      ReactionEmoji::Unicode(ref emoji)  => emoji,
-      _ => return
-    };
-    let reactions: ::std::result::Result<Vec<Reaction>, _> = ::bot::CONNECTION.with(|c| {
-      use database::schema::reactions::dsl;
-      dsl::reactions
-        .filter(dsl::channel_id.eq(reaction.channel_id.0.to_string())
-          .and(dsl::server_id.eq(channel.server_id.0.to_string()))
-          .and(dsl::message_id.eq(reaction.message_id.0.to_string()))
-          .and(dsl::emoji.eq(emoji)))
-        .load(c)
-        .chain_err(|| "could not load reactions")
-    });
-    let reactions = match reactions {
-      Ok(r) => r,
-      Err(e) => {
-        warn!("couldn't get reactions: {}", e);
-        return;
-      }
-    };
-    let roles = match self.bot.discord.get_roles(channel.server_id) {
-      Ok(r) => r,
-      Err(e) => {
-        warn!("couldn't get roles: {}", e);
-        return;
-      }
-    };
-    for reac in reactions {
-      let role = match roles.iter().find(|r| r.name == reac.role) {
-        Some(r) => r,
-        None => {
-          warn!("couldn't find role for name \"{}\"", reac.role);
-          continue;
+  fn receive(_: Context, r: Reaction, added: bool) {
+    let inner = || -> Result<()> {
+      let channel = match r.channel_id.get().chain_err(|| "could not get channel")? {
+        Channel::Guild(c) => c.read().clone(),
+        _ => bail!("invalid channel: {}", r.channel_id.0)
+      };
+      let emoji = match r.emoji {
+        ReactionType::Unicode(ref emoji)  => emoji,
+        _ => return Ok(())
+      };
+      let reactions: Vec<DbReaction> = ::bot::CONNECTION.with(|c| {
+        use database::schema::reactions::dsl;
+        dsl::reactions
+          .filter(dsl::channel_id.eq(r.channel_id.0.to_string())
+            .and(dsl::server_id.eq(channel.guild_id.0.to_string()))
+            .and(dsl::message_id.eq(r.message_id.0.to_string()))
+            .and(dsl::emoji.eq(emoji)))
+          .load(c)
+          .chain_err(|| "could not load reactions")
+      })?;
+      let guild = channel.guild_id.get().chain_err(|| "could not get guild")?;
+      let mut member = guild.member(r.user_id).chain_err(|| "could not get member")?;
+      for reac in reactions {
+        let role = match guild.role_by_name(&reac.role) {
+          Some(r) => r,
+          None => {
+            warn!("couldn't find role for name \"{}\"", reac.role);
+            continue;
+          }
+        };
+        if added {
+          member.add_role(role.id).chain_err(|| "could not add role")?;
+        } else {
+          member.remove_role(role.id).chain_err(|| "could not remove role")?;
         }
-      };
-      let result = if added {
-        self.bot.discord.add_member_role(channel.server_id, reaction.user_id, role.id)
-      } else {
-        self.bot.discord.remove_member_role(channel.server_id, reaction.user_id, role.id)
-      };
-      if let Err(e) = result {
-        warn!("could not change role: {}", e);
       }
+      Ok(())
+    };
+    if let Err(e) = inner() {
+      warn!("ReactionAuthorize error: {}", e);
     }
   }
-}
-
-#[derive(Debug, Deserialize)]
-pub struct ReactionAuthorizeConfig {
-  message: u64,
-  emoji: String,
-  role: String
 }

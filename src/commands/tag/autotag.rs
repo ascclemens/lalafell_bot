@@ -1,31 +1,19 @@
-use bot::LalafellBot;
+use bot::BotEnv;
 use commands::tag::Tagger;
 
-use lalafell::bot::Bot;
 use lalafell::commands::prelude::*;
 
-use discord::builders::EmbedBuilder;
-use discord::model::{LiveServer, PublicChannel};
-
-use std::sync::Arc;
+use serenity::builder::CreateEmbed;
 
 const USAGE: &'static str = "!autotag <server> <character>";
 
 pub struct AutoTagCommand {
-  bot: Arc<LalafellBot>
+  env: Arc<BotEnv>
 }
 
 impl AutoTagCommand {
-  pub fn new(bot: Arc<LalafellBot>) -> AutoTagCommand {
-    AutoTagCommand {
-      bot
-    }
-  }
-}
-
-impl HasBot for AutoTagCommand {
-  fn bot(&self) -> &Bot {
-    self.bot.as_ref()
+  pub fn new(env: Arc<BotEnv>) -> AutoTagCommand {
+    AutoTagCommand { env }
   }
 }
 
@@ -40,14 +28,14 @@ impl HasParams for AutoTagCommand {
 }
 
 impl<'a> PublicChannelCommand<'a> for AutoTagCommand {
-  fn run(&self, message: &Message, server: &LiveServer, _: &PublicChannel, params: &[&str]) -> CommandResult<'a> {
+  fn run(&self, _: &Context, message: &Message, guild: GuildId, _: Arc<RwLock<GuildChannel>>, params: &[&str]) -> CommandResult<'a> {
     let params = self.params(USAGE, params)?;
     let ff_server = params.server;
     let name = params.name.join(" ");
 
-    match Tagger::search_tag(self.bot.as_ref(), message.author.id, server, &ff_server, &name, false)? {
+    match Tagger::search_tag(self.env.as_ref(), message.author.id, guild, &ff_server, &name, false)? {
       Some(error) => Err(ExternalCommandFailure::default()
-        .message(move |e: EmbedBuilder| e.description(&error))
+        .message(move |e: CreateEmbed| e.description(&error))
         .wrap()),
       None => Ok(CommandSuccess::default())
     }

@@ -1,14 +1,11 @@
-use bot::LalafellBot;
+use bot::BotEnv;
 use database::models::Timeout;
 use commands::*;
 
 use lalafell::error::*;
-use lalafell::bot::Bot;
 use lalafell::commands::prelude::*;
 
-use discord::builders::EmbedBuilder;
-use discord::model::{Message, LiveServer, PublicChannel, RoleId};
-use discord::model::permissions;
+use serenity::builder::CreateEmbed;
 
 use diesel::prelude::*;
 
@@ -16,21 +13,11 @@ use std::sync::Arc;
 
 const USAGE: &'static str = "!untimeout <who>";
 
-pub struct UntimeoutCommand {
-  bot: Arc<LalafellBot>
-}
+pub struct UntimeoutCommand;
 
 impl UntimeoutCommand {
-  pub fn new(bot: Arc<LalafellBot>) -> UntimeoutCommand {
-    UntimeoutCommand {
-      bot
-    }
-  }
-}
-
-impl HasBot for UntimeoutCommand {
-  fn bot(&self) -> &Bot {
-    self.bot.as_ref()
+  pub fn new(_: Arc<BotEnv>) -> Self {
+    UntimeoutCommand
   }
 }
 
@@ -44,24 +31,29 @@ impl HasParams for UntimeoutCommand {
 }
 
 impl<'a> PublicChannelCommand<'a> for UntimeoutCommand {
-  fn run(&self, message: &Message, server: &LiveServer, channel: &PublicChannel, params: &[&str]) -> CommandResult<'a> {
+  fn run(&self, _: &Context, message: &Message, guild: GuildId, _: Arc<RwLock<GuildChannel>>, params: &[&str]) -> CommandResult<'a> {
     let params = self.params(USAGE, params)?;
-    let can_manage_roles = server.permissions_for(channel.id, message.author.id).contains(permissions::MANAGE_ROLES);
-    if !can_manage_roles {
+    let member = guild.member(&message.author).chain_err(|| "could not get member")?;
+    if !member.permissions().chain_err(|| "could not get permissions")?.manage_roles() {
       return Err(ExternalCommandFailure::default()
-        .message(|e: EmbedBuilder| e
+        .message(|e: CreateEmbed| e
           .title("Not enough permissions.")
           .description("You don't have enough permissions to use this command."))
         .wrap());
     }
 
-    let server_id = channel.server_id;
+    let guild_id = guild;
     let who = params.who;
+
+    let mut timeout_member = match guild.member(*who) {
+      Ok(m) => m,
+      Err(_) => return Err("That user is not in this guild.".into())
+    };
 
     let timeouts: Vec<Timeout> = ::bot::CONNECTION.with(|c| {
       use database::schema::timeouts::dsl;
       dsl::timeouts
-        .filter(dsl::user_id.eq(who.0.to_string()).and(dsl::server_id.eq(server_id.0.to_string())))
+        .filter(dsl::user_id.eq(who.0.to_string()).and(dsl::server_id.eq(guild_id.0.to_string())))
         .load(c)
         .chain_err(|| "could not load timeouts")
     })?;
@@ -71,7 +63,7 @@ impl<'a> PublicChannelCommand<'a> for UntimeoutCommand {
     let timeout = &timeouts[0];
 
     ::bot::CONNECTION.with(|c| ::diesel::delete(timeout).execute(c).chain_err(|| "could not delete timeout"))?;
-    self.bot.discord.remove_member_role(server_id, *who, RoleId(*timeout.role_id)).chain_err(|| "could not remove timeout role")?;
+    timeout_member.remove_role(*timeout.role_id).chain_err(|| "could not remove role")?;
 
     Ok(CommandSuccess::default())
   }

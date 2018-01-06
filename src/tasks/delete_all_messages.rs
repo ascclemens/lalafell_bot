@@ -1,9 +1,9 @@
-use bot::LalafellBot;
+use bot::BotEnv;
 use tasks::RunsTask;
 use database::models::DeleteAllMessages;
 
-use discord::GetMessages;
-use discord::model::ChannelId;
+use serenity::builder::GetMessages;
+use serenity::model::id::ChannelId;
 
 use chrono::prelude::*;
 use chrono::Duration;
@@ -29,7 +29,7 @@ impl DeleteAllMessagesTask {
 }
 
 impl RunsTask for DeleteAllMessagesTask {
-  fn start(mut self, s: Arc<LalafellBot>) {
+  fn start(mut self, _: Arc<BotEnv>) {
     loop {
       thread::sleep(Duration::seconds(self.next_sleep).to_std().unwrap());
       info!("Delete messages task running");
@@ -46,7 +46,7 @@ impl RunsTask for DeleteAllMessagesTask {
       };
       for dam in dams {
         let channel = ChannelId(*dam.channel_id);
-        let messages = match s.discord.get_messages(channel, GetMessages::MostRecent, None) {
+        let messages = match channel.messages(GetMessages::most_recent) {
           Ok(m) => m,
           Err(e) => {
             warn!("Could not get messages for channel {}: {}", channel, e);
@@ -70,10 +70,10 @@ impl RunsTask for DeleteAllMessagesTask {
         for chunk in to_delete.chunks(100) {
           info!("Deleting chunk of {} message{}", chunk.len(), if chunk.len() == 1 { "" } else { "s" });
           let result = if chunk.len() == 1 {
-            s.discord.delete_message(channel, chunk[0].id)
+            channel.delete_message(chunk[0].id)
           } else {
             let ids: Vec<_> = chunk.iter().map(|m| m.id).collect();
-            s.discord.delete_messages(channel, &ids)
+            channel.delete_messages(ids)
           };
           if let Err(e) = result {
             warn!("Could not delete messages: {}", e);

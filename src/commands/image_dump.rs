@@ -1,13 +1,10 @@
-use bot::LalafellBot;
+use bot::BotEnv;
 use database::models::ChannelConfig;
 
 use diesel::prelude::*;
 
-use lalafell::bot::Bot;
 use lalafell::commands::prelude::*;
 use lalafell::error::*;
-
-use discord::model::{Message, PublicChannel};
 
 use make_hyper_great_again::Client;
 use hyper_rustls::HttpsConnector;
@@ -23,21 +20,11 @@ use std::io::Read;
 const USAGE: &'static str = "!imagedump <url>";
 const VALID_EXTENSIONS: &'static [&'static str] = &["jpg", "jpeg", "png", "gif", "gifv", "mp4", "mpeg4"];
 
-pub struct ImageDumpCommand {
-  bot: Arc<LalafellBot>
-}
+pub struct ImageDumpCommand;
 
 impl ImageDumpCommand {
-  pub fn new(bot: Arc<LalafellBot>) -> ImageDumpCommand {
-    ImageDumpCommand {
-      bot
-    }
-  }
-}
-
-impl HasBot for ImageDumpCommand {
-  fn bot(&self) -> &Bot {
-    self.bot.as_ref()
+  pub fn new(_: Arc<BotEnv>) -> Self {
+    ImageDumpCommand
   }
 }
 
@@ -52,11 +39,11 @@ impl HasParams for ImageDumpCommand {
 }
 
 impl<'a> PublicChannelCommand<'a> for ImageDumpCommand {
-  fn run(&self, _: &Message, _: &LiveServer, channel: &PublicChannel, params: &[&str]) -> CommandResult<'a> {
+  fn run(&self, _: &Context, _: &Message, guild: GuildId, channel: Arc<RwLock<GuildChannel>>, params: &[&str]) -> CommandResult<'a> {
     let config: Option<ChannelConfig> = ::bot::CONNECTION.with(|c| {
       use database::schema::channel_configs::dsl;
       dsl::channel_configs
-        .filter(dsl::channel_id.eq(channel.id.0.to_string()).and(dsl::server_id.eq(channel.server_id.0.to_string())))
+        .filter(dsl::channel_id.eq(channel.read().id.0.to_string()).and(dsl::server_id.eq(guild.0.to_string())))
         .first(c)
         .optional()
         .chain_err(|| "could not load configs")
@@ -66,8 +53,7 @@ impl<'a> PublicChannelCommand<'a> for ImageDumpCommand {
     }
 
     let params = self.params(USAGE, params)?;
-    let thread_bot = self.bot.clone();
-    let id = channel.id;
+    let id = channel.read().id;
     ::std::thread::spawn(move || {
       let link = params.link;
       fn get_lines(link: &Url) -> Result<Vec<String>> {
@@ -92,12 +78,12 @@ impl<'a> PublicChannelCommand<'a> for ImageDumpCommand {
       let lines = match get_lines(&link) {
         Ok(l) => l,
         Err(_) => {
-          thread_bot.discord.send_embed(id, "", move |e: EmbedBuilder| e.description("Could not download/parse that link.")).ok();
+          id.send_message(|c| c.embed(|e| e.description("Could not download/parse that link."))).ok();
           return;
         }
       };
       for chunk in lines.chunks(5) {
-        thread_bot.discord.send_message(id, &chunk.join("\n"), "", false).ok();
+        id.send_message(|c| c.content(chunk.join("\n"))).ok();
         ::std::thread::sleep(Duration::seconds(1).to_std().unwrap());
       }
     });

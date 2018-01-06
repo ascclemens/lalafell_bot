@@ -6,23 +6,22 @@ use error::*;
 use serde_json;
 
 use std::fs::File;
-use std::sync::Arc;
 
 mod listeners;
 mod tasks;
 
-use self::listeners::listeners;
+// use self::listeners::listeners;
 use self::tasks::tasks;
 
-pub fn create_bot(environment: Environment) -> Result<Arc<LalafellBot>> {
+pub use self::listeners::Handler;
+
+pub fn create_bot(environment: Environment) -> Result<LalafellBot> {
   info!("Loading configuration");
   let config = config(&environment)?;
   info!("Constructing bot");
-  let bot = Arc::new(LalafellBot::new(environment, config).chain_err(|| "could not create bot")?);
-  info!("Registering listeners");
-  listeners(bot.clone())?;
+  let bot = LalafellBot::new(environment, config).chain_err(|| "could not create bot")?;
   info!("Starting tasks");
-  tasks(bot.clone())?;
+  tasks(&bot)?;
   Ok(bot)
 }
 

@@ -1,37 +1,35 @@
-use bot::LalafellBot;
+use bot::BotEnv;
 use tasks::AutoTagTask;
 
 use lalafell::commands::prelude::*;
 
-use discord::builders::EmbedBuilder;
+use serenity::builder::CreateEmbed;
 
 use std::sync::Arc;
 
 pub struct UpdateTagsCommand {
-  bot: Arc<LalafellBot>
+  env: Arc<BotEnv>
 }
 
 impl UpdateTagsCommand {
-  pub fn new(bot: Arc<LalafellBot>) -> UpdateTagsCommand {
-    UpdateTagsCommand {
-      bot
-    }
+  pub fn new(env: Arc<BotEnv>) -> UpdateTagsCommand {
+    UpdateTagsCommand { env }
   }
 }
 
 impl<'a> Command<'a> for UpdateTagsCommand {
-  fn run(&self, message: &Message, _: &[&str]) -> CommandResult<'a> {
-    if !self.bot.config.bot.administrators.contains(&message.author.id.0) {
+  fn run(&self, _: &Context, message: &Message, _: &[&str]) -> CommandResult<'a> {
+    if !self.env.config.bot.administrators.contains(&message.author.id.0) {
       return Err(ExternalCommandFailure::default()
-        .message(|e: EmbedBuilder| e
+        .message(|e: CreateEmbed| e
           .title("Not enough permissions.")
           .description("You don't have enough permissions to use this command."))
         .wrap());
     }
-    let thread_bot = self.bot.clone();
+    let thread_env = self.env.clone();
     let mut task = AutoTagTask::new();
     task.next_sleep = 0;
-    ::std::thread::spawn(move || task.run_once(thread_bot));
+    ::std::thread::spawn(move || task.run_once(thread_env));
     Ok("Task started.".into())
   }
 }

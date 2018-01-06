@@ -1,6 +1,8 @@
 use database::models::{ChannelConfig, NewChannelConfig};
 
-use discord::model::{permissions, UserId, ChannelId, LiveServer};
+use serenity::prelude::Mentionable;
+use serenity::builder::CreateEmbed;
+use serenity::model::id::{UserId, ChannelId};
 
 use diesel;
 use diesel::prelude::*;
@@ -8,10 +10,11 @@ use diesel::prelude::*;
 use lalafell::error::*;
 use lalafell::commands::prelude::*;
 
-pub fn image_dump<'a>(author: UserId, channel: ChannelId, server: &LiveServer, args: &[String]) -> CommandResult<'a> {
-  if !server.permissions_for(channel, author).contains(permissions::MANAGE_MESSAGES) {
+pub fn image_dump<'a>(author: UserId, channel: ChannelId, guild: GuildId, args: &[String]) -> CommandResult<'a> {
+  let member = guild.member(author).chain_err(|| "could not get member")?;
+  if !member.permissions().chain_err(|| "could not get permissions")?.manage_messages() {
     return Err(ExternalCommandFailure::default()
-      .message(|e: EmbedBuilder| e
+      .message(|e: CreateEmbed| e
         .title("Not enough permissions.")
         .description("You don't have enough permissions to use this command."))
       .wrap());
@@ -19,7 +22,7 @@ pub fn image_dump<'a>(author: UserId, channel: ChannelId, server: &LiveServer, a
   let config: Option<ChannelConfig> = ::bot::CONNECTION.with(|c| {
     use database::schema::channel_configs::dsl;
     dsl::channel_configs
-      .filter(dsl::server_id.eq(server.id.0.to_string()).and(dsl::channel_id.eq(channel.to_string())))
+      .filter(dsl::server_id.eq(guild.0.to_string()).and(dsl::channel_id.eq(channel.to_string())))
       .first(c)
       .optional()
       .chain_err(|| "could not load channel configs")
@@ -45,7 +48,7 @@ pub fn image_dump<'a>(author: UserId, channel: ChannelId, server: &LiveServer, a
     None => {
       ::bot::CONNECTION.with(|c| {
         let new = NewChannelConfig {
-          server_id: server.id.into(),
+          server_id: guild.into(),
           channel_id: channel.into(),
           image_dump_allowed: Some(enabled)
         };

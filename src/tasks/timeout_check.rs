@@ -1,10 +1,10 @@
-use bot::LalafellBot;
+use bot::BotEnv;
 use tasks::RunsTask;
 use chrono::prelude::*;
 use chrono::Duration;
 use database::models::Timeout;
 
-use discord::model::{ServerId, UserId, RoleId};
+use serenity::model::id::GuildId;
 
 use diesel::prelude::*;
 
@@ -24,7 +24,7 @@ impl TimeoutCheckTask {
 }
 
 impl RunsTask for TimeoutCheckTask {
-  fn start(mut self, s: Arc<LalafellBot>) {
+  fn start(mut self, env: Arc<BotEnv>) {
     loop {
       thread::sleep(Duration::seconds(self.next_sleep).to_std().unwrap());
       let now = Utc::now().timestamp();
@@ -39,7 +39,14 @@ impl RunsTask for TimeoutCheckTask {
         if timeout.ends() >= now {
           continue;
         }
-        if let Err(e) = s.discord.remove_member_role(ServerId(*timeout.server_id), UserId(*timeout.user_id), RoleId(*timeout.role_id)) {
+        let mut member = match GuildId(*timeout.server_id).member(*timeout.user_id) {
+          Ok(m) => m,
+          Err(e) => {
+            warn!("could not get member for timeout check: {}", e);
+            continue;
+          }
+        };
+        if let Err(e) = member.remove_role(*timeout.role_id) {
           warn!("could not remove timeout role from {}: {}", *timeout.user_id, e);
         }
         ::bot::CONNECTION.with(|c| {
@@ -48,7 +55,7 @@ impl RunsTask for TimeoutCheckTask {
           }
         });
       }
-      self.next_sleep = s.config.bot.timeouts.role_check_interval.unwrap_or(30);
+      self.next_sleep = env.config.bot.timeouts.role_check_interval.unwrap_or(30);
     }
   }
 }

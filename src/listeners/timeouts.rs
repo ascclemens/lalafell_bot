@@ -1,9 +1,9 @@
-use bot::LalafellBot;
-use listeners::ReceivesEvents;
 use database::models::Timeout;
 use lalafell::error::*;
 
-use discord::model::{Event, Message, Channel, PublicChannel};
+use serenity::prelude::RwLock;
+use serenity::client::{Context, EventHandler};
+use serenity::model::channel::{Message, Channel, GuildChannel};
 
 use diesel::prelude::*;
 
@@ -12,67 +12,60 @@ use chrono::prelude::*;
 use std::sync::Arc;
 
 #[allow(dead_code)]
-pub struct Timeouts {
-  bot: Arc<LalafellBot>
-}
+pub struct Timeouts;
 
-impl Timeouts {
-  pub fn new(bot: Arc<LalafellBot>) -> Self {
-    Timeouts {
-      bot
-    }
-  }
-
-  fn handle_message(&self, message: &Message) {
-    let channel = match self.bot.discord.get_channel(message.channel_id) {
-      Ok(Channel::Public(c)) => c,
-      _ => return
-    };
-    let timeout = ::bot::CONNECTION.with(|c| {
-      use database::schema::timeouts::dsl;
-      dsl::timeouts
-        .filter(dsl::user_id.eq(message.author.id.0.to_string()).and(dsl::server_id.eq(channel.server_id.0.to_string())))
-        .first(c)
-    });
-
-    let timeout: Timeout = match timeout {
-      Ok(t) => t,
-      _ => return
-    };
-
-    if timeout.ends() < Utc::now().timestamp() {
-      ::bot::CONNECTION.with(|c| {
-        if let Err(e) = ::diesel::delete(&timeout).execute(c).chain_err(|| "could not delete timeout") {
-          warn!("could not delete timeout: {}", e);
-        }
+impl EventHandler for Timeouts {
+  fn message(&self, _: Context, message: Message) {
+    let inner = || -> Result<()> {
+      let channel = match message.channel_id.get().chain_err(|| "could not get channel")? {
+        Channel::Guild(c) => c,
+        _ => return Ok(())
+      };
+      let timeout = ::bot::CONNECTION.with(|c| {
+        use database::schema::timeouts::dsl;
+        dsl::timeouts
+          .filter(dsl::user_id.eq(message.author.id.0.to_string()).and(dsl::server_id.eq(channel.read().guild_id.0.to_string())))
+          .first(c)
       });
-      return;
-    }
 
-    if let Err(e) = self.bot.discord.delete_message(message.channel_id, message.id) {
-      warn!("could not delete message {} in {}: {}", message.id.0, message.channel_id.0, e);
-    }
-  }
+      let timeout: Timeout = match timeout {
+        Ok(t) => t,
+        _ => return Ok(())
+      };
 
-  fn handle_channel_create(&self, channel: &PublicChannel) {
-    let state_option = self.bot.state.read().unwrap();
-    let state = state_option.as_ref().unwrap();
-    let server = match state.servers().iter().find(|s| s.id == channel.server_id) {
-      Some(s) => s,
-      None => return
+      if timeout.ends() < Utc::now().timestamp() {
+        ::bot::CONNECTION.with(|c| {
+          if let Err(e) = ::diesel::delete(&timeout).execute(c).chain_err(|| "could not delete timeout") {
+            warn!("could not delete timeout: {}", e);
+          }
+        });
+        return Ok(());
+      }
+
+      if let Err(e) = message.delete() {
+        warn!("could not delete message {} in {}: {}", message.id.0, message.channel_id.0, e);
+      }
+      Ok(())
     };
-    if let Err(e) = ::commands::timeout::set_up_timeouts(self.bot.as_ref(), server) {
-      warn!("could not add timeout overwrite to {}: {}", channel.id.0, e);
+    if let Err(e) = inner() {
+      warn!("Timeouts error: {}", e);
     }
   }
-}
 
-impl ReceivesEvents for Timeouts {
-  fn receive(&self, event: &Event) {
-    match *event {
-      Event::MessageCreate(ref m) => self.handle_message(m),
-      Event::ChannelCreate(Channel::Public(ref c)) => self.handle_channel_create(c),
-      _ => {}
+  fn channel_create(&self, _: Context, channel: Arc<RwLock<GuildChannel>>) {
+    let inner = || -> Result<()> {
+      let guild_id = channel.read().guild_id;
+      let guild = match guild_id.find() {
+        Some(g) => g,
+        None => bail!("could not find channel")
+      };
+      if let Err(e) = ::commands::timeout::set_up_timeouts(&guild.read()) {
+        warn!("could not add timeout overwrite to {}: {}", channel.read().id.0, e);
+      }
+      Ok(())
+    };
+    if let Err(e) = inner() {
+      warn!("Timeouts error: {}", e);
     }
   }
 }

@@ -1,32 +1,24 @@
-use bot::LalafellBot;
-use listeners::ReceivesEvents;
-use discord::model::{Event, Message, MessageId, UserId};
 use database::models::{Message as DbMessage, NewMessage, NewEdit};
+
+use serenity::client::{Context, EventHandler};
+use serenity::model::channel::Message;
+use serenity::model::id::UserId;
+use serenity::model::event::MessageUpdateEvent;
 
 use diesel::prelude::*;
 
-use std::sync::Arc;
-
 #[allow(dead_code)]
-pub struct TrackChanges {
-  bot: Arc<LalafellBot>
-}
+pub struct TrackChanges;
 
 impl TrackChanges {
-  pub fn new(bot: Arc<LalafellBot>) -> Self {
-    TrackChanges {
-      bot
-    }
+  fn user_id(&self) -> UserId {
+    ::serenity::CACHE.read().user.id
   }
+}
 
-  fn get_user_id(&self) -> UserId {
-    let opt_state = self.bot.state.read().unwrap();
-    let state = opt_state.as_ref().unwrap();
-    state.user().id
-  }
-
-  fn handle_message(&self, message: &Message) {
-    if message.author.id == self.get_user_id() {
+impl EventHandler for TrackChanges {
+  fn message(&self, _: Context, message: Message) {
+    if message.author.id == self.user_id() {
       return;
     }
     ::bot::CONNECTION.with(|c| {
@@ -44,16 +36,16 @@ impl TrackChanges {
     });
   }
 
-  fn handle_message_update(&self, id: MessageId, content: String) {
+  fn message_update(&self, _: Context, update: MessageUpdateEvent) {
     ::bot::CONNECTION.with(|c| {
       use database::schema::messages::dsl;
       let message: Result<DbMessage, _> = dsl::messages
-        .filter(dsl::message_id.eq(id.0.to_string()))
+        .filter(dsl::message_id.eq(update.id.0.to_string()))
         .first(c);
       if let Ok(m) = message {
         let new_edit = NewEdit {
           message_id: m.id,
-          content: content
+          content: update.content.unwrap_or_default()
         };
         let res = ::diesel::insert_into(::database::schema::edits::table)
           .values(&new_edit)
@@ -63,21 +55,5 @@ impl TrackChanges {
         }
       }
     });
-  }
-}
-
-impl ReceivesEvents for TrackChanges {
-  fn receive(&self, event: &Event) {
-    match *event {
-      Event::MessageCreate(ref m) => self.handle_message(m),
-      Event::MessageUpdate {
-        ref id,
-        ref content,
-        ..
-      } => {
-        self.handle_message_update(*id, content.clone().unwrap_or_default());
-      },
-      _ => {}
-    }
   }
 }

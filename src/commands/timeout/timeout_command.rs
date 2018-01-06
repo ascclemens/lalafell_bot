@@ -1,15 +1,14 @@
-use bot::LalafellBot;
+use bot::BotEnv;
 use commands::*;
 use lalafell::error::*;
 use database::models::NewTimeout;
 use database::schema::timeouts;
 
-use lalafell::bot::Bot;
 use lalafell::commands::prelude::*;
 
-use discord::builders::EmbedBuilder;
-use discord::model::{Message, LiveServer, PublicChannel};
-use discord::model::permissions;
+use serenity::builder::CreateEmbed;
+use serenity::model::channel::{Message, GuildChannel};
+use serenity::model::misc::Mentionable;
 
 use diesel::prelude::*;
 
@@ -19,15 +18,11 @@ use std::sync::Arc;
 
 const USAGE: &'static str = "!timeout <who> <length>";
 
-pub struct TimeoutCommand {
-  bot: Arc<LalafellBot>
-}
+pub struct TimeoutCommand;
 
 impl TimeoutCommand {
-  pub fn new(bot: Arc<LalafellBot>) -> TimeoutCommand {
-    TimeoutCommand {
-      bot
-    }
+  pub fn new(_: Arc<BotEnv>) -> Self {
+    TimeoutCommand
   }
 
   fn parse_duration(duration: &str) -> Result<u64> {
@@ -59,12 +54,6 @@ impl TimeoutCommand {
   }
 }
 
-impl HasBot for TimeoutCommand {
-  fn bot(&self) -> &Bot {
-    self.bot.as_ref()
-  }
-}
-
 #[derive(Debug, Deserialize)]
 pub struct Params {
   who: MentionOrId,
@@ -76,39 +65,40 @@ impl HasParams for TimeoutCommand {
 }
 
 impl<'a> PublicChannelCommand<'a> for TimeoutCommand {
-  fn run(&self, message: &Message, server: &LiveServer, channel: &PublicChannel, params: &[&str]) -> CommandResult<'a> {
+  fn run(&self, _: &Context, message: &Message, guild: GuildId, channel: Arc<RwLock<GuildChannel>>, params: &[&str]) -> CommandResult<'a> {
     let params = self.params(USAGE, params)?;
-    let can_manage_roles = server.permissions_for(channel.id, message.author.id).contains(permissions::MANAGE_ROLES);
-    if !can_manage_roles {
+    let member = guild.member(&message.author).chain_err(|| "could not get member")?;
+    if !member.permissions().chain_err(|| "could not get permissions")?.manage_roles() {
       return Err(ExternalCommandFailure::default()
-        .message(|e: EmbedBuilder| e
+        .message(|e: CreateEmbed| e
           .title("Not enough permissions.")
           .description("You don't have enough permissions to use this command."))
         .wrap());
     }
 
-    let server_id = channel.server_id;
+    let server_id = channel.read().guild_id;
     let who = params.who;
 
-    let role_id = {
-      let state_option = self.bot.state.read().unwrap();
-      let state = state_option.as_ref().unwrap();
-      let live_server = match state.servers().iter().find(|s| s.id == server_id) {
-        Some(s) => s,
-        None => return Err("Could not find the server in the bot state. This is a bug.".into())
-      };
+    let mut timeout_member = match guild.member(*who) {
+      Ok(m) => m,
+      Err(_) => return Err("That user is not in this guild.".into())
+    };
 
-      match timeout::set_up_timeouts(self.bot.as_ref(), live_server) {
-        Ok(r) => {
-          if let Err(e) = self.bot.discord.add_member_role(live_server.id, *who, r) {
-            warn!("could not add user {} to timeout role: {}", who.0, e);
-          }
-          r
-        },
-        Err(e) => {
-          warn!("could not set up timeouts for {}: {}", live_server.id.0, e);
-          return Err("Could not set up timeouts for this server. Do I have enough permissions?".into());
+    let guild = match guild.find() {
+      Some(g) => g,
+      None => bail!("could not find channel")
+    };
+
+    let role_id = match timeout::set_up_timeouts(&guild.read()) {
+      Ok(r) => {
+        if let Err(e) = timeout_member.add_role(r) {
+          warn!("could not add user {} to timeout role: {}", who.0, e);
         }
+        r
+      },
+      Err(e) => {
+        warn!("could not set up timeouts for {}: {}", guild.read().id.0, e);
+        return Err("Could not set up timeouts for this server. Do I have enough permissions?".into());
       }
     };
 

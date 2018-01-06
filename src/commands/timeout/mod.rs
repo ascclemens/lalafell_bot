@@ -1,11 +1,12 @@
-use bot::LalafellBot;
 use database::models::ServerConfig;
 use error::*;
 
 use diesel::prelude::*;
 
-use discord::model::{RoleId, LiveServer, PermissionOverwrite, PermissionOverwriteType};
-use discord::model::permissions::{self, Permissions};
+use serenity::model::id::RoleId;
+use serenity::model::guild::Guild;
+use serenity::model::channel::{PermissionOverwrite, PermissionOverwriteType};
+use serenity::model::permissions::Permissions;
 
 pub mod timeout_command;
 pub mod untimeout;
@@ -16,25 +17,25 @@ pub use self::untimeout::UntimeoutCommand;
 lazy_static! {
   static ref ROLE_PERMISSIONS: Permissions = {
     let mut perm = Permissions::empty();
-    perm.insert(permissions::READ_MESSAGES);
-    perm.insert(permissions::READ_HISTORY);
-    perm.insert(permissions::VOICE_CONNECT);
+    perm.insert(Permissions::READ_MESSAGES);
+    perm.insert(Permissions::READ_MESSAGE_HISTORY);
+    perm.insert(Permissions::CONNECT);
     perm
   };
   static ref DENY_PERMISSIONS: Permissions = {
     let mut perm = Permissions::all();
-    perm.remove(permissions::READ_MESSAGES);
-    perm.remove(permissions::READ_HISTORY);
-    perm.remove(permissions::VOICE_CONNECT);
+    perm.remove(Permissions::READ_MESSAGES);
+    perm.remove(Permissions::READ_MESSAGE_HISTORY);
+    perm.remove(Permissions::CONNECT);
     perm
   };
 }
 
-pub fn set_up_timeouts(bot: &LalafellBot, server: &LiveServer) -> Result<RoleId> {
+pub fn set_up_timeouts(guild: &Guild) -> Result<RoleId> {
   let server_config: Option<ServerConfig> = ::bot::CONNECTION.with(|c| {
     use database::schema::server_configs::dsl;
     dsl::server_configs
-      .filter(dsl::server_id.eq(server.id.0.to_string()))
+      .filter(dsl::server_id.eq(guild.id.0.to_string()))
       .first(c)
       .optional()
       .chain_err(|| "could not load server configs")
@@ -45,9 +46,13 @@ pub fn set_up_timeouts(bot: &LalafellBot, server: &LiveServer) -> Result<RoleId>
   };
   let lower = role_name.to_lowercase();
 
-  let role_id = match server.roles.iter().find(|r| r.name.to_lowercase() == lower) {
+  let role_id = match guild.roles.values().find(|r| r.name.to_lowercase() == lower) {
     Some(r) => r.id,
-    None => bot.discord.create_role(server.id, Some(&role_name), Some(*ROLE_PERMISSIONS), None, None, None).chain_err(|| "could not create role")?.id
+    None =>  guild.create_role(|e| e
+      .name(&role_name)
+      .permissions(*ROLE_PERMISSIONS))
+      .chain_err(|| "could not create role")?
+      .id
   };
 
   let target = PermissionOverwrite {
@@ -56,12 +61,12 @@ pub fn set_up_timeouts(bot: &LalafellBot, server: &LiveServer) -> Result<RoleId>
     deny: *DENY_PERMISSIONS,
   };
 
-  for channel in &server.channels {
-    if channel.permission_overwrites.iter().any(|o| o.kind == target.kind) {
+  for channel in guild.channels.values() {
+    if channel.read().permission_overwrites.iter().any(|o| o.kind == target.kind) {
       continue;
     }
-    if let Err(e) = bot.discord.create_permission(channel.id, target.clone()) {
-      warn!("could not create permission overwrite for {}: {}", channel.id, e);
+    if let Err(e) = channel.read().create_permission(&target) {
+      warn!("could not create permission overwrite for {}: {}", channel.read().id, e);
     }
   }
   Ok(role_id)

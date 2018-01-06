@@ -1,11 +1,10 @@
-use bot::LalafellBot;
 use tasks::RunsTask;
+use bot::BotEnv;
 use commands::tag::Tagger;
 use lalafell::error::*;
 use database::models::Tag;
 
-use discord::State;
-use discord::model::{UserId, ServerId};
+use serenity::model::id::{UserId, GuildId};
 
 use chrono::Duration;
 use chrono::Utc;
@@ -26,15 +25,11 @@ impl AutoTagTask {
     }
   }
 
-  pub fn update_tag(s: &LalafellBot, state: &State, user: UserId, server: ServerId, character: u64) -> Result<Option<String>> {
-    let server = match state.servers().iter().find(|s| s.id.0 == server.0) {
-      Some(ser) => ser,
-      None => return Ok(Some(format!("Couldn't find server for user ID {}", user.0)))
-    };
-    Tagger::tag(s, user, server, character, false)
+  pub fn update_tag(env: &BotEnv, user: UserId, guild: GuildId, character: u64) -> Result<Option<String>> {
+    Tagger::tag(env, user, guild, character, false)
   }
 
-  pub fn run_once(&mut self, s: Arc<LalafellBot>) {
+  pub fn run_once(&mut self, env: Arc<BotEnv>) {
     thread::sleep(Duration::seconds(self.next_sleep).to_std().unwrap());
     self.next_sleep = Duration::minutes(10).num_seconds();
     info!("Autotag task running");
@@ -52,26 +47,15 @@ impl AutoTagTask {
       }
     };
     info!("{} tag{} to update", users.len(), if users.len() == 1 { "" } else { "s" });
-    {
-      let option_state = s.state.read().unwrap();
-      let state = match option_state.as_ref() {
-        Some(st) => st,
-        None => {
-          info!("Bot not connected. Will try again in 30 seconds.");
-          self.next_sleep = 30;
-          return;
-        }
-      };
-      for mut tag in users {
-        if let Err(e) = AutoTagTask::update_tag(s.as_ref(), state, UserId(*tag.user_id), ServerId(*tag.server_id), *tag.character_id) {
-          warn!("Couldn't update tag for user ID {}: {}", *tag.user_id, e);
-          continue;
-        }
-        tag.last_updated = Utc::now().timestamp();
-        let res: ::std::result::Result<Tag, _> = ::bot::CONNECTION.with(|c| tag.save_changes(c));
-        if let Err(e) = res {
-          warn!("could not update tag last_updated: {}", e);
-        }
+    for mut tag in users {
+      if let Err(e) = AutoTagTask::update_tag(env.as_ref(), UserId(*tag.user_id), GuildId(*tag.server_id), *tag.character_id) {
+        warn!("Couldn't update tag for user ID {}: {}", *tag.user_id, e);
+        continue;
+      }
+      tag.last_updated = Utc::now().timestamp();
+      let res: ::std::result::Result<Tag, _> = ::bot::CONNECTION.with(|c| tag.save_changes(c));
+      if let Err(e) = res {
+        warn!("could not update tag last_updated: {}", e);
       }
     }
     info!("Done updating autotags");
@@ -79,10 +63,10 @@ impl AutoTagTask {
 }
 
 impl RunsTask for AutoTagTask {
-  fn start(mut self, s: Arc<LalafellBot>) {
+  fn start(mut self, env: Arc<BotEnv>) {
     info!("Autotag task waiting {} seconds", self.next_sleep);
     loop {
-      self.run_once(s.clone());
+      self.run_once(env.clone());
     }
   }
 }

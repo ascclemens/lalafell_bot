@@ -1,12 +1,11 @@
-use bot::LalafellBot;
+use bot::BotEnv;
 use commands::*;
 use database::models::Tag;
 
-use lalafell::bot::Bot;
 use lalafell::commands::prelude::*;
 use lalafell::error::*;
 
-use discord::model::{Message, LiveServer, PublicChannel};
+use serenity::prelude::Mentionable;
 
 use diesel::prelude::*;
 
@@ -14,21 +13,11 @@ use std::sync::Arc;
 
 const USAGE: &'static str = "!viewtag <who>";
 
-pub struct ViewTagCommand {
-  bot: Arc<LalafellBot>
-}
+pub struct ViewTagCommand;
 
 impl ViewTagCommand {
-  pub fn new(bot: Arc<LalafellBot>) -> ViewTagCommand {
-    ViewTagCommand {
-      bot
-    }
-  }
-}
-
-impl HasBot for ViewTagCommand {
-  fn bot(&self) -> &Bot {
-    self.bot.as_ref()
+  pub fn new(_: Arc<BotEnv>) -> Self {
+    ViewTagCommand
   }
 }
 
@@ -42,15 +31,14 @@ impl HasParams for ViewTagCommand {
 }
 
 impl<'a> PublicChannelCommand<'a> for ViewTagCommand {
-  fn run(&self, _: &Message, _: &LiveServer, channel: &PublicChannel, params: &[&str]) -> CommandResult<'a> {
+  fn run(&self, _: &Context, _: &Message, guild: GuildId, _: Arc<RwLock<GuildChannel>>, params: &[&str]) -> CommandResult<'a> {
     let params = self.params(USAGE, params)?;
-    let server_id = channel.server_id;
     let who = params.who;
 
     let tag: Option<Tag> = ::bot::CONNECTION.with(|c| {
       use database::schema::tags::dsl;
       dsl::tags
-        .filter(dsl::user_id.eq(who.0.to_string()).and(dsl::server_id.eq(server_id.0.to_string())))
+        .filter(dsl::user_id.eq(who.0.to_string()).and(dsl::server_id.eq(guild.0.to_string())))
         .first(c)
         .optional()
         .chain_err(|| "could not load tags")

@@ -1,11 +1,11 @@
-use bot::LalafellBot;
+use bot::BotEnv;
 use database::models::{Message as DbMessage, Edit};
 
-use lalafell::bot::Bot;
 use lalafell::commands::prelude::*;
 use lalafell::error::*;
 
-use discord::model::{Message, LiveServer, PublicChannel, permissions, ChannelId, MessageId};
+use serenity::builder::CreateEmbed;
+use serenity::model::id::ChannelId;
 
 use diesel::prelude::*;
 
@@ -13,21 +13,11 @@ use std::sync::Arc;
 
 const USAGE: &'static str = "!viewedits <message ID>";
 
-pub struct ViewEditsCommand {
-  bot: Arc<LalafellBot>
-}
+pub struct ViewEditsCommand;
 
 impl ViewEditsCommand {
-  pub fn new(bot: Arc<LalafellBot>) -> ViewEditsCommand {
-    ViewEditsCommand {
-      bot
-    }
-  }
-}
-
-impl HasBot for ViewEditsCommand {
-  fn bot(&self) -> &Bot {
-    self.bot.as_ref()
+  pub fn new(_: Arc<BotEnv>) -> Self {
+    ViewEditsCommand
   }
 }
 
@@ -41,13 +31,16 @@ impl HasParams for ViewEditsCommand {
 }
 
 impl<'a> PublicChannelCommand<'a> for ViewEditsCommand {
-  fn run(&self, message: &Message, server: &LiveServer, channel: &PublicChannel, params: &[&str]) -> CommandResult<'a> {
+  fn run(&self, _: &Context, message: &Message, guild: GuildId, _: Arc<RwLock<GuildChannel>>, params: &[&str]) -> CommandResult<'a> {
     let params = self.params(USAGE, params)?;
 
-    let has_perms = server.permissions_for(channel.id, message.author.id).contains(permissions::MANAGE_MESSAGES);
-    if !has_perms {
+    let member = match guild.member(message.author.id) {
+      Ok(m) => m,
+      Err(_) => return Err("You must be a member of the guild to use that command.".into())
+    };
+    if !member.permissions().chain_err(|| "could not get permissions")?.manage_messages() {
       return Err(ExternalCommandFailure::default()
-        .message(|e: EmbedBuilder| e
+        .message(|e: CreateEmbed| e
           .title("Not enough permissions.")
           .description("You don't have enough permissions to use this command."))
         .wrap());
@@ -66,12 +59,16 @@ impl<'a> PublicChannelCommand<'a> for ViewEditsCommand {
       None => return Err("No message with that ID recorded.".into())
     };
 
-    let channel = match server.channels.iter().find(|c| c.id.0 == *message.channel_id) {
-      Some(c) => c,
+    let guild = match guild.find() {
+      Some(g) => g,
+      None => return Err("The guild must be cached.".into())
+    };
+    let channel = match guild.read().channels.get(&ChannelId(*message.channel_id)) {
+      Some(c) => c.clone(),
       None => return Err("You cannot view messages not on the current server.".into())
     };
 
-    let discord_message = self.bot.discord.get_message(ChannelId(*message.channel_id), MessageId(params.message_id)).ok();
+    let discord_message = ChannelId(*message.channel_id).message(params.message_id).ok();
 
     let edits: Vec<Edit> = ::bot::CONNECTION.with(|c| Edit::belonging_to(&message).load(c).chain_err(|| "could not load edits"))?;
     if edits.is_empty() {
@@ -92,10 +89,10 @@ impl<'a> PublicChannelCommand<'a> for ViewEditsCommand {
     }
 
     let author = discord_message.map(|m| format!(" by {}", m.author.name)).unwrap_or_default();
-    let channel_name = channel.name.clone();
+    let channel_name = channel.read().name.clone();
 
     Ok(CommandSuccess::default()
-      .message(move |e: EmbedBuilder| e
+      .message(move |e: CreateEmbed| e
         .title(&format!("Message{} in #{}", author, channel_name))
         .description(&format!("```diff\n{}```", result))))
   }

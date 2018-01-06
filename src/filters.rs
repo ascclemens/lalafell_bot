@@ -1,6 +1,6 @@
 use lalafell::commands::MentionOrId;
 
-use discord::model::{Member, Role};
+use serenity::model::guild::{Member, Role};
 
 pub enum Filter {
   Include(FilterKind),
@@ -38,7 +38,7 @@ impl Filter {
         };
         member.roles.iter().any(|r| *r == role.id) == include
       }
-      FilterKind::User(id) => (member.user.id.0 == id) == include
+      FilterKind::User(id) => (member.user.read().id.0 == id) == include
     }
   }
 }

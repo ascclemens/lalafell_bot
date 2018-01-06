@@ -1,6 +1,8 @@
 use database::models::{DeleteAllMessages, NewDeleteAllMessages};
 
-use discord::model::{permissions, UserId, ChannelId, LiveServer};
+use serenity::prelude::Mentionable;
+use serenity::builder::CreateEmbed;
+use serenity::model::id::{UserId, ChannelId};
 
 use diesel;
 use diesel::prelude::*;
@@ -38,10 +40,11 @@ fn list_all() -> Result<String> {
     .join("\n"))
 }
 
-pub fn delete_all_messages<'a>(author: UserId, server: &LiveServer, args: &[String]) -> CommandResult<'a> {
-  if !server.permissions_for(server.id.main(), author).contains(permissions::MANAGE_MESSAGES) {
+pub fn delete_all_messages<'a>(author: UserId, guild: GuildId, args: &[String]) -> CommandResult<'a> {
+  let member = guild.member(author).chain_err(|| "could not get member")?;
+  if !member.permissions().chain_err(|| "could not get permissions")?.manage_messages() {
     return Err(ExternalCommandFailure::default()
-      .message(|e: EmbedBuilder| e
+      .message(|e: CreateEmbed| e
         .title("Not enough permissions.")
         .description("You don't have enough permissions to use this command."))
       .wrap());
@@ -59,7 +62,7 @@ pub fn delete_all_messages<'a>(author: UserId, server: &LiveServer, args: &[Stri
         use database::schema::delete_all_messages::dsl;
         dsl::delete_all_messages
           .filter(dsl::channel_id.eq(params.channel.0.to_string())
-            .and(dsl::server_id.eq(server.id.0.to_string())))
+            .and(dsl::server_id.eq(guild.0.to_string())))
           .load(c)
           .chain_err(|| "could not load delete_all_messages")
       })?;
@@ -67,7 +70,7 @@ pub fn delete_all_messages<'a>(author: UserId, server: &LiveServer, args: &[Stri
         return Err("A delete all messages already exists for that channel.".into());
       }
 
-      let ndam = NewDeleteAllMessages::new(server.id.0, params.channel.0, i32::from(params.after), &params.except.unwrap_or_default());
+      let ndam = NewDeleteAllMessages::new(guild.0, params.channel.0, i32::from(params.after), &params.except.unwrap_or_default());
       ::bot::CONNECTION.with(|c| {
         use database::schema::delete_all_messages;
         diesel::insert_into(delete_all_messages::table)

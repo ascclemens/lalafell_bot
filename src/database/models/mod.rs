@@ -33,7 +33,7 @@ pub use self::config::{ServerConfig, NewServerConfig, ChannelConfig, NewChannelC
 pub use self::auto_replies::{AutoReply, NewAutoReply};
 pub use self::delete_all_messages::{DeleteAllMessages, NewDeleteAllMessages};
 
-use discord::model::{UserId, ServerId, ChannelId, MessageId, RoleId, EmojiId};
+use serenity::model::id::{UserId, GuildId, ChannelId, MessageId, RoleId, EmojiId};
 
 use std::error::Error;
 use std::ops::Deref;
@@ -142,7 +142,7 @@ macro_rules! from {
 
 from! {
 	UserId;
-	ServerId;
+	GuildId;
 	ChannelId;
 	MessageId;
 	RoleId;

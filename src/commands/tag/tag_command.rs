@@ -1,33 +1,21 @@
-use bot::LalafellBot;
+use bot::BotEnv;
 use commands::*;
 use commands::tag::Tagger;
 
-use lalafell::bot::Bot;
+use lalafell::error::*;
 use lalafell::commands::prelude::*;
 
-use discord::builders::EmbedBuilder;
-use discord::model::{LiveServer, PublicChannel};
-use discord::model::permissions;
-
-use std::sync::Arc;
+use serenity::builder::CreateEmbed;
 
 const USAGE: &'static str = "!tag <who> <server> <character>";
 
 pub struct TagCommand {
-  bot: Arc<LalafellBot>
+  env: Arc<BotEnv>
 }
 
 impl TagCommand {
-  pub fn new(bot: Arc<LalafellBot>) -> TagCommand {
-    TagCommand {
-      bot
-    }
-  }
-}
-
-impl HasBot for TagCommand {
-  fn bot(&self) -> &Bot {
-    self.bot.as_ref()
+  pub fn new(env: Arc<BotEnv>) -> TagCommand {
+    TagCommand { env }
   }
 }
 
@@ -43,12 +31,12 @@ impl HasParams for TagCommand {
 }
 
 impl<'a> PublicChannelCommand<'a> for TagCommand {
-  fn run(&self, message: &Message, server: &LiveServer, channel: &PublicChannel, params: &[&str]) -> CommandResult<'a> {
+  fn run(&self, _: &Context, message: &Message, guild: GuildId, _: Arc<RwLock<GuildChannel>>, params: &[&str]) -> CommandResult<'a> {
     let params = self.params(USAGE, params)?;
-    let can_manage_roles = server.permissions_for(channel.id, message.author.id).contains(permissions::MANAGE_ROLES);
-    if !can_manage_roles {
+    let member = guild.member(&message.author).chain_err(|| "could not get member")?;
+    if !member.permissions().chain_err(|| "could not get permissions")?.manage_roles() {
       return Err(ExternalCommandFailure::default()
-        .message(|e: EmbedBuilder| e
+        .message(|e: CreateEmbed| e
           .title("Not enough permissions.")
           .description("You don't have enough permissions to use this command."))
         .wrap());
@@ -58,13 +46,13 @@ impl<'a> PublicChannelCommand<'a> for TagCommand {
     let ff_server = params.server;
     let name = params.name.join(" ");
 
-    match Tagger::search_tag(self.bot.as_ref(), *who, server, &ff_server, &name, can_manage_roles) {
+    match Tagger::search_tag(self.env.as_ref(), *who, guild, &ff_server, &name, true) {
       Ok(Some(error)) => Err(ExternalCommandFailure::default()
-        .message(move |e: EmbedBuilder| e.description(&error))
+        .message(move |e: CreateEmbed| e.description(&error))
         .wrap()),
       Ok(None) => Ok(CommandSuccess::default()),
       Err(_) => Err(ExternalCommandFailure::default()
-        .message(move |e: EmbedBuilder| e.description("There was an error while tagging. The user most likely does not exist or is not on the server."))
+        .message(move |e: CreateEmbed| e.description("There was an error while tagging. The user most likely does not exist or is not on the server."))
         .wrap())
     }
   }
