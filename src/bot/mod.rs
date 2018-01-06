@@ -7,8 +7,7 @@ use error::*;
 use serenity::client::Client;
 
 use diesel::Connection;
-use diesel::connection::SimpleConnection;
-use diesel::sqlite::SqliteConnection;
+use diesel::pg::PgConnection;
 
 use std::sync::Arc;
 use std::env;
@@ -16,7 +15,7 @@ use std::env;
 mod creation;
 
 thread_local! {
-  pub static CONNECTION: SqliteConnection = LalafellBot::database_connection(&env::var("LB_DATABASE_LOCATION").unwrap()).unwrap();
+  pub static CONNECTION: PgConnection = PgConnection::establish(&env::var("LB_DATABASE_LOCATION").unwrap()).unwrap();
 }
 
 pub use self::creation::{create_bot, Handler};
@@ -44,12 +43,5 @@ impl LalafellBot {
       discord: client,
       env
     })
-  }
-
-  pub fn database_connection(location: &str) -> Result<SqliteConnection> {
-    let connection = SqliteConnection::establish(location)
-      .chain_err(|| format!("could not connect to sqlite database at {}", location))?;
-    connection.batch_execute("PRAGMA foreign_keys = ON;").chain_err(|| "could not enable foreign keys")?;
-    Ok(connection)
   }
 }

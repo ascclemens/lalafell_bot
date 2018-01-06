@@ -1,5 +1,5 @@
 CREATE TABLE auto_replies (
-  id INTEGER PRIMARY KEY NOT NULL,
+  id SERIAL PRIMARY KEY,
   server_id TEXT NOT NULL,
   channel_id TEXT NOT NULL,
   message TEXT NOT NULL,

@@ -45,7 +45,7 @@ use diesel::expression::AsExpression;
 use diesel::expression::helper_types::AsExprOf;
 use diesel::backend::Backend;
 use diesel::row::Row;
-use diesel::sqlite::Sqlite;
+use diesel::pg::Pg;
 
 #[derive(Debug)]
 struct SqlError(String);
@@ -86,13 +86,14 @@ impl<DB> Queryable<Text, DB> for U64
   }
 }
 
-impl FromSql<Text, Sqlite> for U64 {
-  fn from_sql(bytes: Option<&<Sqlite as Backend>::RawValue>) -> Result<Self, Box<Error + Send + Sync>> {
+impl FromSql<Text, Pg> for U64 {
+  fn from_sql(bytes: Option<&<Pg as Backend>::RawValue>) -> Result<Self, Box<Error + Send + Sync>> {
     let bytes = match bytes {
       Some(b) => b,
       None => return Err(box SqlError::new("unexpected null"))
     };
-    let u = bytes.read_text().parse::<u64>().map_err(Box::new)?;
+    let string = String::from_utf8(bytes.to_vec()).map_err(Box::new)?;
+    let u = string.parse::<u64>().map_err(Box::new)?;
     Ok(U64(u))
   }
 }

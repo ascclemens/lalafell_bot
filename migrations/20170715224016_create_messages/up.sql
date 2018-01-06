@@ -1,5 +1,5 @@
 CREATE TABLE messages (
-  id INTEGER PRIMARY KEY NOT NULL,
+  id SERIAL PRIMARY KEY,
   message_id TEXT NOT NULL,
   channel_id TEXT NOT NULL,
   content TEXT NOT NULL
