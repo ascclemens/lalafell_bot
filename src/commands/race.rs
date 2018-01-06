@@ -5,8 +5,6 @@ use lalafell::commands::prelude::*;
 use lalafell::error;
 use lalafell::error::*;
 
-use std::sync::Arc;
-
 const USAGE: &'static str = "!race <server> <character>";
 
 pub struct RaceCommand {
