@@ -38,7 +38,7 @@ impl<'a> PublicChannelCommand<'a> for RandomReactionCommand {
   fn run(&self, _: &Context, _: &Message, guild: GuildId, _: Arc<RwLock<GuildChannel>>, params: &[&str]) -> CommandResult<'a> {
     let params = self.params(USAGE, params)?;
     // FIXME: support > 100
-    let reactions = params.channel.reaction_users::<u64, ReactionType, u64>(params.message_id, ReactionType::Unicode(params.emoji), Some(100), None)
+    let reactions = params.channel.reaction_users(params.message_id, ReactionType::Unicode(params.emoji), Some(100), None)
       .map_err(|_| into!(CommandFailure, "Could not get reactions."))?;
     let filters: Option<Vec<Filter>> = params.filters.unwrap_or_default().iter().map(|x| Filter::parse(x)).collect();
     let filters = match filters {
