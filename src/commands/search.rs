@@ -2,11 +2,9 @@ use bot::BotEnv;
 use filters::Filter;
 
 use lalafell::commands::prelude::*;
-use lalafell::error::*;
 
 use serenity::prelude::Mentionable;
 use serenity::model::guild::Role;
-use serenity::builder::CreateEmbed;
 
 use chrono::Utc;
 
@@ -30,17 +28,8 @@ impl HasParams for SearchCommand {
 }
 
 impl<'a> PublicChannelCommand<'a> for SearchCommand {
-  fn run(&self, _: &Context, message: &Message, guild: GuildId, _: Arc<RwLock<GuildChannel>>, params: &[&str]) -> CommandResult<'a> {
+  fn run(&self, _: &Context, _: &Message, guild: GuildId, _: Arc<RwLock<GuildChannel>>, params: &[&str]) -> CommandResult<'a> {
     let params = self.params(USAGE, params)?;
-
-    let member = guild.member(&message.author).chain_err(|| "could not get member")?;
-    if !member.permissions().chain_err(|| "could not get permissions")?.manage_roles() {
-      return Err(ExternalCommandFailure::default()
-        .message(|e: CreateEmbed| e
-          .title("Not enough permissions.")
-          .description("You don't have enough permissions to use this command."))
-        .wrap());
-    }
 
     let filters: Vec<Filter> = match params.filter_strings.iter().map(|x| Filter::parse(x)).collect::<Option<_>>() {
       Some(f) => f,
