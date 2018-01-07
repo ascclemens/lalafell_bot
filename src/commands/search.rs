@@ -6,6 +6,8 @@ use lalafell::commands::prelude::*;
 use serenity::prelude::Mentionable;
 use serenity::model::guild::Role;
 
+use itertools::Itertools;
+
 use chrono::Utc;
 
 const USAGE: &str = "!search <filters>";
@@ -40,6 +42,8 @@ impl<'a> PublicChannelCommand<'a> for SearchCommand {
     let now = Utc::now();
     let matches: Vec<String> = guild.read().members.values()
       .filter(|m| filters.iter().all(|f| f.matches(m, &roles)))
+      .sorted_by(|a, b| a.display_name().cmp(&b.display_name()))
+      .into_iter()
       .map(|m| format!("{} - {}",
         m.mention(),
         m.joined_at
