@@ -33,16 +33,6 @@ extern crate rand;
 extern crate typemap;
 extern crate itertools;
 
-// macro_rules! try_or {
-//   ($e: expr, $o: expr) => {{
-//     #[allow(unused_variables)]
-//     match $e {
-//       Ok(x) => x,
-//       Err(e) => $o
-//     }
-//   }}
-// }
-
 macro_rules! some_or {
   ($e: expr, $o: expr) => {{
     #[allow(unused_variables)]
