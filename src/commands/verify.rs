@@ -2,7 +2,6 @@ use bot::BotEnv;
 use lodestone::Lodestone;
 use database::models::{Tag, Verification};
 
-use lalafell::error;
 use lalafell::error::*;
 use lalafell::commands::prelude::*;
 
@@ -66,10 +65,7 @@ impl<'a> PublicChannelCommand<'a> for VerifyCommand {
     };
     let profile = Lodestone::new().character_profile(*user.character_id)?;
     if profile.contains(verification_string) {
-      let guild = match guild.find() {
-        Some(g) => g,
-        None => return Err(into!(error::Error, "could not find server for channel").into())
-      };
+      let guild = some_or!(guild.find(), bail!("could not find guild"));
 
       verification.verified = true;
       ::bot::CONNECTION.with(|c| verification.save_changes::<Verification>(c).chain_err(|| "could not update verification"))?;

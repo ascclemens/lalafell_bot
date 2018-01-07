@@ -84,10 +84,7 @@ impl<'a> PublicChannelCommand<'a> for TimeoutCommand {
       Err(_) => return Err("That user is not in this guild.".into())
     };
 
-    let guild = match guild.find() {
-      Some(g) => g,
-      None => bail!("could not find channel")
-    };
+    let guild = some_or!(guild.find(), bail!("could not find guild"));
 
     let role_id = match timeout::set_up_timeouts(&guild.read()) {
       Ok(r) => {

@@ -59,10 +59,7 @@ impl<'a> PublicChannelCommand<'a> for ViewEditsCommand {
       None => return Err("No message with that ID recorded.".into())
     };
 
-    let guild = match guild.find() {
-      Some(g) => g,
-      None => return Err("The guild must be cached.".into())
-    };
+    let guild = some_or!(guild.find(), bail!("could not find guild"));
     let channel = match guild.read().channels.get(&ChannelId(*message.channel_id)) {
       Some(c) => Arc::clone(c),
       None => return Err("You cannot view messages not on the current server.".into())

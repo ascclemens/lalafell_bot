@@ -76,7 +76,7 @@ impl AutoReplyListener {
   fn receive(&self, replies: Vec<AutoReply>, user: UserIdOrMember, guild: GuildId) -> Result<()> {
     let live_server = match guild.find() {
       Some(g) => g.read().clone(),
-      None => bail!("could not get guild from cache")
+      None => bail!("could not find guild")
     };
     let member = match user {
       UserIdOrMember::Member(m) => m,

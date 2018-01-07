@@ -43,10 +43,7 @@ impl<'a> PublicChannelCommand<'a> for RandomReactionCommand {
       Some(f) => f,
       None => return Err("Invalid filters.".into())
     };
-    let guild = match guild.find() {
-      Some(g) => g,
-      None => return Err("The guild must be cached.".into())
-    };
+    let guild = some_or!(guild.find(), bail!("could not find guild"));
     // FIXME: do less cloning
     let roles: Vec<Role> = guild.read().roles.values().cloned().collect();
     let members: Vec<Member> = guild.read().members.values().cloned().collect();
