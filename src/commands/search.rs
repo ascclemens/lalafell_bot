@@ -66,6 +66,10 @@ impl<'a> PublicChannelCommand<'a> for SearchCommand {
           })
           .unwrap_or_else(|| String::from("unknown"))))
       .collect();
-    Ok(matches.join("\n").into())
+    let to_send = matches.join("\n");
+    if to_send.len() > 2000 {
+      return Err("Result was too large. Try a smaller filter.".into());
+    }
+    Ok(to_send.into())
   }
 }
