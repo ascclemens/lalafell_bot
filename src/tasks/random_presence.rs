@@ -33,7 +33,7 @@ impl RunsTask for RandomPresenceTask {
   fn start(mut self, env: Arc<BotEnv>) {
     loop {
       if self.next_sleep == 0 {
-        self.next_sleep = ::std::cmp::max(10, env.config.bot.presence.change_frequency);
+        self.next_sleep = ::std::cmp::max(12, env.config.bot.presence.change_frequency);
       }
       thread::sleep(Duration::seconds(self.next_sleep).to_std().unwrap());
       info!("Changing presence");
