@@ -15,6 +15,7 @@ use lalafell::error::*;
 use lalafell::commands::prelude::*;
 
 use serenity::prelude::Mentionable;
+use serenity::builder::EditRole;
 use serenity::model::guild::Role;
 use serenity::model::id::{RoleId, UserId};
 use serenity::Error as SError;
@@ -85,12 +86,18 @@ impl Tagger {
   }
 
   fn find_or_create_role(guild: GuildId, name: &str, add_roles: &mut Vec<Role>, created_roles: &mut Vec<Role>) -> Result<()> {
+    Tagger::find_or_create_role_and(guild, name, add_roles, created_roles, |r| r)
+  }
+
+  fn find_or_create_role_and<F>(guild: GuildId, name: &str, add_roles: &mut Vec<Role>, created_roles: &mut Vec<Role>, f: F) -> Result<()>
+    where F: FnOnce(EditRole) -> EditRole
+  {
     let lower_name = name.to_lowercase();
     let guild = guild.get().chain_err(|| "could not get guild")?;
     match guild.roles.values().find(|x| x.name.to_lowercase() == lower_name) {
       Some(r) => add_roles.push(r.clone()),
       None => {
-        let role = guild.create_role(|r| r.name(&lower_name)).chain_err(|| "could not create role")?;
+        let role = guild.create_role(|r| f(r).name(&lower_name)).chain_err(|| "could not create role")?;
         created_roles.push(role);
       }
     }
@@ -194,7 +201,7 @@ impl Tagger {
     let mut add_roles = Vec::new();
     Tagger::find_or_create_role(on, &character.data.race, &mut add_roles, &mut created_roles)?;
     Tagger::find_or_create_role(on, &character.data.gender, &mut add_roles, &mut created_roles)?;
-    Tagger::find_or_create_role(on, &character.server, &mut add_roles, &mut created_roles)?;
+    Tagger::find_or_create_role_and(on, &character.server, &mut add_roles, &mut created_roles, |r| r.hoist(true))?;
 
     if is_verified {
       Tagger::find_or_create_role(on, "verified", &mut add_roles, &mut created_roles)?;
