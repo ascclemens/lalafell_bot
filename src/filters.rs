@@ -23,8 +23,8 @@ impl Filter {
       if !input[last_index..last_index + i].trim().is_empty() {
         return None;
       }
-      if let Some(role) = Filter::lexical_parse(&input[last_index + i..]) {
-        last_index += role.len();
+      if let Some((bytes, role)) = Filter::lexical_parse(&input[last_index + i..]) {
+        last_index += bytes;
         roles.push(role);
       }
       last_index += i;
@@ -36,12 +36,14 @@ impl Filter {
     }
   }
 
-  fn lexical_parse(input: &str) -> Option<String> {
+  fn lexical_parse(input: &str) -> Option<(usize, String)> {
+    let mut consumed_bytes = 0;
     let mut acc = String::new();
     let mut escaped = false;
     let mut take_whitespace = false;
     for c in input.chars() {
       if c == '`' {
+        consumed_bytes += c.len_utf8();
         if take_whitespace {
           break;
         } else {
@@ -50,11 +52,13 @@ impl Filter {
         }
       }
       if c == '\\' && !escaped {
+        consumed_bytes += c.len_utf8();
         escaped = true;
         continue;
       }
       if escaped {
         acc.push(c);
+        consumed_bytes += c.len_utf8();
         escaped = false;
         continue;
       }
@@ -62,11 +66,12 @@ impl Filter {
         break;
       }
       acc.push(c);
+      consumed_bytes += c.len_utf8();
     }
     if acc.is_empty() {
       None
     } else {
-      Some(acc)
+      Some((consumed_bytes, acc))
     }
   }
 
