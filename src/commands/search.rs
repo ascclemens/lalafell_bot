@@ -38,7 +38,8 @@ impl<'a> PublicChannelCommand<'a> for SearchCommand {
       None => return Err("Invalid filters.".into())
     };
     let guild = some_or!(guild.find(), bail!("could not find guild"));
-    let roles: Vec<Role> = guild.read().roles.values().cloned().collect();
+    let reader = guild.read();
+    let roles: Vec<&Role> = reader.roles.values().collect();
     let now = Utc::now();
     let matches: Vec<String> = guild.read().members.values()
       .filter(|m| filters.iter().all(|f| f.matches(m, &roles)))

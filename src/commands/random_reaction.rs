@@ -44,10 +44,10 @@ impl<'a> PublicChannelCommand<'a> for RandomReactionCommand {
       None => return Err("Invalid filters.".into())
     };
     let guild = some_or!(guild.find(), bail!("could not find guild"));
-    // FIXME: do less cloning
-    let roles: Vec<Role> = guild.read().roles.values().cloned().collect();
-    let members: Vec<Member> = guild.read().members.values().cloned().collect();
-    let members: Vec<&Member> = reactions.into_iter()
+    let reader = guild.read();
+    let roles: Vec<&Role> = reader.roles.values().collect();
+    let members: Vec<&Member> = reader.members.values().collect();
+    let members: Vec<&&Member> = reactions.into_iter()
       .map(|u| members.iter().find(|m| m.user.read().id == u.id))
       .filter(Option::is_some)
       .map(Option::unwrap)

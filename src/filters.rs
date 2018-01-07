@@ -2,6 +2,8 @@ use lalafell::commands::MentionOrId;
 
 use serenity::model::guild::{Member, Role};
 
+use std::borrow::Borrow;
+
 pub enum Filter {
   Include(FilterKind),
   Exclude(FilterKind)
@@ -98,11 +100,12 @@ impl Filter {
     }
   }
 
-  pub fn matches(&self, member: &Member, roles: &[Role]) -> bool {
+  pub fn matches<I: Borrow<Role>>(&self, member: &Member, roles: &[I]) -> bool {
     let (include, fk) = match *self {
       Filter::Include(ref fk) => (true, fk),
       Filter::Exclude(ref fk) => (false, fk)
     };
+    let roles: Vec<&Role> = roles.iter().map(|x| x.borrow()).collect();
     match *fk {
       FilterKind::Role(ref role_name) => {
         let role_name = role_name.to_lowercase();
