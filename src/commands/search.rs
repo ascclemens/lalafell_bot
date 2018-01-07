@@ -70,6 +70,9 @@ impl<'a> PublicChannelCommand<'a> for SearchCommand {
     if to_send.len() > 2000 {
       return Err("Result was too large. Try a smaller filter.".into());
     }
-    Ok(to_send.into())
+    Ok(CommandSuccess::default()
+      .message(move |e: CreateEmbed| e
+        .description(to_send)
+        .footer(|f| f.text(format!("{} member{}", matches.len(), if matches.len() == 1 { "" } else { "s" })))))
   }
 }
