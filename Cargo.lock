@@ -594,7 +594,7 @@ dependencies = [
 [[package]]
 name = "lalafell"
 version = "0.1.0"
-source = "git+https://github.com/jkcclemens/lalafell#3ff673cdf39acbbdd939602746bb8c9b367be153"
+source = "git+https://github.com/jkcclemens/lalafell#951c6f583cd9c5fe4618129c347370b117fcc143"
 dependencies = [
  "ansi_term 0.9.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "chrono 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -1228,7 +1228,7 @@ dependencies = [
 [[package]]
 name = "serenity"
 version = "0.5.0"
-source = "git+https://github.com/zeyla/serenity?branch=v0.5.0#a6a564667e10c789cd5876521b1c9f4f9f321685"
+source = "git+https://github.com/zeyla/serenity?branch=v0.5.0#0b91c3bf51698a196d69530df3f592e645d9131c"
 dependencies = [
  "base64 0.9.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "bitflags 1.0.1 (registry+https://github.com/rust-lang/crates.io-index)",
