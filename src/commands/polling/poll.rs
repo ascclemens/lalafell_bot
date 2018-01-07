@@ -10,7 +10,7 @@ use lalafell::error::*;
 
 use std::boxed::FnBox;
 
-const USAGE: &'static str = "!poll <poll text>\n<option>\n<option>...";
+const USAGE: &str = "!poll <poll text>\n<option>\n<option>...";
 
 pub struct PollCommand;
 

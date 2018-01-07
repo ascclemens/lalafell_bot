@@ -42,7 +42,7 @@ impl TaskManager {
   }
 
   pub fn start_task<T: RunsTask + Send + 'static>(&self, task: T) {
-    let thread_env = self.env.clone();
+    let thread_env = Arc::clone(&self.env);
     thread::spawn(move || {
       task.start(thread_env);
     });

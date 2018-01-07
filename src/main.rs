@@ -97,7 +97,7 @@ fn inner() -> Result<()> {
     Err(e) => bail!("could not create bot: {}", e)
   };
 
-  let shard_manager = bot.discord.shard_manager.clone();
+  let shard_manager = Arc::clone(&bot.discord.shard_manager);
 
   ctrlc::set_handler(move || {
     info!("Stopping main loop");

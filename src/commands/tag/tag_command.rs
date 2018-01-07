@@ -7,7 +7,7 @@ use lalafell::commands::prelude::*;
 
 use serenity::builder::CreateEmbed;
 
-const USAGE: &'static str = "!tag <who> <server> <character>";
+const USAGE: &str = "!tag <who> <server> <character>";
 
 pub struct TagCommand {
   env: Arc<BotEnv>

@@ -8,7 +8,7 @@ use serenity::model::id::UserId;
 use super::channel;
 use super::server;
 
-const USAGE: &'static str = "!configure <subcommand/help>";
+const USAGE: &str = "!configure <subcommand/help>";
 
 pub struct ConfigureCommand;
 

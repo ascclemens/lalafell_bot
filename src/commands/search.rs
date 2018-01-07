@@ -8,7 +8,7 @@ use serenity::model::guild::Role;
 
 use chrono::Utc;
 
-const USAGE: &'static str = "!search <filters>";
+const USAGE: &str = "!search <filters>";
 
 pub struct SearchCommand;
 
@@ -43,7 +43,7 @@ impl<'a> PublicChannelCommand<'a> for SearchCommand {
       .map(|m| format!("{} - {}",
         m.mention(),
         m.joined_at
-          .map(|d| now.clone().signed_duration_since(d))
+          .map(|d| now.signed_duration_since(d))
           .map(|d| {
             let mut res = String::new();
             let seconds = d.num_seconds() % 60;

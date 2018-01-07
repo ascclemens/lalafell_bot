@@ -11,16 +11,16 @@ pub struct ReactionAuthorize;
 
 impl EventHandler for ReactionAuthorize {
   fn reaction_add(&self, context: Context, reaction: Reaction) {
-    ReactionAuthorize::receive(context, reaction, true);
+    ReactionAuthorize::receive(context, &reaction, true);
   }
 
   fn reaction_remove(&self, context: Context, reaction: Reaction) {
-    ReactionAuthorize::receive(context, reaction, false);
+    ReactionAuthorize::receive(context, &reaction, false);
   }
 }
 
 impl ReactionAuthorize {
-  fn receive(_: Context, r: Reaction, added: bool) {
+  fn receive(_: Context, r: &Reaction, added: bool) {
     let inner = || -> Result<()> {
       let channel = match r.channel_id.get().chain_err(|| "could not get channel")? {
         Channel::Guild(c) => c.read().clone(),

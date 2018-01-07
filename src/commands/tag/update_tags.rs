@@ -26,10 +26,10 @@ impl<'a> Command<'a> for UpdateTagsCommand {
           .description("You don't have enough permissions to use this command."))
         .wrap());
     }
-    let thread_env = self.env.clone();
+    let thread_env = Arc::clone(&self.env);
     let mut task = AutoTagTask::new();
     task.next_sleep = 0;
-    ::std::thread::spawn(move || task.run_once(thread_env));
+    ::std::thread::spawn(move || task.run_once(&thread_env));
     Ok("Task started.".into())
   }
 }

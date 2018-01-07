@@ -17,8 +17,8 @@ use chrono::Duration;
 use std::sync::Arc;
 use std::io::Read;
 
-const USAGE: &'static str = "!imagedump <url>";
-const VALID_EXTENSIONS: &'static [&'static str] = &["jpg", "jpeg", "png", "gif", "gifv", "mp4", "mpeg4"];
+const USAGE: &str = "!imagedump <url>";
+const VALID_EXTENSIONS: &[&str] = &["jpg", "jpeg", "png", "gif", "gifv", "mp4", "mpeg4"];
 
 pub struct ImageDumpCommand;
 

@@ -4,7 +4,7 @@ use lalafell::commands::prelude::*;
 
 use serenity::model::gateway::{Game, GameType};
 
-const USAGE: &'static str = "!presence <type/\"random\"> <content>";
+const USAGE: &str = "!presence <type/\"random\"> <content>";
 
 pub struct PresenceCommand {
   env: Arc<BotEnv>

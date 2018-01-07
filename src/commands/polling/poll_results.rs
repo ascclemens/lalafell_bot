@@ -27,8 +27,8 @@ use lalafell::commands::prelude::*;
 
 use serenity::model::channel::ReactionType;
 
-const USAGE: &'static str = "!pollresults <channel> <message id>";
-const VALID_EMOJI: &'static [&'static str] = &[
+const USAGE: &str = "!pollresults <channel> <message id>";
+const VALID_EMOJI: &[&str] = &[
   "1⃣",
   "2⃣",
   "3⃣",

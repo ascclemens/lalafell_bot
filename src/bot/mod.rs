@@ -40,7 +40,7 @@ impl LalafellBot {
       config,
       xivdb: XivDb
     });
-    let client = Client::new(&env.environment.discord_bot_token, Handler::new(env.clone()))?;
+    let client = Client::new(&env.environment.discord_bot_token, Handler::new(Arc::clone(&env)))?;
     Ok(LalafellBot {
       discord: client,
       env

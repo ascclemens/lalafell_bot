@@ -11,7 +11,7 @@ use rand::{thread_rng, Rng};
 
 use std::sync::Arc;
 
-const USAGE: &'static str = "!randomreaction <channel/id> <message id> <emoji> [filters]";
+const USAGE: &str = "!randomreaction <channel/id> <message id> <emoji> [filters]";
 
 pub struct RandomReactionCommand;
 

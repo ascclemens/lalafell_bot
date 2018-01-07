@@ -11,7 +11,7 @@ use diesel::prelude::*;
 
 use std::sync::Arc;
 
-const USAGE: &'static str = "!viewtag <who>";
+const USAGE: &str = "!viewtag <who>";
 
 pub struct ViewTagCommand;
 

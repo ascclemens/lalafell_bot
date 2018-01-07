@@ -18,7 +18,7 @@ impl PingCommand {
 impl<'a> Command<'a> for PingCommand {
   fn run(&self, ctx: &Context, _: &Message, _: &[&str]) -> CommandResult<'a> {
     let sm = match ctx.data.lock().get::<ShardManagerContainer>() {
-      Some(sm) => sm.clone(),
+      Some(sm) => Arc::clone(sm),
       None => return Err("No reference to shard manager. This is a bug.".into())
     };
     let manager = sm.lock();

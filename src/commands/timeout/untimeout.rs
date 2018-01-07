@@ -11,7 +11,7 @@ use diesel::prelude::*;
 
 use std::sync::Arc;
 
-const USAGE: &'static str = "!untimeout <who>";
+const USAGE: &str = "!untimeout <who>";
 
 pub struct UntimeoutCommand;
 

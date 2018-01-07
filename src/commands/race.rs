@@ -5,7 +5,7 @@ use lalafell::commands::prelude::*;
 use lalafell::error;
 use lalafell::error::*;
 
-const USAGE: &'static str = "!race <server> <character>";
+const USAGE: &str = "!race <server> <character>";
 
 pub struct RaceCommand {
   env: Arc<BotEnv>

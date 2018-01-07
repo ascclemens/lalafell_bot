@@ -29,7 +29,7 @@ impl AutoTagTask {
     Tagger::tag(env, user, guild, character, false)
   }
 
-  pub fn run_once(&mut self, env: Arc<BotEnv>) {
+  pub fn run_once(&mut self, env: &BotEnv) {
     thread::sleep(Duration::seconds(self.next_sleep).to_std().unwrap());
     self.next_sleep = Duration::minutes(10).num_seconds();
     info!("Autotag task running");
@@ -48,7 +48,7 @@ impl AutoTagTask {
     };
     info!("{} tag{} to update", users.len(), if users.len() == 1 { "" } else { "s" });
     for mut tag in users {
-      if let Err(e) = AutoTagTask::update_tag(env.as_ref(), UserId(*tag.user_id), GuildId(*tag.server_id), *tag.character_id) {
+      if let Err(e) = AutoTagTask::update_tag(env, UserId(*tag.user_id), GuildId(*tag.server_id), *tag.character_id) {
         warn!("Couldn't update tag for user ID {}: {}", *tag.user_id, e);
         continue;
       }
@@ -66,7 +66,7 @@ impl RunsTask for AutoTagTask {
   fn start(mut self, env: Arc<BotEnv>) {
     info!("Autotag task waiting {} seconds", self.next_sleep);
     loop {
-      self.run_once(env.clone());
+      self.run_once(env.as_ref());
     }
   }
 }

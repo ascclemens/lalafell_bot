@@ -11,7 +11,7 @@ use diesel::prelude::*;
 
 use std::sync::Arc;
 
-const USAGE: &'static str = "!viewedits <message ID>";
+const USAGE: &str = "!viewedits <message ID>";
 
 pub struct ViewEditsCommand;
 
@@ -64,7 +64,7 @@ impl<'a> PublicChannelCommand<'a> for ViewEditsCommand {
       None => return Err("The guild must be cached.".into())
     };
     let channel = match guild.read().channels.get(&ChannelId(*message.channel_id)) {
-      Some(c) => c.clone(),
+      Some(c) => Arc::clone(c),
       None => return Err("You cannot view messages not on the current server.".into())
     };
 

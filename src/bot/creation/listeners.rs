@@ -22,7 +22,7 @@ pub struct Handler {
 impl Handler {
   pub fn new(env: Arc<BotEnv>) -> Self {
     let listeners: Vec<Box<EventHandler + Send + Sync>> = vec![
-      box command_listener(env.clone()),
+      box command_listener(&env),
       box ReactionAuthorize,
       box Timeouts,
       box PollTagger,
@@ -73,7 +73,7 @@ impl EventHandler for Handler {
 
   fn channel_create(&self, ctx: Context, channel: Arc<RwLock<GuildChannel>>) {
     for listener in &self.listeners {
-      listener.channel_create(ctx.clone(), channel.clone());
+      listener.channel_create(ctx.clone(), Arc::clone(&channel));
     }
   }
 
@@ -88,13 +88,13 @@ macro_rules! command_listener {
   (env => $env:expr, $($($alias:expr),+ => $name:ident),+) => {{
     let mut command_listener = CommandListener::default();
     $(
-      command_listener.add_command(&[$($alias),*], box $name::new($env.clone()));
+      command_listener.add_command(&[$($alias),*], box $name::new(Arc::clone(&$env)));
     )*
     command_listener
   }}
 }
 
-fn command_listener<'a>(env: Arc<BotEnv>) -> CommandListener<'a> {
+fn command_listener<'a>(env: &Arc<BotEnv>) -> CommandListener<'a> {
   command_listener! {
     env => env,
     "race" => RaceCommand,

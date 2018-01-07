@@ -16,7 +16,7 @@ use chrono::prelude::*;
 
 use std::sync::Arc;
 
-const USAGE: &'static str = "!timeout <who> <length>";
+const USAGE: &str = "!timeout <who> <length>";
 
 pub struct TimeoutCommand;
 

@@ -5,7 +5,7 @@ use lalafell::commands::prelude::*;
 
 use serenity::builder::CreateEmbed;
 
-const USAGE: &'static str = "!autotag <server> <character>";
+const USAGE: &str = "!autotag <server> <character>";
 
 pub struct AutoTagCommand {
   env: Arc<BotEnv>
