@@ -13,6 +13,8 @@ extern crate ctrlc;
 extern crate chrono;
 #[macro_use]
 extern crate log;
+extern crate fern;
+extern crate ansi_term;
 extern crate hyper;
 extern crate make_hyper_great_again;
 extern crate hyper_rustls;
@@ -52,6 +54,7 @@ mod lodestone;
 mod config;
 mod filters;
 mod error;
+mod logging;
 
 use bot::LalafellBot;
 use error::*;
@@ -67,7 +70,7 @@ fn main() {
 }
 
 fn inner() -> Result<()> {
-  if let Err(e) = lalafell::logging::init_logger() {
+  if let Err(e) = logging::init_logger() {
     println!("Could not set up logger.");
     for err in e.iter() {
       println!("{}", err);
