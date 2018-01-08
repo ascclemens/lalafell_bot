@@ -105,7 +105,6 @@ fn command_listener<'a>(env: &Arc<BotEnv>) -> CommandListener<'a> {
     "timeout" => TimeoutCommand,
     "untimeout" => UntimeoutCommand,
     // "archive" => ArchiveCommand,
-    "viewedits" => ViewEditsCommand,
     "imagedump", "dump" => ImageDumpCommand,
     "configure", "config" => ConfigureCommand,
     "randomreaction", "reaction" => RandomReactionCommand,
