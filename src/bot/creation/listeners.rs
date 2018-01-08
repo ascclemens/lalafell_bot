@@ -28,11 +28,6 @@ impl Handler {
       box PollTagger,
       box AutoReplyListener::default()
     ];
-    // FIXME: ListenerManager for config listeners
-    // for listener in &bot.config.listeners {
-    //   let listener = ListenerManager::from_config(bot.clone(), listener).chain_err(|| format!("could not create listener {}", listener.name))?;
-    //   listeners.push(listener);
-    // }
     Handler {
       env,
       listeners
