@@ -19,7 +19,7 @@ impl UpdateTagsCommand {
 
 impl<'a> Command<'a> for UpdateTagsCommand {
   fn run(&self, _: &Context, message: &Message, _: &[&str]) -> CommandResult<'a> {
-    if !self.env.config.bot.administrators.contains(&message.author.id.0) {
+    if !self.env.config.read().bot.administrators.contains(&message.author.id.0) {
       return Err(ExternalCommandFailure::default()
         .message(|e: CreateEmbed| e
           .title("Not enough permissions.")

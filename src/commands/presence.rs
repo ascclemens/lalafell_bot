@@ -28,7 +28,7 @@ impl HasParams for PresenceCommand {
 
 impl<'a> Command<'a> for PresenceCommand {
   fn run(&self, ctx: &Context, msg: &Message, params: &[&str]) -> CommandResult<'a> {
-    if !self.env.config.bot.administrators.contains(&msg.author.id.0) {
+    if !self.env.config.read().bot.administrators.contains(&msg.author.id.0) {
       return Err(ExternalCommandFailure::default()
         .message(|e: CreateEmbed| e
           .title("Not enough permissions.")

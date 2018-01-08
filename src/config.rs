@@ -20,7 +20,7 @@ pub struct Presence {
   pub list: Vec<PresenceEntry>
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct PresenceEntry {
   #[serde(rename = "type")]
   pub kind: PresenceKind,
@@ -29,7 +29,7 @@ pub struct PresenceEntry {
   pub url: Option<String>
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 pub enum PresenceKind {
   #[serde(rename = "playing")]
   Playing,

@@ -223,7 +223,7 @@ impl Tagger {
     // Extend the roles to add with the roles we created.
     add_roles.extend(created_roles);
     // Get all the roles that are part of groups
-    let all_group_roles: Vec<String> = env.config.roles.groups.iter().flat_map(|x| x).map(|x| x.to_lowercase()).collect();
+    let all_group_roles: Vec<String> = env.config.read().roles.groups.iter().flat_map(|x| x).map(|x| x.to_lowercase()).collect();
     // Filter all roles on the server to only the roles the member has
     let keep: Vec<&Role> = roles.iter().filter(|x| member.roles.contains(&x.id)).collect();
     // Filter all the roles the member has, keeping the ones not in a group. These roles will not be touched when

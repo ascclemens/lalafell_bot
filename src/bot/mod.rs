@@ -4,6 +4,7 @@ use config::Config;
 use xivdb::XivDb;
 use error::*;
 
+use serenity::prelude::RwLock;
 use serenity::client::Client;
 
 use diesel::Connection;
@@ -29,7 +30,7 @@ pub struct LalafellBot {
 
 pub struct BotEnv {
   pub environment: Environment,
-  pub config: Config,
+  pub config: RwLock<Config>,
   pub xivdb: XivDb
 }
 
@@ -37,7 +38,7 @@ impl LalafellBot {
   pub fn new(environment: Environment, config: Config) -> Result<LalafellBot> {
     let env = Arc::new(BotEnv {
       environment,
-      config,
+      config: RwLock::new(config),
       xivdb: XivDb
     });
     let client = Client::new(&env.environment.discord_bot_token, Handler::new(Arc::clone(&env)))?;
