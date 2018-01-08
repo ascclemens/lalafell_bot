@@ -43,7 +43,7 @@ impl<'a> PublicChannelCommand<'a> for RandomReactionCommand {
     }
     loop {
       let last_reaction = reactions[reactions.len() - 1].id;
-      let next_batch = params.channel.reaction_users(params.message_id, params.emoji.as_str(), Some(100), Some(last_reaction))
+      let next_batch = params.channel.reaction_users(params.message_id, params.emoji.as_str(), Some(100), last_reaction)
       .map_err(|_| into!(CommandFailure, "Could not get reactions."))?;
       if next_batch.is_empty() {
         break;
