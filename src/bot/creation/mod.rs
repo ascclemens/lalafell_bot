@@ -27,7 +27,7 @@ pub fn create_bot(environment: Environment) -> Result<LalafellBot> {
   Ok(bot)
 }
 
-fn config(environment: &Environment) -> Result<Config> {
+pub fn config(environment: &Environment) -> Result<Config> {
   match File::open(&environment.config_location) {
     Ok(f) => serde_json::from_reader(f).chain_err(|| "could not parse config"),
     Err(_) => Ok(Default::default())

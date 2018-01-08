@@ -24,11 +24,11 @@ pub mod random_reaction;
 pub mod search;
 pub mod presence;
 pub mod ping;
+pub mod reload_config;
 
 pub use self::tag::{TagCommand, AutoTagCommand, UpdateTagsCommand, UpdateTagCommand};
 pub use self::polling::{PollCommand, PollResultsCommand};
 pub use self::config::ConfigureCommand;
-
 pub use self::timeout::{TimeoutCommand, UntimeoutCommand};
 // pub use self::archive::ArchiveCommand;
 pub use self::view_edits::ViewEditsCommand;
@@ -37,8 +37,8 @@ pub use self::random_reaction::RandomReactionCommand;
 pub use self::search::SearchCommand;
 pub use self::presence::PresenceCommand;
 pub use self::ping::PingCommand;
-
 pub use self::race::RaceCommand;
 pub use self::view_tag::ViewTagCommand;
 pub use self::verify::VerifyCommand;
 pub use self::reference_count::ReferenceCountCommand;
+pub use self::reload_config::ReloadConfigCommand;

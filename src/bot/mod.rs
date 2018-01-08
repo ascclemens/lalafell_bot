@@ -17,6 +17,8 @@ mod creation;
 
 pub mod data;
 
+pub use self::creation::config;
+
 thread_local! {
   pub static CONNECTION: PgConnection = PgConnection::establish(&env::var("LB_DATABASE_LOCATION").unwrap()).unwrap();
 }
