@@ -36,9 +36,20 @@ impl HasParams for RandomReactionCommand {
 impl<'a> PublicChannelCommand<'a> for RandomReactionCommand {
   fn run(&self, _: &Context, _: &Message, guild: GuildId, _: Arc<RwLock<GuildChannel>>, params: &[&str]) -> CommandResult<'a> {
     let params = self.params(USAGE, params)?;
-    // FIXME: support > 100
-    let reactions = params.channel.reaction_users(params.message_id, params.emoji, Some(100), None)
+    let mut reactions = params.channel.reaction_users(params.message_id, params.emoji.as_str(), Some(100), None)
       .map_err(|_| into!(CommandFailure, "Could not get reactions."))?;
+    if reactions.is_empty() {
+      return Err("No reactions on that message.".into());
+    }
+    loop {
+      let last_reaction = reactions[reactions.len() - 1].id;
+      let next_batch = params.channel.reaction_users(params.message_id, params.emoji.as_str(), Some(100), Some(last_reaction))
+      .map_err(|_| into!(CommandFailure, "Could not get reactions."))?;
+      if next_batch.is_empty() {
+        break;
+      }
+      reactions.extend(next_batch);
+    }
     let filters = match Filter::all_filters(&params.filters.unwrap_or_default().join(" ")) {
       Some(f) => f,
       None => return Err("Invalid filters.".into())
