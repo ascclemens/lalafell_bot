@@ -84,7 +84,7 @@ fn inner() -> Result<()> {
 
   info!("Reading environment variables");
 
-  let environment: Environment = envy::from_env().expect("Invalid or missing environment variables");
+  let environment: Environment = envy::prefixed("LB_").from_env().expect("Invalid or missing environment variables");
 
   let bot = match bot::create_bot(environment) {
     Ok(b) => b,
@@ -114,10 +114,7 @@ fn inner() -> Result<()> {
 
 #[derive(Debug, Deserialize)]
 pub struct Environment {
-  #[serde(rename = "lb_discord_bot_token")]
   pub discord_bot_token: String,
-  #[serde(rename = "lb_database_location")]
   pub database_location: String,
-  #[serde(rename = "lb_config_location")]
   pub config_location: String
 }
