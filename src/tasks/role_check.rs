@@ -97,7 +97,7 @@ impl RunsTask for RoleCheckTask {
         for (user_id, member) in members {
           match times.iter().find(|x| *x.user_id == user_id.0) {
             Some(time) => {
-              if Utc.timestamp(time.reminded_at, 0) + Duration::seconds(i64::from(time.kick_after)) > now {
+              if Utc.timestamp(time.reminded_at, 0) + Duration::seconds(i64::from(time.kick_after)) <= now {
                 // TODO: use message when able
                 info!("Kicking user {} ({}) on {} ({}) due to check {}",
                   member.display_name(),
