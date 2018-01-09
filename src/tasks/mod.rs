@@ -11,11 +11,13 @@ pub mod delete_all_messages;
 pub mod autotag;
 pub mod timeout_check;
 pub mod random_presence;
+pub mod role_check;
 
 pub use self::delete_all_messages::DeleteAllMessagesTask;
 pub use self::autotag::AutoTagTask;
 pub use self::timeout_check::TimeoutCheckTask;
 pub use self::random_presence::RandomPresenceTask;
+pub use self::role_check::RoleCheckTask;
 
 pub struct TaskManager {
   env: Arc<BotEnv>

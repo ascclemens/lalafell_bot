@@ -1,9 +1,10 @@
 use bot::BotEnv;
 use commands::*;
-use lalafell::error::*;
 use database::models::NewTimeout;
 use database::schema::timeouts;
+use util::parse_duration_secs;
 
+use lalafell::error::*;
 use lalafell::commands::prelude::*;
 
 use serenity::builder::CreateEmbed;
@@ -23,34 +24,6 @@ pub struct TimeoutCommand;
 impl TimeoutCommand {
   pub fn new(_: Arc<BotEnv>) -> Self {
     TimeoutCommand
-  }
-
-  fn parse_duration(duration: &str) -> Result<u64> {
-    let mut str_length = 0;
-    let mut total_time = 0;
-    while str_length < duration.len() {
-      let numbers: String = duration.chars()
-        .skip(str_length)
-        .take_while(|c| c.is_numeric())
-        .collect();
-      str_length += numbers.len();
-      let length: u64 = numbers.parse().chain_err(|| "could not parse duration length")?;
-      let units: String = duration.chars()
-        .skip(str_length)
-        .take_while(|c| c.is_alphabetic() || c.is_whitespace())
-        .collect();
-      str_length += units.len();
-      let multiplier = match units.trim().to_lowercase().as_ref() {
-        "" if total_time == 0 => 1,
-        "s" | "sec" | "secs" | "second" | "seconds" => 1,
-        "m" | "min" | "mins" | "minute" | "minutes" => 60,
-        "h" | "hr" | "hrs" | "hour" | "hours" => 3600,
-        "d" | "ds" | "day" | "days" => 86400,
-        _ => return Err("invalid unit".into())
-      };
-      total_time += length * multiplier;
-    }
-    Ok(total_time)
   }
 }
 
@@ -99,7 +72,7 @@ impl<'a> PublicChannelCommand<'a> for TimeoutCommand {
       }
     };
 
-    let duration = match TimeoutCommand::parse_duration(&params.length.into_iter().collect::<String>()) {
+    let duration = match parse_duration_secs(&params.length.into_iter().collect::<String>()) {
       Ok(d) => d,
       Err(_) => return Err("Invalid time length. Try \"15m\" or \"3 hours\" for example.".into())
     };

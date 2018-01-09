@@ -1,5 +1,5 @@
 use bot::LalafellBot;
-use tasks::{TaskManager, AutoTagTask, TimeoutCheckTask, DeleteAllMessagesTask, RandomPresenceTask};
+use tasks::*;
 
 use error::*;
 
@@ -11,5 +11,6 @@ pub fn tasks(bot: &LalafellBot) -> Result<()> {
   task_manager.start_task(TimeoutCheckTask::new());
   task_manager.start_task(DeleteAllMessagesTask::new());
   task_manager.start_task(RandomPresenceTask::new(Arc::clone(&bot.discord.shard_manager)));
+  task_manager.start_task(RoleCheckTask::new());
   Ok(())
 }

@@ -21,6 +21,7 @@ pub mod timeouts;
 pub mod config;
 pub mod auto_replies;
 pub mod delete_all_messages;
+pub mod role_check_times;
 
 pub use self::tags::{Tag, NewTag};
 pub use self::verifications::{Verification, NewVerification};
@@ -28,6 +29,7 @@ pub use self::timeouts::{Timeout, NewTimeout};
 pub use self::config::{ServerConfig, NewServerConfig, ChannelConfig, NewChannelConfig, Reaction, NewReaction};
 pub use self::auto_replies::{AutoReply, NewAutoReply};
 pub use self::delete_all_messages::{DeleteAllMessages, NewDeleteAllMessages};
+pub use self::role_check_times::{RoleCheckTime, NewRoleCheckTime};
 
 use serenity::model::id::{UserId, GuildId, ChannelId, MessageId, RoleId, EmojiId};
 
@@ -122,6 +124,12 @@ impl Deref for U64 {
 impl From<u64> for U64 {
   fn from(u: u64) -> U64 {
     U64(u)
+  }
+}
+
+impl From<U64> for u64 {
+  fn from(u: U64) -> u64 {
+    *u
   }
 }
 

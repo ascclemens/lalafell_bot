@@ -41,6 +41,16 @@ table! {
 }
 
 table! {
+    role_check_times (id) {
+        id -> Int4,
+        check_id -> Int4,
+        user_id -> Text,
+        reminded_at -> Int8,
+        kick_after -> Int4,
+    }
+}
+
+table! {
     server_configs (id) {
         id -> Int4,
         server_id -> Text,
@@ -87,6 +97,7 @@ allow_tables_to_appear_in_same_query!(
     channel_configs,
     delete_all_messages,
     reactions,
+    role_check_times,
     server_configs,
     tags,
     timeouts,

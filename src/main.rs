@@ -55,6 +55,7 @@ mod config;
 mod filters;
 mod error;
 mod logging;
+mod util;
 
 use bot::LalafellBot;
 use error::*;
