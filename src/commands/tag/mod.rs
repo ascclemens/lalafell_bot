@@ -250,11 +250,7 @@ impl Tagger {
     }
 
     // cannot edit nickname of those with a higher role
-    let nick = match member.nick {
-      Some(n) => n,
-      None => Default::default()
-    };
-    if nick != character.name {
+    if member.nick.as_ref() != Some(&character.name) {
       on.edit_member(who, |m| m.nickname(&character.name)).ok();
     }
     Ok(None)
