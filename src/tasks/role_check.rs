@@ -93,6 +93,15 @@ impl RunsTask for RoleCheckTask {
           .filter(|&(_, m)| check.necessary_roles.matches(m, &roles))
           .map(|(id, m)| (*id, m.clone()))
           .collect();
+        let (remove, times): (Vec<RoleCheckTime>, Vec<RoleCheckTime>) = times.into_iter()
+          .partition(|t| members.iter().find(|&&(id, _)| id.0 == *t.user_id).is_none());
+        ::bot::CONNECTION.with(|c| {
+          for r in remove {
+            if let Err(e) = ::diesel::delete(&r).execute(c) {
+              warn!("Could not delete old role_check_time {}: {}", r.id, e);
+            }
+          }
+        });
         let mut reminders = Vec::new();
         for (user_id, member) in members {
           match times.iter().find(|x| *x.user_id == user_id.0) {
