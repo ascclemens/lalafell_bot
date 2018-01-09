@@ -19,7 +19,7 @@ insertable! {
 
 impl Timeout {
   pub fn ends(&self) -> i64 {
-    (Utc.timestamp(self.start as i64, 0) + Duration::seconds(i64::from(self.seconds))).timestamp()
+    (Utc.timestamp(self.start, 0) + Duration::seconds(i64::from(self.seconds))).timestamp()
   }
 }
 
