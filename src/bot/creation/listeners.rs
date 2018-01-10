@@ -5,14 +5,14 @@ use commands::*;
 use lalafell::listeners::CommandListener;
 
 use serenity::prelude::RwLock;
+use serenity::model::prelude::*;
 use serenity::client::{EventHandler, Context};
-use serenity::model::id::GuildId;
-use serenity::model::event::MessageUpdateEvent;
-use serenity::model::channel::{Message, GuildChannel, Reaction};
-use serenity::model::guild::Member;
-use serenity::model::gateway::Ready;
+use serenity::client::bridge::gateway::event::ShardStageUpdateEvent;
+
+use serde_json::Value;
 
 use std::sync::Arc;
+use std::collections::HashMap;
 
 pub struct Handler {
   env: Arc<BotEnv>,
@@ -35,46 +35,66 @@ impl Handler {
   }
 }
 
+macro_rules! handler {
+  ($name:ident, $($param:ident: $kind:ty),+) => {
+    fn $name(&self, $($param: $kind),+) {
+      for listener in &self.listeners {
+        listener.$name($($param.clone()),+);
+      }
+    }
+  }
+}
+
 impl EventHandler for Handler {
-  fn message(&self, ctx: Context, msg: Message) {
-    for listener in &self.listeners {
-      listener.message(ctx.clone(), msg.clone());
-    }
-  }
+  handler!(cached, param1: Context, param2: Vec < GuildId >);
+  handler!(channel_create, param1: Context, param2: Arc < RwLock < GuildChannel > >);
+  handler!(category_create, param1: Context, param2: Arc < RwLock < ChannelCategory > >);
+  handler!(category_delete, param1: Context, param2: Arc < RwLock < ChannelCategory > >);
+  handler!(private_channel_create, param1: Context, param2: Arc < RwLock < PrivateChannel > >);
+  handler!(channel_delete, param1: Context, param2: Arc < RwLock < GuildChannel > >);
+  handler!(channel_pins_update, param1: Context, param2: ChannelPinsUpdateEvent);
+  handler!(channel_recipient_addition, param1: Context, param2: ChannelId, param3: User);
+  handler!(channel_recipient_removal, param1: Context, param2: ChannelId, param3: User);
+  handler!(channel_update, param1: Context, param2: Option < Channel >, param3: Channel);
+  handler!(guild_ban_addition, param1: Context, param2: GuildId, param3: User);
+  handler!(guild_ban_removal, param1: Context, param2: GuildId, param3: User);
+  handler!(guild_create, param1: Context, param2: Guild, param3: bool);
+  handler!(guild_delete, param1: Context, param2: PartialGuild, param3: Option < Arc < RwLock < Guild > > >);
+  handler!(guild_emojis_update, param1: Context, param2: GuildId, param3: HashMap < EmojiId , Emoji >);
+  handler!(guild_integrations_update, param1: Context, param2: GuildId);
+  handler!(guild_member_addition, param1: Context, param2: GuildId, param3: Member);
+  handler!(guild_member_removal, param1: Context, param2: GuildId, param3: User, param4: Option < Member >);
+  handler!(guild_member_update, param1: Context, param2: Option < Member >, param3: Member);
+  handler!(guild_members_chunk, param1: Context, param2: GuildId, param3: HashMap < UserId , Member >);
+  handler!(guild_role_create, param1: Context, param2: GuildId, param3: Role);
+  handler!(guild_role_delete, param1: Context, param2: GuildId, param3: RoleId, param4: Option < Role >);
+  handler!(guild_role_update, param1: Context, param2: GuildId, param3: Option < Role >, param4: Role);
+  handler!(guild_unavailable, param1: Context, param2: GuildId);
+  handler!(guild_update, param1: Context, param2: Option < Arc < RwLock < Guild > > >, param3: PartialGuild);
+  handler!(message, param1: Context, param2: Message);
+  handler!(message_delete, param1: Context, param2: ChannelId, param3: MessageId);
+  handler!(message_delete_bulk, param1: Context, param2: ChannelId, param3: Vec < MessageId >);
+  handler!(reaction_add, param1: Context, param2: Reaction);
+  handler!(reaction_remove, param1: Context, param2: Reaction);
+  handler!(reaction_remove_all, param1: Context, param2: ChannelId, param3: MessageId);
+  handler!(message_update, param1: Context, param2: MessageUpdateEvent);
+  handler!(presence_replace, param1: Context, param2: Vec < Presence >);
+  handler!(presence_update, param1: Context, param2: PresenceUpdateEvent);
+  handler!(resume, param1: Context, param2: ResumedEvent);
+  handler!(shard_stage_update, param1: Context, param2: ShardStageUpdateEvent);
+  handler!(typing_start, param1: Context, param2: TypingStartEvent);
+  handler!(unknown, param1: Context, param2: String, param3: Value);
+  handler!(user_update, param1: Context, param2: CurrentUser, param3: CurrentUser);
+  handler!(voice_server_update, param1: Context, param2: VoiceServerUpdateEvent);
+  handler!(voice_state_update, param1: Context, param2: Option < GuildId >, param3: VoiceState);
+  handler!(webhook_update, param1: Context, param2: GuildId, param3: ChannelId);
 
-  fn message_update(&self, ctx: Context, update: MessageUpdateEvent) {
-    for listener in &self.listeners {
-      listener.message_update(ctx.clone(), update.clone());
-    }
-  }
-
-  fn guild_member_addition(&self, ctx: Context, guild: GuildId, member: Member) {
-    for listener in &self.listeners {
-      listener.guild_member_addition(ctx.clone(), guild, member.clone());
-    }
-  }
-
-  fn reaction_add(&self, ctx: Context, reaction: Reaction) {
-    for listener in &self.listeners {
-      listener.reaction_add(ctx.clone(), reaction.clone());
-    }
-  }
-
-  fn reaction_remove(&self, ctx: Context, reaction: Reaction) {
-    for listener in &self.listeners {
-      listener.reaction_remove(ctx.clone(), reaction.clone());
-    }
-  }
-
-  fn channel_create(&self, ctx: Context, channel: Arc<RwLock<GuildChannel>>) {
-    for listener in &self.listeners {
-      listener.channel_create(ctx.clone(), Arc::clone(&channel));
-    }
-  }
-
-  fn ready(&self, ctx: Context, _: Ready) {
+  fn ready(&self, ctx: Context, ready: Ready) {
     if let Some(g) = ::tasks::random_presence::random_game(self.env.as_ref()) {
       ctx.shard.set_game(Some(g));
+    }
+    for listener in &self.listeners {
+      listener.ready(ctx.clone(), ready.clone());
     }
   }
 }

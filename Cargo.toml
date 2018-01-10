@@ -31,6 +31,8 @@ byteorder = "1.2"
 rand = "0.4"
 typemap = "0.3"
 itertools = "0.7"
+syn = { version = "0.12", optional = true, features = ["full", "derive", "parsing", "printing", "visit", "visit-mut", "fold", "clone-impls", "extra-traits"] }
+quote = { version = "0.4", optional = true }
 
 [dependencies.serenity]
 version = "0.5"
@@ -38,3 +40,14 @@ git = "https://github.com/zeyla/serenity"
 branch = "v0.5.0"
 default-features = false
 features = ["builder", "cache", "client", "gateway", "model", "utils"]
+
+[features]
+default = []
+source = ["syn", "quote"]
+
+[[bin]]
+name = "lalafell_bot"
+
+[[bin]]
+name = "generate_handlers"
+required-features = ["source"]
