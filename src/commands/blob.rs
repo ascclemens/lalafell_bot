@@ -38,6 +38,11 @@ impl<'a> Command<'a> for BlobCommand {
     };
     let name = name.unwrap_or_else(|| msg.author.name.clone());
     let url = format!("https://cdn.discordapp.com/emojis/{}.{}", blob.0, if blob.1 { "gif" } else { "png" });
+
+    if let Err(e) = msg.delete() {
+      warn!("could not delete message: {}", e);
+    }
+
     Ok(CommandSuccess::default()
       .message(move |e: CreateEmbed| e
         .image(&url)
