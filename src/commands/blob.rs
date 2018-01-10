@@ -50,11 +50,6 @@ impl<'a> Command<'a> for BlobCommand {
   }
 }
 
-#[derive(Debug, Deserialize)]
-struct BlobConfig {
-  url: String
-}
-
 lazy_static! {
   static ref BLOBS: HashMap<&'static str, (u64, bool)> = {
     let mut map = HashMap::new();
