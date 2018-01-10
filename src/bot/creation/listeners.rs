@@ -1,5 +1,5 @@
 use bot::BotEnv;
-use listeners::{Timeouts, PollTagger, AutoReplyListener, ReactionAuthorize};
+use listeners::{Timeouts, PollTagger, AutoReplyListener, ReactionAuthorize, Log};
 use commands::*;
 
 use lalafell::listeners::CommandListener;
@@ -26,7 +26,8 @@ impl Handler {
       box ReactionAuthorize,
       box Timeouts,
       box PollTagger,
-      box AutoReplyListener::default()
+      box AutoReplyListener::default(),
+      box Log::new(env.clone())
     ];
     Handler {
       env,

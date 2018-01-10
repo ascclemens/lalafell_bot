@@ -1,5 +1,7 @@
 use serde_json::Value;
 
+use std::collections::HashMap;
+
 #[derive(Debug, Default, Deserialize)]
 #[serde(default)]
 pub struct Config {
@@ -13,7 +15,8 @@ pub struct Bot {
   pub administrators: Vec<u64>,
   pub timeouts: Timeouts,
   pub presence: Presence,
-  pub tasks: Value
+  pub tasks: Value,
+  pub log: HashMap<u64, u64>
 }
 
 #[derive(Debug, Default, Deserialize)]
