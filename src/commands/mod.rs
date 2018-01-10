@@ -25,6 +25,7 @@ pub mod presence;
 pub mod ping;
 pub mod reload_config;
 pub mod blob;
+pub mod mention;
 
 pub use self::tag::{TagCommand, AutoTagCommand, UpdateTagsCommand, UpdateTagCommand};
 pub use self::polling::{PollCommand, PollResultsCommand};
@@ -42,3 +43,4 @@ pub use self::verify::VerifyCommand;
 pub use self::reference_count::ReferenceCountCommand;
 pub use self::reload_config::ReloadConfigCommand;
 pub use self::blob::BlobCommand;
+pub use self::mention::MentionCommand;
