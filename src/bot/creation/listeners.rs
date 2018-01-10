@@ -111,6 +111,7 @@ fn command_listener<'a>(env: &Arc<BotEnv>) -> CommandListener<'a> {
     "search" => SearchCommand,
     "presence" => PresenceCommand,
     "ping" => PingCommand,
-    "reload", "reloadconfig" => ReloadConfigCommand
+    "reload", "reloadconfig" => ReloadConfigCommand,
+    "blob" => BlobCommand
   }
 }
