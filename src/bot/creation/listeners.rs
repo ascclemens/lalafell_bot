@@ -27,7 +27,7 @@ impl Handler {
       box Timeouts,
       box PollTagger,
       box AutoReplyListener::default(),
-      box Log::new(env.clone())
+      box Log::new(Arc::clone(&env))
     ];
     Handler {
       env,
@@ -104,7 +104,7 @@ macro_rules! command_listener {
   (env => $env:expr, $($($alias:expr),+ => $name:ident),+) => {{
     let mut command_listener = CommandListener::default();
     $(
-      command_listener.add_command(&[$($alias),*], box $name::new(Arc::clone(&$env)));
+      command_listener.add_command(&[$($alias),*], box $name::new(Arc::clone($env)));
     )*
     command_listener
   }}
