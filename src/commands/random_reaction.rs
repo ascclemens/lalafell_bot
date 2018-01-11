@@ -1,4 +1,3 @@
-use bot::BotEnv;
 use filters::Filter;
 
 use lalafell::commands::prelude::*;
@@ -13,13 +12,8 @@ use std::sync::Arc;
 
 const USAGE: &str = "!randomreaction <channel/id> <message id> <emoji> [filters]";
 
+#[derive(Default)]
 pub struct RandomReactionCommand;
-
-impl RandomReactionCommand {
-  pub fn new(_: Arc<BotEnv>) -> Self {
-    RandomReactionCommand
-  }
-}
 
 #[derive(Debug, Deserialize)]
 pub struct Params {

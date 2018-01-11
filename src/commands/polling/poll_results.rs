@@ -20,7 +20,6 @@ No custom emoji
 :thumbsdown: No
 */
 
-use bot::BotEnv;
 use commands::*;
 
 use lalafell::commands::prelude::*;
@@ -40,13 +39,8 @@ const VALID_EMOJI: &[&str] = &[
   "9⃣"
 ];
 
+#[derive(Default)]
 pub struct PollResultsCommand;
-
-impl PollResultsCommand {
-  pub fn new(_: Arc<BotEnv>) -> Self {
-    PollResultsCommand
-  }
-}
 
 #[derive(Debug, Deserialize)]
 pub struct Params {

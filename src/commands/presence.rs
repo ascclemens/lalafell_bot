@@ -1,4 +1,5 @@
 use bot::BotEnv;
+use commands::BotCommand;
 
 use lalafell::commands::prelude::*;
 
@@ -10,8 +11,8 @@ pub struct PresenceCommand {
   env: Arc<BotEnv>
 }
 
-impl PresenceCommand {
-  pub fn new(env: Arc<BotEnv>) -> Self {
+impl BotCommand for PresenceCommand {
+  fn new(env: Arc<BotEnv>) -> Self {
     PresenceCommand { env }
   }
 }

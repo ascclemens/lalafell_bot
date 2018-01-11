@@ -1,4 +1,3 @@
-use bot::BotEnv;
 use lodestone::Lodestone;
 use database::models::{Tag, Verification};
 
@@ -9,13 +8,8 @@ use diesel::prelude::*;
 
 use serenity::builder::CreateEmbed;
 
+#[derive(Default)]
 pub struct VerifyCommand;
-
-impl VerifyCommand {
-  pub fn new(_: Arc<BotEnv>) -> Self {
-    VerifyCommand
-  }
-}
 
 impl<'a> PublicChannelCommand<'a> for VerifyCommand {
   fn run(&self, _: &Context, message: &Message, guild: GuildId, _: Arc<RwLock<GuildChannel>>, _: &[&str]) -> CommandResult<'a> {

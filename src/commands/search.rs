@@ -1,4 +1,3 @@
-use bot::BotEnv;
 use filters::Filter;
 
 use lalafell::commands::prelude::*;
@@ -12,13 +11,8 @@ use chrono::Utc;
 
 const USAGE: &str = "!search <filters>";
 
+#[derive(Default)]
 pub struct SearchCommand;
-
-impl SearchCommand {
-  pub fn new(_: Arc<BotEnv>) -> Self {
-    SearchCommand
-  }
-}
 
 #[derive(Debug, Deserialize)]
 pub struct Params {

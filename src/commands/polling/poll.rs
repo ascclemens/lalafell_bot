@@ -1,5 +1,3 @@
-use bot::BotEnv;
-
 use lalafell::commands::prelude::*;
 
 use serenity::model::id::UserId;
@@ -12,13 +10,8 @@ use std::boxed::FnBox;
 
 const USAGE: &str = "!poll <poll text>\n<option>\n<option>...";
 
+#[derive(Default)]
 pub struct PollCommand;
-
-impl PollCommand {
-  pub fn new(_: Arc<BotEnv>) -> Self {
-    PollCommand
-  }
-}
 
 impl PollCommand {
   fn nick_or_name(&self, guild: GuildId, user: UserId) -> Option<String> {

@@ -1,4 +1,5 @@
 use bot::BotEnv;
+use commands::BotCommand;
 use commands::tag::Tagger;
 
 use lalafell::commands::prelude::*;
@@ -11,8 +12,8 @@ pub struct AutoTagCommand {
   env: Arc<BotEnv>
 }
 
-impl AutoTagCommand {
-  pub fn new(env: Arc<BotEnv>) -> AutoTagCommand {
+impl BotCommand for AutoTagCommand {
+  fn new(env: Arc<BotEnv>) -> Self {
     AutoTagCommand { env }
   }
 }

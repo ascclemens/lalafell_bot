@@ -1,4 +1,3 @@
-use bot::BotEnv;
 use database::models::ChannelConfig;
 
 use diesel::prelude::*;
@@ -20,13 +19,8 @@ use std::io::Read;
 const USAGE: &str = "!imagedump <url>";
 const VALID_EXTENSIONS: &[&str] = &["jpg", "jpeg", "png", "gif", "gifv", "mp4", "mpeg4"];
 
+#[derive(Default)]
 pub struct ImageDumpCommand;
-
-impl ImageDumpCommand {
-  pub fn new(_: Arc<BotEnv>) -> Self {
-    ImageDumpCommand
-  }
-}
 
 #[derive(Debug, Deserialize)]
 pub struct Params {

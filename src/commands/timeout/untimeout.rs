@@ -1,4 +1,3 @@
-use bot::BotEnv;
 use database::models::Timeout;
 use commands::*;
 
@@ -13,13 +12,8 @@ use std::sync::Arc;
 
 const USAGE: &str = "!untimeout <who>";
 
+#[derive(Default)]
 pub struct UntimeoutCommand;
-
-impl UntimeoutCommand {
-  pub fn new(_: Arc<BotEnv>) -> Self {
-    UntimeoutCommand
-  }
-}
 
 #[derive(Debug, Deserialize)]
 pub struct Params {

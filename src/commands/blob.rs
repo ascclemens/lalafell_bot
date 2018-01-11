@@ -1,18 +1,11 @@
-use bot::BotEnv;
-
 use lalafell::commands::prelude::*;
 
 use std::collections::HashMap;
 
 const USAGE: &str = "!blob <emoji name>";
 
+#[derive(Default)]
 pub struct BlobCommand;
-
-impl BlobCommand {
-  pub fn new(_: Arc<BotEnv>) -> Self {
-    BlobCommand
-  }
-}
 
 #[derive(Debug, Deserialize)]
 pub struct Params {

@@ -1,4 +1,3 @@
-use bot::BotEnv;
 use commands::*;
 use database::models::Tag;
 
@@ -13,13 +12,8 @@ use std::sync::Arc;
 
 const USAGE: &str = "!viewtag <who>";
 
+#[derive(Default)]
 pub struct ViewTagCommand;
-
-impl ViewTagCommand {
-  pub fn new(_: Arc<BotEnv>) -> Self {
-    ViewTagCommand
-  }
-}
 
 #[derive(Debug, Deserialize)]
 pub struct Params {

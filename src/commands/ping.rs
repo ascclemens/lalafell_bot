@@ -1,4 +1,3 @@
-use bot::BotEnv;
 use bot::data::ShardManagerContainer;
 
 use lalafell::commands::prelude::*;
@@ -7,13 +6,8 @@ use serenity::client::bridge::gateway::ShardId;
 
 use chrono::Duration;
 
+#[derive(Default)]
 pub struct PingCommand;
-
-impl PingCommand {
-  pub fn new(_: Arc<BotEnv>) -> PingCommand {
-    PingCommand
-  }
-}
 
 impl<'a> Command<'a> for PingCommand {
   fn run(&self, ctx: &Context, _: &Message, _: &[&str]) -> CommandResult<'a> {

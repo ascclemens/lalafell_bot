@@ -1,5 +1,3 @@
-use bot::BotEnv;
-
 use lalafell::error::*;
 use lalafell::commands::prelude::*;
 use lalafell::commands::ChannelOrId;
@@ -16,15 +14,10 @@ use serde_json;
 use std::fs::{self, File};
 use std::path::Path;
 
-const USAGE: &'static str = "!archive <channel>";
+const USAGE: &str = "!archive <channel>";
 
+#[derive(Default)]
 pub struct ArchiveCommand;
-
-impl ArchiveCommand {
-  pub fn new(_: Arc<BotEnv>) -> Self {
-    ArchiveCommand
-  }
-}
 
 #[derive(Debug, Deserialize)]
 pub struct Params {

@@ -1,5 +1,3 @@
-use bot::BotEnv;
-
 use lalafell::commands::prelude::*;
 use lalafell::commands::ChannelOrId;
 
@@ -10,13 +8,10 @@ use super::server;
 
 const USAGE: &str = "!configure <subcommand/help>";
 
+#[derive(Default)]
 pub struct ConfigureCommand;
 
 impl ConfigureCommand {
-  pub fn new(_: Arc<BotEnv>) -> Self {
-    ConfigureCommand
-  }
-
   fn help<'a>(&self) -> CommandResult<'a> {
     Ok("Help".into())
   }

@@ -13,8 +13,8 @@ pub struct TagCommand {
   env: Arc<BotEnv>
 }
 
-impl TagCommand {
-  pub fn new(env: Arc<BotEnv>) -> TagCommand {
+impl BotCommand for TagCommand {
+  fn new(env: Arc<BotEnv>) -> Self {
     TagCommand { env }
   }
 }

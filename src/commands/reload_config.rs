@@ -1,4 +1,5 @@
 use bot::{self, BotEnv};
+use commands::BotCommand;
 
 use lalafell::commands::prelude::*;
 
@@ -8,8 +9,8 @@ pub struct ReloadConfigCommand {
   env: Arc<BotEnv>
 }
 
-impl ReloadConfigCommand {
-  pub fn new(env: Arc<BotEnv>) -> ReloadConfigCommand {
+impl BotCommand for ReloadConfigCommand {
+  fn new(env: Arc<BotEnv>) -> Self {
     ReloadConfigCommand { env }
   }
 }

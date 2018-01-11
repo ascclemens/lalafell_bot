@@ -1,4 +1,3 @@
-use bot::BotEnv;
 use commands::*;
 use database::models::NewTimeout;
 use database::schema::timeouts;
@@ -19,13 +18,8 @@ use std::sync::Arc;
 
 const USAGE: &str = "!timeout <who> <length>";
 
+#[derive(Default)]
 pub struct TimeoutCommand;
-
-impl TimeoutCommand {
-  pub fn new(_: Arc<BotEnv>) -> Self {
-    TimeoutCommand
-  }
-}
 
 #[derive(Debug, Deserialize)]
 pub struct Params {

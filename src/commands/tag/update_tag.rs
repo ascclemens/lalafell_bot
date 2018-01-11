@@ -16,8 +16,8 @@ pub struct UpdateTagCommand {
   env: Arc<BotEnv>
 }
 
-impl UpdateTagCommand {
-  pub fn new(env: Arc<BotEnv>) -> UpdateTagCommand {
+impl BotCommand for UpdateTagCommand {
+  fn new(env: Arc<BotEnv>) -> Self {
     UpdateTagCommand { env }
   }
 }

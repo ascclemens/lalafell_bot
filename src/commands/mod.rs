@@ -42,3 +42,17 @@ pub use self::tag::{TagCommand, AutoTagCommand, UpdateTagsCommand, UpdateTagComm
 pub use self::timeout::{TimeoutCommand, UntimeoutCommand};
 pub use self::verify::VerifyCommand;
 pub use self::view_tag::ViewTagCommand;
+
+use bot::BotEnv;
+
+use std::sync::Arc;
+
+pub trait BotCommand {
+  fn new(Arc<BotEnv>) -> Self;
+}
+
+impl<T: Default> BotCommand for T {
+  fn new(_: Arc<BotEnv>) -> Self {
+    Self::default()
+  }
+}

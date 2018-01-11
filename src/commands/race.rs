@@ -1,4 +1,5 @@
 use bot::BotEnv;
+use commands::BotCommand;
 
 use lalafell::commands::prelude::*;
 
@@ -11,8 +12,8 @@ pub struct RaceCommand {
   env: Arc<BotEnv>
 }
 
-impl RaceCommand {
-  pub fn new(env: Arc<BotEnv>) -> RaceCommand {
+impl BotCommand for RaceCommand {
+  fn new(env: Arc<BotEnv>) -> Self {
     RaceCommand { env }
   }
 }

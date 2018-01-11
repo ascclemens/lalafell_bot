@@ -1,5 +1,3 @@
-use bot::BotEnv;
-
 use lalafell::error::*;
 use lalafell::commands::prelude::*;
 
@@ -9,13 +7,8 @@ use std::sync::Arc;
 
 const USAGE: &str = "!mention <role name> [message]";
 
+#[derive(Default)]
 pub struct MentionCommand;
-
-impl MentionCommand {
-  pub fn new(_: Arc<BotEnv>) -> Self {
-    MentionCommand
-  }
-}
 
 #[derive(Debug, Deserialize)]
 pub struct Params {

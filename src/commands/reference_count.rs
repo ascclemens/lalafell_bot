@@ -1,4 +1,5 @@
 use bot::BotEnv;
+use commands::BotCommand;
 
 use lalafell::commands::prelude::*;
 
@@ -6,8 +7,8 @@ pub struct ReferenceCountCommand {
   env: Arc<BotEnv>
 }
 
-impl ReferenceCountCommand {
-  pub fn new(env: Arc<BotEnv>) -> ReferenceCountCommand {
+impl BotCommand for ReferenceCountCommand {
+  fn new(env: Arc<BotEnv>) -> Self {
     ReferenceCountCommand { env }
   }
 }
