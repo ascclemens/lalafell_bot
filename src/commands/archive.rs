@@ -1,24 +1,30 @@
-use bot::LalafellBot;
+use bot::BotEnv;
 
+use lalafell::error::*;
 use lalafell::commands::prelude::*;
 use lalafell::commands::ChannelOrId;
-use lalafell::error::*;
 
 use serenity::client::Context;
-use serenity::model::{ChannelId, Emoji, Member, GuildId, Role, Message, GuildChannel, Channel};
-use serenity::builder::CreateEmbed;
+use serenity::model::id::{ChannelId, GuildId};
+use serenity::model::guild::{Emoji, Member, Role};
+use serenity::model::channel::{Message, GuildChannel, Channel};
 
 use chrono::Utc;
 
 use serde_json;
 
-use std::sync::{Arc, RwLock};
 use std::fs::{self, File};
 use std::path::Path;
 
 const USAGE: &'static str = "!archive <channel>";
 
 pub struct ArchiveCommand;
+
+impl ArchiveCommand {
+  pub fn new(_: Arc<BotEnv>) -> Self {
+    ArchiveCommand
+  }
+}
 
 #[derive(Debug, Deserialize)]
 pub struct Params {
@@ -30,18 +36,18 @@ impl HasParams for ArchiveCommand {
 }
 
 impl<'a> PublicChannelCommand<'a> for ArchiveCommand {
-  fn run(&self, context: &Context, message: &Message, guild: GuildId, _: Arc<RwLock<GuildChannel>>, params: &[&str]) -> CommandResult<'a> {
+  fn run(&self, _: &Context, message: &Message, _: GuildId, _: Arc<RwLock<GuildChannel>>, params: &[&str]) -> CommandResult<'a> {
     let params = self.params(USAGE, params)?;
     let channel = match params.channel.get().chain_err(|| "could not get channel")? {
-      Channel::Guild(g) => g.read().unwrap(),
+      Channel::Guild(g) => g,
       _ => return Err("This channel must be a guild channel.".into())
     };
-    let member = match channel.guild_id.member(message.author.id){
+    let channel = channel.read();
+    let member = match channel.guild_id.member(message.author.id) {
       Ok(m) => m,
       Err(_) => return Err("You must be a member of the guild to archive its channels.".into())
     };
-    let perms = member.permissions().chain_err(|| "could not get permissions")?;
-    if !perms.manage_channels() {
+    if !member.permissions().chain_err(|| "could not get permissions")?.manage_channels() {
       return Err(ExternalCommandFailure::default()
         .message(|e: CreateEmbed| e
           .title("Not enough permissions.")
@@ -55,7 +61,7 @@ impl<'a> PublicChannelCommand<'a> for ArchiveCommand {
     };
 
     let archive_path = Path::new("./archives")
-      .join(&guild.read().unwrap().id.to_string())
+      .join(&guild.read().id.to_string())
       .join(&params.channel.to_string())
       .with_extension("json");
     if let Some(parent) = archive_path.parent() {
@@ -82,7 +88,7 @@ impl<'a> PublicChannelCommand<'a> for ArchiveCommand {
 
     let num_messages = messages.len();
 
-    let guild = guild.read().unwrap();
+    let guild = guild.read();
     let archive = Archive {
       timestamp: Utc::now().timestamp(),
       server: ArchiveServer {
@@ -91,7 +97,7 @@ impl<'a> PublicChannelCommand<'a> for ArchiveCommand {
         members: guild.members.values().cloned().collect(),
         channels: guild.channels.iter()
           .map(|(_, c)| {
-            let c = c.read().unwrap();
+            let c = c.read();
             ArchiveChannel { id: c.id, name: c.name.clone(), topic: c.topic.clone() }
           })
           .collect(),

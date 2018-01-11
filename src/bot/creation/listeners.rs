@@ -125,7 +125,7 @@ fn command_listener<'a>(env: &Arc<BotEnv>) -> CommandListener<'a> {
     "pollresults" => PollResultsCommand,
     "timeout" => TimeoutCommand,
     "untimeout" => UntimeoutCommand,
-    // "archive" => ArchiveCommand,
+    "archive" => ArchiveCommand,
     "imagedump", "dump" => ImageDumpCommand,
     "configure", "config" => ConfigureCommand,
     "randomreaction", "reaction" => RandomReactionCommand,
