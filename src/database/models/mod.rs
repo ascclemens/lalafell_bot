@@ -15,35 +15,35 @@ macro_rules! insertable {
   }
 }
 
-pub mod tags;
-pub mod verifications;
-pub mod timeouts;
-pub mod config;
 pub mod auto_replies;
+pub mod config;
 pub mod delete_all_messages;
 pub mod role_check_times;
+pub mod tags;
+pub mod timeouts;
+pub mod verifications;
 
-pub use self::tags::{Tag, NewTag};
-pub use self::verifications::{Verification, NewVerification};
-pub use self::timeouts::{Timeout, NewTimeout};
-pub use self::config::{ServerConfig, NewServerConfig, ChannelConfig, NewChannelConfig, Reaction, NewReaction};
 pub use self::auto_replies::{AutoReply, NewAutoReply};
+pub use self::config::{ServerConfig, NewServerConfig, ChannelConfig, NewChannelConfig, Reaction, NewReaction};
 pub use self::delete_all_messages::{DeleteAllMessages, NewDeleteAllMessages};
 pub use self::role_check_times::{RoleCheckTime, NewRoleCheckTime};
+pub use self::tags::{Tag, NewTag};
+pub use self::timeouts::{Timeout, NewTimeout};
+pub use self::verifications::{Verification, NewVerification};
 
 use serenity::model::id::{UserId, GuildId, ChannelId, MessageId, RoleId, EmojiId};
 
-use std::error::Error;
 use std::ops::Deref;
+use std::error::Error;
 use std::fmt::{Display, Formatter, Error as FmtError};
 
-use diesel::types::{FromSql, FromSqlRow, HasSqlType, Text};
+use diesel::pg::Pg;
+use diesel::row::Row;
+use diesel::backend::Backend;
 use diesel::query_source::Queryable;
 use diesel::expression::AsExpression;
 use diesel::expression::helper_types::AsExprOf;
-use diesel::backend::Backend;
-use diesel::row::Row;
-use diesel::pg::Pg;
+use diesel::types::{FromSql, FromSqlRow, HasSqlType, Text};
 
 #[derive(Debug)]
 struct SqlError(String);

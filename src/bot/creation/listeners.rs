@@ -1,6 +1,6 @@
 use bot::BotEnv;
-use listeners::{Timeouts, PollTagger, AutoReplyListener, ReactionAuthorize, Log};
 use commands::*;
+use listeners::{Timeouts, PollTagger, AutoReplyListener, ReactionAuthorize, Log};
 
 use lalafell::listeners::CommandListener;
 
@@ -48,10 +48,9 @@ macro_rules! handler {
 
 impl EventHandler for Handler {
   handler!(cached, param1: Context, param2: Vec < GuildId >);
-  handler!(channel_create, param1: Context, param2: Arc < RwLock < GuildChannel > >);
   handler!(category_create, param1: Context, param2: Arc < RwLock < ChannelCategory > >);
   handler!(category_delete, param1: Context, param2: Arc < RwLock < ChannelCategory > >);
-  handler!(private_channel_create, param1: Context, param2: Arc < RwLock < PrivateChannel > >);
+  handler!(channel_create, param1: Context, param2: Arc < RwLock < GuildChannel > >);
   handler!(channel_delete, param1: Context, param2: Arc < RwLock < GuildChannel > >);
   handler!(channel_pins_update, param1: Context, param2: ChannelPinsUpdateEvent);
   handler!(channel_recipient_addition, param1: Context, param2: ChannelId, param3: User);
@@ -72,15 +71,16 @@ impl EventHandler for Handler {
   handler!(guild_role_update, param1: Context, param2: GuildId, param3: Option < Role >, param4: Role);
   handler!(guild_unavailable, param1: Context, param2: GuildId);
   handler!(guild_update, param1: Context, param2: Option < Arc < RwLock < Guild > > >, param3: PartialGuild);
-  handler!(message, param1: Context, param2: Message);
-  handler!(message_delete, param1: Context, param2: ChannelId, param3: MessageId);
   handler!(message_delete_bulk, param1: Context, param2: ChannelId, param3: Vec < MessageId >);
-  handler!(reaction_add, param1: Context, param2: Reaction);
-  handler!(reaction_remove, param1: Context, param2: Reaction);
-  handler!(reaction_remove_all, param1: Context, param2: ChannelId, param3: MessageId);
+  handler!(message_delete, param1: Context, param2: ChannelId, param3: MessageId);
   handler!(message_update, param1: Context, param2: MessageUpdateEvent);
+  handler!(message, param1: Context, param2: Message);
   handler!(presence_replace, param1: Context, param2: Vec < Presence >);
   handler!(presence_update, param1: Context, param2: PresenceUpdateEvent);
+  handler!(private_channel_create, param1: Context, param2: Arc < RwLock < PrivateChannel > >);
+  handler!(reaction_add, param1: Context, param2: Reaction);
+  handler!(reaction_remove_all, param1: Context, param2: ChannelId, param3: MessageId);
+  handler!(reaction_remove, param1: Context, param2: Reaction);
   handler!(resume, param1: Context, param2: ResumedEvent);
   handler!(shard_stage_update, param1: Context, param2: ShardStageUpdateEvent);
   handler!(typing_start, param1: Context, param2: TypingStartEvent);
@@ -113,27 +113,27 @@ macro_rules! command_listener {
 fn command_listener<'a>(env: &Arc<BotEnv>) -> CommandListener<'a> {
   command_listener! {
     env => env,
-    "race" => RaceCommand,
-    "tag" => TagCommand,
+    "archive" => ArchiveCommand,
     "autotag" => AutoTagCommand,
-    "viewtag" => ViewTagCommand,
-    "updatetags" => UpdateTagsCommand,
-    "updatetag" => UpdateTagCommand,
-    "verify" => VerifyCommand,
-    "referencecount" => ReferenceCountCommand,
+    "blob" => BlobCommand,
+    "configure", "config" => ConfigureCommand,
+    "imagedump", "dump" => ImageDumpCommand,
+    "mention" => MentionCommand,
+    "ping" => PingCommand,
     "poll" => PollCommand,
     "pollresults" => PollResultsCommand,
+    "presence" => PresenceCommand,
+    "race" => RaceCommand,
+    "randomreaction", "reaction" => RandomReactionCommand,
+    "referencecount" => ReferenceCountCommand,
+    "reload", "reloadconfig" => ReloadConfigCommand,
+    "search" => SearchCommand,
+    "tag" => TagCommand,
     "timeout" => TimeoutCommand,
     "untimeout" => UntimeoutCommand,
-    "archive" => ArchiveCommand,
-    "imagedump", "dump" => ImageDumpCommand,
-    "configure", "config" => ConfigureCommand,
-    "randomreaction", "reaction" => RandomReactionCommand,
-    "search" => SearchCommand,
-    "presence" => PresenceCommand,
-    "ping" => PingCommand,
-    "reload", "reloadconfig" => ReloadConfigCommand,
-    "blob" => BlobCommand,
-    "mention" => MentionCommand
+    "updatetag" => UpdateTagCommand,
+    "updatetags" => UpdateTagsCommand,
+    "verify" => VerifyCommand,
+    "viewtag" => ViewTagCommand
   }
 }

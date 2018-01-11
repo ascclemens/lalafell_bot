@@ -1,7 +1,6 @@
-use bot::LalafellBot;
 use tasks::*;
-
 use error::*;
+use bot::LalafellBot;
 
 use std::sync::Arc;
 

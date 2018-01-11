@@ -1,5 +1,5 @@
-mod server;
 mod channel;
+mod server;
 
 pub mod configure;
 

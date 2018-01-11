@@ -1,12 +1,12 @@
-use database::models::ServerConfig;
 use error::*;
+use database::models::ServerConfig;
 
 use diesel::prelude::*;
 
 use serenity::model::id::RoleId;
 use serenity::model::guild::Guild;
-use serenity::model::channel::{PermissionOverwrite, PermissionOverwriteType};
 use serenity::model::permissions::Permissions;
+use serenity::model::channel::{PermissionOverwrite, PermissionOverwriteType};
 
 pub mod timeout_command;
 pub mod untimeout;

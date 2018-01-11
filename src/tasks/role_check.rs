@@ -9,8 +9,8 @@ use diesel::prelude::*;
 use chrono::{Utc, TimeZone, Duration};
 
 use serenity::prelude::Mentionable;
-use serenity::model::id::{GuildId, ChannelId, RoleId, UserId};
 use serenity::model::guild::{Member, Role};
+use serenity::model::id::{GuildId, ChannelId, RoleId, UserId};
 
 use serde_json;
 

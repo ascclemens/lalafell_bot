@@ -1,12 +1,12 @@
-pub mod tag_command;
 pub mod autotag;
-pub mod update_tags;
+pub mod tag_command;
 pub mod update_tag;
+pub mod update_tags;
 
-pub use self::tag_command::TagCommand;
 pub use self::autotag::AutoTagCommand;
-pub use self::update_tags::UpdateTagsCommand;
+pub use self::tag_command::TagCommand;
 pub use self::update_tag::UpdateTagCommand;
+pub use self::update_tags::UpdateTagsCommand;
 
 use bot::BotEnv;
 use database::models::{Tag, NewTag, Verification};
@@ -14,23 +14,23 @@ use database::models::{Tag, NewTag, Verification};
 use lalafell::error::*;
 use lalafell::commands::prelude::*;
 
-use serenity::prelude::Mentionable;
+use serenity::Error as SError;
 use serenity::builder::EditRole;
 use serenity::model::guild::Role;
+use serenity::prelude::Mentionable;
 use serenity::model::id::{RoleId, UserId};
-use serenity::Error as SError;
 use serenity::http::{HttpError, StatusCode};
 
 use diesel::prelude::*;
 
 use url::Url;
 
-use make_hyper_great_again::Client;
 use hyper_rustls::HttpsConnector;
+use make_hyper_great_again::Client;
 
+use std::thread;
 use std::sync::Mutex;
 use std::collections::HashSet;
-use std::thread;
 
 lazy_static! {
   // Limbo roles are roles that may or may not be added to the Discord bot state.

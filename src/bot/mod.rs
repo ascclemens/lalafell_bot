@@ -1,17 +1,18 @@
 use Environment;
+
+use error::*;
 use config::Config;
 
 use xivdb::XivDb;
-use error::*;
 
-use serenity::prelude::RwLock;
 use serenity::client::Client;
+use serenity::prelude::RwLock;
 
 use diesel::Connection;
 use diesel::pg::PgConnection;
 
-use std::sync::Arc;
 use std::env;
+use std::sync::Arc;
 
 mod creation;
 

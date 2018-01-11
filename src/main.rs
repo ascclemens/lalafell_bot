@@ -3,37 +3,37 @@
 #![cfg_attr(feature = "cargo-clippy", allow(unreadable_literal))]
 #![recursion_limit = "1024"]
 
-extern crate serenity;
-extern crate xivdb;
-extern crate dotenv;
-#[macro_use]
-extern crate serde_derive;
-extern crate serde_json;
-extern crate ctrlc;
-extern crate chrono;
-#[macro_use]
-extern crate log;
-extern crate fern;
 extern crate ansi_term;
-extern crate hyper;
-extern crate make_hyper_great_again;
-extern crate hyper_rustls;
-extern crate scraper;
-extern crate uuid;
+extern crate byteorder;
+extern crate chrono;
+extern crate ctrlc;
 #[macro_use]
-extern crate lazy_static;
+extern crate diesel;
+extern crate dotenv;
 extern crate envy;
 #[macro_use]
 extern crate error_chain;
+extern crate fern;
+extern crate hyper_rustls;
+extern crate hyper;
+extern crate itertools;
 extern crate lalafell;
 #[macro_use]
-extern crate diesel;
-extern crate url;
-extern crate url_serde;
-extern crate byteorder;
+extern crate lazy_static;
+#[macro_use]
+extern crate log;
+extern crate make_hyper_great_again;
 extern crate rand;
+extern crate scraper;
+#[macro_use]
+extern crate serde_derive;
+extern crate serde_json;
+extern crate serenity;
 extern crate typemap;
-extern crate itertools;
+extern crate url_serde;
+extern crate url;
+extern crate uuid;
+extern crate xivdb;
 
 macro_rules! some_or {
   ($e: expr, $o: expr) => {{
@@ -46,19 +46,19 @@ macro_rules! some_or {
 }
 
 mod bot;
-mod database;
-mod listeners;
-mod tasks;
 mod commands;
-mod lodestone;
 mod config;
-mod filters;
+mod database;
 mod error;
+mod filters;
+mod listeners;
+mod lodestone;
 mod logging;
+mod tasks;
 mod util;
 
-use bot::LalafellBot;
 use error::*;
+use bot::LalafellBot;
 
 use std::sync::{Arc, Mutex};
 
