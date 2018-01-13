@@ -1,0 +1,12 @@
+language: rust
+rust:
+  - nightly
+os:
+  - linux
+  - osx
+dist: trusty
+script:
+  - cargo build --bin lalafell_bot
+  - cargo build --features source --bin generate_handlers
+notifications:
+  email: false
