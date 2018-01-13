@@ -36,6 +36,13 @@ table! {
 }
 
 table! {
+    log_channels (server_id, channel_id) {
+        server_id -> Int8,
+        channel_id -> Int8,
+    }
+}
+
+table! {
     presences (id) {
         id -> Int4,
         kind -> Int2,
@@ -111,6 +118,7 @@ allow_tables_to_appear_in_same_query!(
     auto_replies,
     channel_configs,
     delete_all_messages,
+    log_channels,
     presences,
     reactions,
     role_check_times,

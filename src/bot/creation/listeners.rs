@@ -26,7 +26,7 @@ impl Handler {
       box Timeouts,
       box PollTagger,
       box AutoReplyListener::default(),
-      box Log::new(Arc::clone(env))
+      box Log
     ];
     Handler { listeners }
   }
