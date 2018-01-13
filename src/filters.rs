@@ -15,10 +15,7 @@ impl Filter {
     let mut last_index = 0;
     loop {
       let index = input[last_index..].find("role:").or_else(|| input[last_index..].find("user:"));
-      let mut i = match index {
-        Some(i) => i,
-        None => break
-      };
+      let mut i = some_or!(index, break);
       if i + last_index != 0 && &input[i + last_index - 1..i + last_index] == "!" {
         i -= 1;
       }
@@ -78,7 +75,7 @@ impl Filter {
   }
 
   pub fn all_filters(s: &str) -> Option<Vec<Filter>> {
-    some_or!(Filter::find_all_filters(s), return None)
+    Filter::find_all_filters(s)?
       .into_iter()
       .map(|x| Filter::parse(&x))
       .collect()
@@ -86,17 +83,9 @@ impl Filter {
 
   pub fn parse(s: &str) -> Option<Filter> {
     if s.starts_with('!') {
-      let fk = match FilterKind::parse(&s[1..]) {
-        Some(f) => f,
-        None => return None
-      };
-      Some(Filter::Exclude(fk))
+      FilterKind::parse(&s[1..]).map(Filter::Exclude)
     } else {
-      let fk = match FilterKind::parse(s) {
-        Some(f) => f,
-        None => return None
-      };
-      Some(Filter::Include(fk))
+      FilterKind::parse(s).map(Filter::Include)
     }
   }
 
@@ -144,10 +133,7 @@ impl FilterKind {
     match kind.to_lowercase().as_str() {
       "role" => Some(FilterKind::Role(value.to_string())),
       "user" | "member" => {
-        let id = match MentionOrId::parse(value) {
-          Ok(i) => i,
-          Err(_) => return None
-        };
+        let id = MentionOrId::parse(value).ok()?;
         Some(FilterKind::User(id.0))
       }
       _ => None

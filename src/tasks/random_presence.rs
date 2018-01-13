@@ -64,9 +64,8 @@ pub fn random_game() -> Option<Game> {
     use database::schema::presences::dsl;
     dsl::presences.load(c).ok()
   })?;
-  let presence = some_or!(thread_rng().choose(&presences), return None);
-  // let presences = some_or!(presences, return None);
-  let game_type = some_or!(PresenceKind::from_i16(presence.kind), return None).as_discord();
+  let presence = thread_rng().choose(&presences)?;
+  let game_type = PresenceKind::from_i16(presence.kind)?.as_discord();
   Some(Game {
     kind: game_type,
     name: presence.content.clone(),
