@@ -21,12 +21,12 @@ pub struct Handler {
 impl Handler {
   pub fn new(env: &Arc<BotEnv>) -> Self {
     let listeners: Vec<Box<EventHandler + Send + Sync>> = vec![
-      box command_listener(&env),
+      box command_listener(env),
       box ReactionAuthorize,
       box Timeouts,
       box PollTagger,
       box AutoReplyListener::default(),
-      box Log::new(Arc::clone(&env))
+      box Log::new(Arc::clone(env))
     ];
     Handler { listeners }
   }
