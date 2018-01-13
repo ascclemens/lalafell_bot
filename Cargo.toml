@@ -4,34 +4,34 @@ version = "0.1.0"
 authors = ["Kyle Clemens <me@kyleclemens.com>"]
 
 [dependencies]
-lalafell = { version = "*", git = "https://github.com/jkcclemens/lalafell" }
-xivdb = { version = "*", git = "https://github.com/jkcclemens/xivdb-rs" }
+ansi_term = "0.10"
+byteorder = "1.2"
+chrono = "0.4"
+ctrlc = { version = "3.0", features = ["termination"] }
+diesel = { version = "1.0", features = ["postgres"] }
 dotenv = "0.10"
+envy = "0.3"
+error-chain = "0.11"
+fern = "0.5"
+hyper = "0.11"
+hyper-rustls = "0.11"
+itertools = "0.7"
+lalafell = { version = "*", git = "https://github.com/jkcclemens/lalafell" }
+lazy_static = "1.0"
+log = "0.4"
+make_hyper_great_again = "0.11"
+rand = "0.4"
+scraper = "0.4"
 serde = "1.0"
 serde_derive = "1.0"
 serde_json = "1.0"
-ctrlc = { version = "3.0", features = ["termination"] }
-chrono = "0.4"
-log = "0.4"
-fern = "0.5"
-ansi_term = "0.10"
-hyper = "0.11"
-hyper-rustls = "0.11"
-make_hyper_great_again = "0.11"
-scraper = "0.4"
-uuid = { version = "0.5", features = ["v4"] }
-lazy_static = "1.0"
-envy = "0.3"
-error-chain = "0.11"
-diesel = { version = "1.0", features = ["postgres"] }
+typemap = "0.3"
 url = "1.6"
 url_serde = "0.2"
-byteorder = "1.2"
-rand = "0.4"
-typemap = "0.3"
-itertools = "0.7"
-syn = { version = "0.12", optional = true, features = ["full", "derive", "parsing", "printing", "visit", "visit-mut", "fold", "clone-impls", "extra-traits"] }
+uuid = { version = "0.5", features = ["v4"] }
+xivdb = { version = "*", git = "https://github.com/jkcclemens/xivdb-rs" }
 quote = { version = "0.4", optional = true }
+syn = { version = "0.12", optional = true, features = ["full", "derive", "parsing", "printing", "visit", "visit-mut", "fold", "clone-impls", "extra-traits"] }
 
 [dependencies.serenity]
 version = "0.5"
