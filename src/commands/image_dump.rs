@@ -1,4 +1,4 @@
-use database::models::ChannelConfig;
+use database::models::{ToU64, ChannelConfig};
 
 use diesel::prelude::*;
 
@@ -37,7 +37,7 @@ impl<'a> PublicChannelCommand<'a> for ImageDumpCommand {
     let config: Option<ChannelConfig> = ::bot::CONNECTION.with(|c| {
       use database::schema::channel_configs::dsl;
       dsl::channel_configs
-        .filter(dsl::channel_id.eq(channel.read().id.0.to_string()).and(dsl::server_id.eq(guild.0.to_string())))
+        .filter(dsl::channel_id.eq(channel.read().id.to_u64()).and(dsl::server_id.eq(guild.to_u64())))
         .first(c)
         .optional()
         .chain_err(|| "could not load configs")

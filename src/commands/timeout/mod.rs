@@ -1,5 +1,5 @@
 use error::*;
-use database::models::ServerConfig;
+use database::models::{ToU64, ServerConfig};
 
 use diesel::prelude::*;
 
@@ -35,7 +35,7 @@ pub fn set_up_timeouts(guild: &Guild) -> Result<RoleId> {
   let server_config: Option<ServerConfig> = ::bot::CONNECTION.with(|c| {
     use database::schema::server_configs::dsl;
     dsl::server_configs
-      .filter(dsl::server_id.eq(guild.id.0.to_string()))
+      .filter(dsl::server_id.eq(guild.id.to_u64()))
       .first(c)
       .optional()
       .chain_err(|| "could not load server configs")

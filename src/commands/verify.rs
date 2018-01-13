@@ -1,5 +1,5 @@
 use lodestone::Lodestone;
-use database::models::{Tag, Verification};
+use database::models::{ToU64, Tag, Verification};
 
 use lalafell::error::*;
 use lalafell::commands::prelude::*;
@@ -16,7 +16,7 @@ impl<'a> PublicChannelCommand<'a> for VerifyCommand {
     let user: Option<Tag> = ::bot::CONNECTION.with(|c| {
       use database::schema::tags::dsl;
       dsl::tags
-        .filter(dsl::user_id.eq(message.author.id.0.to_string()).and(dsl::server_id.eq(guild.0.to_string())))
+        .filter(dsl::user_id.eq(message.author.id.to_u64()).and(dsl::server_id.eq(guild.to_u64())))
         .first(c)
         .optional()
         .chain_err(|| "could not load tags")

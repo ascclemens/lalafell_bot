@@ -1,7 +1,7 @@
 use bot::BotEnv;
 use commands::*;
 use tasks::AutoTagTask;
-use database::models::Tag;
+use database::models::{ToU64, Tag};
 
 use serenity::prelude::Mentionable;
 use serenity::model::id::{GuildId, UserId};
@@ -51,7 +51,7 @@ impl<'a> PublicChannelCommand<'a> for UpdateTagCommand {
     let tag: Option<Tag> = ::bot::CONNECTION.with(|c| {
       use database::schema::tags::dsl;
       dsl::tags
-        .filter(dsl::user_id.eq(id.0.to_string()).and(dsl::server_id.eq(guild.0.to_string())))
+        .filter(dsl::user_id.eq(id.to_u64()).and(dsl::server_id.eq(guild.to_u64())))
         .first(c)
         .optional()
         .chain_err(|| "could not load tags")

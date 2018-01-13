@@ -1,5 +1,5 @@
 use commands::*;
-use database::models::NewTimeout;
+use database::models::{ToU64, NewTimeout};
 use database::schema::timeouts;
 use util::parse_duration_secs;
 
@@ -75,7 +75,7 @@ impl<'a> PublicChannelCommand<'a> for TimeoutCommand {
       use database::schema::timeouts::dsl;
       use diesel::expression::dsl::count;
       dsl::timeouts
-        .filter(dsl::user_id.eq(who.0.to_string()).and(dsl::server_id.eq(server_id.0.to_string())))
+        .filter(dsl::user_id.eq(who.to_u64()).and(dsl::server_id.eq(server_id.to_u64())))
         .select(count(dsl::id))
         .first(c)
         .optional()

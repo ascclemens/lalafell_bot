@@ -1,4 +1,4 @@
-use database::models::{ChannelConfig, NewChannelConfig};
+use database::models::{ToU64, ChannelConfig, NewChannelConfig};
 
 use serenity::prelude::Mentionable;
 use serenity::builder::CreateEmbed;
@@ -22,7 +22,7 @@ pub fn image_dump<'a>(author: UserId, channel: ChannelId, guild: GuildId, args: 
   let config: Option<ChannelConfig> = ::bot::CONNECTION.with(|c| {
     use database::schema::channel_configs::dsl;
     dsl::channel_configs
-      .filter(dsl::server_id.eq(guild.0.to_string()).and(dsl::channel_id.eq(channel.to_string())))
+      .filter(dsl::server_id.eq(guild.to_u64()).and(dsl::channel_id.eq(channel.to_u64())))
       .first(c)
       .optional()
       .chain_err(|| "could not load channel configs")

@@ -1,4 +1,4 @@
-use database::models::AutoReply;
+use database::models::{ToU64, AutoReply};
 use filters::Filter;
 use error::*;
 
@@ -31,7 +31,7 @@ impl EventHandler for AutoReplyListener {
       let replies: Vec<AutoReply> = ::bot::CONNECTION.with(|c| {
         use database::schema::auto_replies::dsl;
         dsl::auto_replies
-          .filter(dsl::server_id.eq(guild.0.to_string())
+          .filter(dsl::server_id.eq(guild.to_u64())
             .and(dsl::on_join.eq(true)))
           .load(c)
           .chain_err(|| "could not load auto_replies")
@@ -52,7 +52,7 @@ impl EventHandler for AutoReplyListener {
       let replies: Vec<AutoReply> = ::bot::CONNECTION.with(|c| {
         use database::schema::auto_replies::dsl;
         dsl::auto_replies
-          .filter(dsl::channel_id.eq(m.channel_id.0.to_string())
+          .filter(dsl::channel_id.eq(m.channel_id.to_u64())
             .and(dsl::on_join.eq(false)))
           .load(c)
           .chain_err(|| "could not load auto_replies")

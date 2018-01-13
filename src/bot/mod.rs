@@ -2,6 +2,7 @@ use Environment;
 
 use error::Result as BotResult;
 use config::Config;
+use database::models::ToU64;
 
 use lalafell::error::Result as LalafellResult;
 
@@ -62,7 +63,7 @@ pub fn is_administrator<U: Into<UserId>>(user: U) -> LalafellResult<bool> {
   let number_matching: i64 = ::bot::CONNECTION.with(|c| {
     use database::schema::administrators::dsl;
     dsl::administrators
-      .find(user_id.0.to_string())
+      .find(user_id.to_u64())
       .count()
       .get_result(c)
       .chain_err(|| "could not check administrators")

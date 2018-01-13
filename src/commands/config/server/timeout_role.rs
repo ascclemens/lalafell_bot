@@ -1,4 +1,4 @@
-use database::models::{ServerConfig, NewServerConfig};
+use database::models::{ToU64, ServerConfig, NewServerConfig};
 
 use serenity::builder::CreateEmbed;
 use serenity::model::id::UserId;
@@ -21,7 +21,7 @@ pub fn timeout_role<'a>(author: UserId, guild: GuildId, args: &[String]) -> Comm
   let config: Option<ServerConfig> = ::bot::CONNECTION.with(|c| {
     use database::schema::server_configs::dsl;
     dsl::server_configs
-      .filter(dsl::server_id.eq(guild.read().id.0.to_string()))
+      .filter(dsl::server_id.eq(guild.read().id.to_u64()))
       .first(c)
       .optional()
       .chain_err(|| "could not load channel configs")

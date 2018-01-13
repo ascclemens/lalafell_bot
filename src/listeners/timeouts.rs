@@ -1,4 +1,4 @@
-use database::models::Timeout;
+use database::models::{ToU64, Timeout};
 use lalafell::error::*;
 
 use serenity::prelude::RwLock;
@@ -24,7 +24,7 @@ impl EventHandler for Timeouts {
       let timeout = ::bot::CONNECTION.with(|c| {
         use database::schema::timeouts::dsl;
         dsl::timeouts
-          .filter(dsl::user_id.eq(message.author.id.0.to_string()).and(dsl::server_id.eq(channel.read().guild_id.0.to_string())))
+          .filter(dsl::user_id.eq(message.author.id.to_u64()).and(dsl::server_id.eq(channel.read().guild_id.to_u64())))
           .first(c)
       });
 

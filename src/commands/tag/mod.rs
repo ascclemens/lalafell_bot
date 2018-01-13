@@ -9,7 +9,7 @@ pub use self::update_tag::UpdateTagCommand;
 pub use self::update_tags::UpdateTagsCommand;
 
 use bot::BotEnv;
-use database::models::{Tag, NewTag, Verification};
+use database::models::{ToU64, Tag, NewTag, Verification};
 
 use lalafell::error::*;
 use lalafell::commands::prelude::*;
@@ -108,7 +108,7 @@ impl Tagger {
     let tag: Option<Tag> = ::bot::CONNECTION.with(|c| {
       use database::schema::tags::dsl;
       dsl::tags
-        .filter(dsl::user_id.eq(who.0.to_string()).and(dsl::server_id.eq(on.0.to_string())))
+        .filter(dsl::user_id.eq(who.to_u64()).and(dsl::server_id.eq(on.to_u64())))
         .first(c)
         .optional()
         .chain_err(|| "could not load tags")
@@ -133,7 +133,7 @@ impl Tagger {
         ::bot::CONNECTION.with(|c| {
           use database::schema::tags::dsl;
           ::diesel::delete(dsl::tags
-            .filter(dsl::user_id.eq(who.0.to_string()).and(dsl::server_id.eq(on.0.to_string()))))
+            .filter(dsl::user_id.eq(who.to_u64()).and(dsl::server_id.eq(on.to_u64()))))
             .execute(c)
             .chain_err(|| format!("could not remove tag {} on {}, but it was expected to be in database", who.0, on.0))
         })?;
@@ -147,7 +147,7 @@ impl Tagger {
     let tag: Option<Tag> = ::bot::CONNECTION.with(|c| {
       use database::schema::tags::dsl;
       dsl::tags
-        .filter(dsl::user_id.eq(who.0.to_string()).and(dsl::server_id.eq(on.0.to_string())))
+        .filter(dsl::user_id.eq(who.to_u64()).and(dsl::server_id.eq(on.to_u64())))
         .first(c)
         .optional()
         .chain_err(|| "could not load tags")

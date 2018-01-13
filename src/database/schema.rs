@@ -1,14 +1,14 @@
 table! {
     administrators (user_id) {
-        user_id -> Varchar,
+        user_id -> Int8,
     }
 }
 
 table! {
     auto_replies (id) {
         id -> Int4,
-        server_id -> Text,
-        channel_id -> Text,
+        server_id -> Int8,
+        channel_id -> Int8,
         message -> Text,
         on_join -> Bool,
         delay -> Int4,
@@ -19,8 +19,8 @@ table! {
 table! {
     channel_configs (id) {
         id -> Int4,
-        server_id -> Text,
-        channel_id -> Text,
+        server_id -> Int8,
+        channel_id -> Int8,
         image_dump_allowed -> Nullable<Bool>,
     }
 }
@@ -28,8 +28,8 @@ table! {
 table! {
     delete_all_messages (id) {
         id -> Int4,
-        server_id -> Text,
-        channel_id -> Text,
+        server_id -> Int8,
+        channel_id -> Int8,
         after -> Int4,
         exclude -> Bytea,
     }
@@ -46,9 +46,9 @@ table! {
 table! {
     reactions (id) {
         id -> Int4,
-        server_id -> Text,
-        channel_id -> Text,
-        message_id -> Text,
+        server_id -> Int8,
+        channel_id -> Int8,
+        message_id -> Int8,
         emoji -> Text,
         role -> Text,
     }
@@ -58,7 +58,7 @@ table! {
     role_check_times (id) {
         id -> Int4,
         check_id -> Int4,
-        user_id -> Text,
+        user_id -> Int8,
         reminded_at -> Int8,
         kick_after -> Int4,
     }
@@ -67,7 +67,7 @@ table! {
 table! {
     server_configs (id) {
         id -> Int4,
-        server_id -> Text,
+        server_id -> Int8,
         timeout_role -> Nullable<Text>,
     }
 }
@@ -75,9 +75,9 @@ table! {
 table! {
     tags (id) {
         id -> Int4,
-        user_id -> Text,
-        server_id -> Text,
-        character_id -> Text,
+        user_id -> Int8,
+        server_id -> Int8,
+        character_id -> Int8,
         character -> Varchar,
         server -> Varchar,
         last_updated -> Int8,
@@ -87,9 +87,9 @@ table! {
 table! {
     timeouts (id) {
         id -> Int4,
-        user_id -> Text,
-        server_id -> Text,
-        role_id -> Text,
+        user_id -> Int8,
+        server_id -> Int8,
+        role_id -> Int8,
         seconds -> Int4,
         start -> Int8,
     }

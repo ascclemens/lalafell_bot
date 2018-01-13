@@ -1,4 +1,4 @@
-use database::models::{DeleteAllMessages, NewDeleteAllMessages};
+use database::models::{ToU64, DeleteAllMessages, NewDeleteAllMessages};
 
 use serenity::prelude::Mentionable;
 use serenity::builder::CreateEmbed;
@@ -61,8 +61,8 @@ pub fn delete_all_messages<'a>(author: UserId, guild: GuildId, args: &[String]) 
       let dams: Vec<DeleteAllMessages> = ::bot::CONNECTION.with(|c| {
         use database::schema::delete_all_messages::dsl;
         dsl::delete_all_messages
-          .filter(dsl::channel_id.eq(params.channel.0.to_string())
-            .and(dsl::server_id.eq(guild.0.to_string())))
+          .filter(dsl::channel_id.eq(params.channel.to_u64())
+            .and(dsl::server_id.eq(guild.to_u64())))
           .load(c)
           .chain_err(|| "could not load delete_all_messages")
       })?;

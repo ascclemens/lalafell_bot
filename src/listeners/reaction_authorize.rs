@@ -1,4 +1,4 @@
-use database::models::Reaction as DbReaction;
+use database::models::{ToU64, Reaction as DbReaction};
 
 use diesel::prelude::*;
 
@@ -33,9 +33,9 @@ impl ReactionAuthorize {
       let reactions: Vec<DbReaction> = ::bot::CONNECTION.with(|c| {
         use database::schema::reactions::dsl;
         dsl::reactions
-          .filter(dsl::channel_id.eq(r.channel_id.0.to_string())
-            .and(dsl::server_id.eq(channel.guild_id.0.to_string()))
-            .and(dsl::message_id.eq(r.message_id.0.to_string()))
+          .filter(dsl::channel_id.eq(r.channel_id.to_u64())
+            .and(dsl::server_id.eq(channel.guild_id.to_u64()))
+            .and(dsl::message_id.eq(r.message_id.to_u64()))
             .and(dsl::emoji.eq(emoji)))
           .load(c)
           .chain_err(|| "could not load reactions")
