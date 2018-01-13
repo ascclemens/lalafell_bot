@@ -12,7 +12,6 @@ pub struct Config {
 #[derive(Debug, Default, Deserialize)]
 #[serde(default)]
 pub struct Bot {
-  pub administrators: Vec<u64>,
   pub timeouts: Timeouts,
   pub presence: Presence,
   pub tasks: Value,

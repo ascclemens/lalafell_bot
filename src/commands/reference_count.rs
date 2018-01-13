@@ -1,4 +1,4 @@
-use bot::BotEnv;
+use bot::{BotEnv, is_administrator};
 use commands::BotCommand;
 
 use lalafell::commands::prelude::*;
@@ -15,7 +15,7 @@ impl BotCommand for ReferenceCountCommand {
 
 impl<'a> Command<'a> for ReferenceCountCommand {
   fn run(&self, _: &Context, message: &Message, _: &[&str]) -> CommandResult<'a> {
-    if !self.env.config.read().bot.administrators.contains(&message.author.id.0) {
+    if !is_administrator(&message.author)? {
       return Err(ExternalCommandFailure::default()
         .message(|e: CreateEmbed| e
           .title("Not enough permissions.")

@@ -15,6 +15,8 @@ macro_rules! insertable {
   }
 }
 
+// NOTE: No need for this module yet, but if it ever arises, this is useful to have.
+// pub mod administrators;
 pub mod auto_replies;
 pub mod config;
 pub mod delete_all_messages;
@@ -24,6 +26,7 @@ pub mod tags;
 pub mod timeouts;
 pub mod verifications;
 
+// pub use self::administrators::{Administrator, NewAdministrator};
 pub use self::auto_replies::{AutoReply, NewAutoReply};
 pub use self::config::{ServerConfig, NewServerConfig, ChannelConfig, NewChannelConfig, Reaction, NewReaction};
 pub use self::delete_all_messages::{DeleteAllMessages, NewDeleteAllMessages};

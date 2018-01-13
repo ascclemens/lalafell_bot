@@ -1,5 +1,4 @@
-use bot::BotEnv;
-use commands::BotCommand as BotCommandTrait;
+use bot::is_administrator;
 use database::models::{Presence, NewPresence, PresenceKind};
 
 use lalafell::error::*;
@@ -13,15 +12,8 @@ use itertools::Itertools;
 
 const USAGE: &str = "!bot [subcommand] (args)";
 
-pub struct BotCommand {
-  env: Arc<BotEnv>
-}
-
-impl BotCommandTrait for BotCommand {
-  fn new(env: Arc<BotEnv>) -> Self {
-    BotCommand { env }
-  }
-}
+#[derive(Default)]
+pub struct BotCommand;
 
 impl HasParams for BotCommand {
   type Params = Params;
@@ -35,7 +27,7 @@ pub struct Params {
 
 impl<'a> Command<'a> for BotCommand {
   fn run(&self, ctx: &Context, message: &Message, params: &[&str]) -> CommandResult<'a> {
-    if !self.env.config.read().bot.administrators.contains(&message.author.id.0) {
+    if !is_administrator(&message.author)? {
       return Err(ExternalCommandFailure::default()
         .message(|e: CreateEmbed| e
           .title("Not enough permissions.")

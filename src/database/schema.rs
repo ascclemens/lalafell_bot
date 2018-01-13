@@ -1,4 +1,10 @@
 table! {
+    administrators (user_id) {
+        user_id -> Varchar,
+    }
+}
+
+table! {
     auto_replies (id) {
         id -> Int4,
         server_id -> Text,
@@ -101,6 +107,7 @@ table! {
 joinable!(verifications -> tags (tag_id));
 
 allow_tables_to_appear_in_same_query!(
+    administrators,
     auto_replies,
     channel_configs,
     delete_all_messages,
