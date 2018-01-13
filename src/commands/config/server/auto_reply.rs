@@ -52,8 +52,8 @@ pub fn auto_reply<'a>(author: UserId, guild: GuildId, content: &str) -> CommandR
   let args = &args[1..];
   match subcommand.to_lowercase().as_str() {
     "add" | "create" => {
-      if args.len() < 4 {
-        return Err("Invalid parameters.".into());
+      if args.len() < 3 {
+        return Err("!config server autoreply add [channel] [on_join] [delay] (filters)\n[message]".into());
       }
       let channel = ChannelOrId::parse(args[0]).map_err(|_| into!(CommandFailure, "Invalid channel reference."))?;
       let on_join = match args[1].to_lowercase().as_str() {
@@ -89,6 +89,9 @@ pub fn auto_reply<'a>(author: UserId, guild: GuildId, content: &str) -> CommandR
           (Some(filters), parts[1].to_string())
         }
       };
+      if message.is_empty() {
+        return Err("Empty message.".into());
+      }
       let nar = NewAutoReply {
         server_id: guild.into(),
         channel_id: channel.0.into(),
@@ -108,7 +111,7 @@ pub fn auto_reply<'a>(author: UserId, guild: GuildId, content: &str) -> CommandR
     },
     "remove" | "delete" => {
       let params: DeleteParams = ::lalafell::commands::params::from_str(&args.join(" "))
-        .map_err(|_| into!(CommandFailure, "Invalid parameters."))?;
+        .map_err(|_| into!(CommandFailure, "!config server autoreply remove [id]"))?;
       let affected = ::bot::CONNECTION.with(|c| {
         use database::schema::auto_replies::dsl;
         diesel::delete(dsl::auto_replies.filter(dsl::id.eq(params.id)))

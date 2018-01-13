@@ -20,7 +20,7 @@ pub fn reaction<'a>(author: UserId, guild: GuildId, args: &[String]) -> CommandR
         .description("You don't have enough permissions to use this command."))
       .wrap());
   }
-  if args.len() < 2 {
+  if args.len() < 1 {
     let reactions: Vec<Reaction> = ::bot::CONNECTION.with(|c| {
       use database::schema::reactions::dsl;
       dsl::reactions.load(c).chain_err(|| "could not load reactions")
@@ -30,15 +30,15 @@ pub fn reaction<'a>(author: UserId, guild: GuildId, args: &[String]) -> CommandR
       .collect();
     return Ok(strings.join("\n").into());
   }
-  match args[1].to_lowercase().as_str() {
+  match args[0].to_lowercase().as_str() {
     "add" | "create" => {
-      if args.len() < 6 {
+      if args.len() < 5 {
         return Err("!configure server reaction add [channel] [emoji] [messageID] [role]".into());
       }
-      let channel = ChannelOrId::parse(&args[2]).map_err(|_| into!(CommandFailure, "Invalid channel reference."))?;
-      let emoji = &args[3];
-      let message_id: u64 = args[4].parse().map_err(|_| into!(CommandFailure, "Invalid message ID."))?;
-      let role = args[5..].join(" ").to_lowercase();
+      let channel = ChannelOrId::parse(&args[1]).map_err(|_| into!(CommandFailure, "Invalid channel reference."))?;
+      let emoji = &args[2];
+      let message_id: u64 = args[3].parse().map_err(|_| into!(CommandFailure, "Invalid message ID."))?;
+      let role = args[4..].join(" ").to_lowercase();
       let role = match guild.read().roles.values().find(|r| r.name.to_lowercase() == role) {
         Some(r) => r.name.clone(),
         None => return Err("No such role.".into())
@@ -59,10 +59,10 @@ pub fn reaction<'a>(author: UserId, guild: GuildId, args: &[String]) -> CommandR
       Ok(CommandSuccess::default())
     },
     "remove" | "delete" => {
-      if args.len() < 3 {
+      if args.len() < 2 {
         return Err("!configure server reaction remove [id]".into());
       }
-      let id: i32 = args[2].parse().map_err(|_| into!(CommandFailure, "Invalid ID."))?;
+      let id: i32 = args[1].parse().map_err(|_| into!(CommandFailure, "Invalid ID."))?;
       let affected = ::bot::CONNECTION.with(|c| {
         use database::schema::reactions::dsl;
         diesel::delete(dsl::reactions.filter(dsl::id.eq(id)))

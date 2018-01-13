@@ -26,14 +26,14 @@ pub fn timeout_role<'a>(author: UserId, guild: GuildId, args: &[String]) -> Comm
       .optional()
       .chain_err(|| "could not load channel configs")
   })?;
-  if args.len() < 2 {
+  if args.len() < 1 {
     let status = match config.and_then(|c| c.timeout_role) {
       Some(role) => role,
       None => String::from("unset (disabled)")
     };
     return Ok(format!("Timeout role on {}: {}", guild.read().name, status).into());
   }
-  let role_name = args[1].to_lowercase();
+  let role_name = args[0].to_lowercase();
   let role = match guild.read().roles.values().find(|r| r.name.to_lowercase() == role_name) {
     Some(r) => r.clone(),
     None => return Err(format!("No role by the name `{}`.", &args[2]).into())
