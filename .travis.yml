@@ -3,7 +3,8 @@ rust:
   - nightly
 os:
   - linux
-  - osx
+  # Disabled for now, since I don't want all my builds to take hours waiting for a macOS instance
+  # - osx
 cache: cargo
 dist: trusty
 script:
