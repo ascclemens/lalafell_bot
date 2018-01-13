@@ -4,6 +4,7 @@ rust:
 os:
   - linux
   - osx
+cache: cargo
 dist: trusty
 script:
   - cargo build --bin lalafell_bot
