@@ -22,27 +22,7 @@ pub struct Bot {
 #[derive(Debug, Default, Deserialize)]
 #[serde(default)]
 pub struct Presence {
-  pub change_frequency: i64,
-  pub list: Vec<PresenceEntry>
-}
-
-#[derive(Debug, Clone, Deserialize)]
-pub struct PresenceEntry {
-  #[serde(rename = "type")]
-  pub kind: PresenceKind,
-  pub content: String,
-  #[serde(default)]
-  pub url: Option<String>
-}
-
-#[derive(Debug, Clone, Deserialize)]
-pub enum PresenceKind {
-  #[serde(rename = "playing")]
-  Playing,
-  #[serde(rename = "streaming")]
-  Streaming,
-  #[serde(rename = "listening")]
-  Listening
+  pub change_frequency: i64
 }
 
 #[derive(Debug, Default, Deserialize)]

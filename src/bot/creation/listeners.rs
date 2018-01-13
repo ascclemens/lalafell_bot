@@ -15,7 +15,6 @@ use std::sync::Arc;
 use std::collections::HashMap;
 
 pub struct Handler {
-  env: Arc<BotEnv>,
   listeners: Vec<Box<EventHandler + Send + Sync>>
 }
 
@@ -29,10 +28,7 @@ impl Handler {
       box AutoReplyListener::default(),
       box Log::new(Arc::clone(&env))
     ];
-    Handler {
-      env,
-      listeners
-    }
+    Handler { listeners }
   }
 }
 
@@ -91,7 +87,7 @@ impl EventHandler for Handler {
   handler!(webhook_update, param1: Context, param2: GuildId, param3: ChannelId);
 
   fn ready(&self, ctx: Context, ready: Ready) {
-    if let Some(g) = ::tasks::random_presence::random_game(self.env.as_ref()) {
+    if let Some(g) = ::tasks::random_presence::random_game() {
       ctx.shard.set_game(Some(g));
     }
     for listener in &self.listeners {
@@ -116,6 +112,7 @@ fn command_listener<'a>(env: &Arc<BotEnv>) -> CommandListener<'a> {
     "archive" => ArchiveCommand,
     "autotag" => AutoTagCommand,
     "blob" => BlobCommand,
+    "bot" => ActualBotCommand,
     "configure", "config" => ConfigureCommand,
     "imagedump", "dump" => ImageDumpCommand,
     "mention" => MentionCommand,

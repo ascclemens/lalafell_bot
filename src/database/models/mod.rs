@@ -18,6 +18,7 @@ macro_rules! insertable {
 pub mod auto_replies;
 pub mod config;
 pub mod delete_all_messages;
+pub mod presences;
 pub mod role_check_times;
 pub mod tags;
 pub mod timeouts;
@@ -26,6 +27,7 @@ pub mod verifications;
 pub use self::auto_replies::{AutoReply, NewAutoReply};
 pub use self::config::{ServerConfig, NewServerConfig, ChannelConfig, NewChannelConfig, Reaction, NewReaction};
 pub use self::delete_all_messages::{DeleteAllMessages, NewDeleteAllMessages};
+pub use self::presences::{Presence, NewPresence, PresenceKind};
 pub use self::role_check_times::{RoleCheckTime, NewRoleCheckTime};
 pub use self::tags::{Tag, NewTag};
 pub use self::timeouts::{Timeout, NewTimeout};

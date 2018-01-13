@@ -9,6 +9,7 @@ macro_rules! into {
 
 pub mod archive;
 pub mod blob;
+pub mod bot;
 pub mod config;
 pub mod image_dump;
 pub mod mention;
@@ -27,6 +28,7 @@ pub mod view_tag;
 
 pub use self::archive::ArchiveCommand;
 pub use self::blob::BlobCommand;
+pub use self::bot::BotCommand as ActualBotCommand;
 pub use self::config::ConfigureCommand;
 pub use self::image_dump::ImageDumpCommand;
 pub use self::mention::MentionCommand;

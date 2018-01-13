@@ -30,6 +30,14 @@ table! {
 }
 
 table! {
+    presences (id) {
+        id -> Int4,
+        kind -> Int2,
+        content -> Varchar,
+    }
+}
+
+table! {
     reactions (id) {
         id -> Int4,
         server_id -> Text,
@@ -96,6 +104,7 @@ allow_tables_to_appear_in_same_query!(
     auto_replies,
     channel_configs,
     delete_all_messages,
+    presences,
     reactions,
     role_check_times,
     server_configs,

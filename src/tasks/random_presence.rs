@@ -1,11 +1,13 @@
 use bot::BotEnv;
 use tasks::RunsTask;
-use config::PresenceKind;
+use database::models::{Presence, PresenceKind};
 
 use serenity::prelude::Mutex;
-use serenity::model::gateway::{Game, GameType};
+use serenity::model::gateway::Game;
 use serenity::client::bridge::gateway::{ShardClientMessage, ShardRunnerMessage};
 use serenity::client::bridge::gateway::ShardManager;
+
+use diesel::prelude::*;
 
 use chrono::Duration;
 
@@ -37,7 +39,7 @@ impl RunsTask for RandomPresenceTask {
       }
       thread::sleep(Duration::seconds(self.next_sleep).to_std().unwrap());
       info!("Changing presence");
-      let game = match random_game(env.as_ref()) {
+      let game = match random_game() {
         Some(g) => g,
         None => {
           info!("No presence");
@@ -57,22 +59,17 @@ impl RunsTask for RandomPresenceTask {
   }
 }
 
-pub fn random_game(env: &BotEnv) -> Option<Game> {
-  let presence = {
-    let reader = env.config.read();
-    match thread_rng().choose(&reader.bot.presence.list) {
-      Some(p) => p.clone(),
-      None => return None
-    }
-  };
-  let game_type = match presence.kind {
-    PresenceKind::Playing => GameType::Playing,
-    PresenceKind::Streaming => GameType::Streaming,
-    PresenceKind::Listening => GameType::Listening
-  };
+pub fn random_game() -> Option<Game> {
+  let presences: Vec<Presence> = ::bot::CONNECTION.with(|c| {
+    use database::schema::presences::dsl;
+    dsl::presences.load(c).ok()
+  })?;
+  let presence = some_or!(thread_rng().choose(&presences), return None);
+  // let presences = some_or!(presences, return None);
+  let game_type = some_or!(PresenceKind::from_i16(presence.kind), return None).as_discord();
   Some(Game {
     kind: game_type,
     name: presence.content.clone(),
-    url: presence.url.clone()
+    url: None
   })
 }

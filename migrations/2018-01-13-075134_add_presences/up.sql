@@ -1,0 +1,5 @@
+CREATE TABLE presences (
+  id SERIAL PRIMARY KEY,
+  kind SMALLINT NOT NULL,
+  content VARCHAR(128) NOT NULL
+)

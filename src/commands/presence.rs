@@ -38,7 +38,7 @@ impl<'a> Command<'a> for PresenceCommand {
     }
     let params = self.params(USAGE, params)?;
     let game = if params.kind.to_lowercase() == "random" {
-      match ::tasks::random_presence::random_game(self.env.as_ref()) {
+      match ::tasks::random_presence::random_game() {
         Some(g) => g,
         None => return Err("No presences.".into())
       }
