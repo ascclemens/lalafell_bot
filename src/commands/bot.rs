@@ -5,6 +5,8 @@ use database::models::{Presence, NewPresence, PresenceKind};
 use lalafell::error::*;
 use lalafell::commands::prelude::*;
 
+use serenity::model::gateway::{Game, GameType};
+
 use diesel::prelude::*;
 
 use itertools::Itertools;
@@ -32,7 +34,7 @@ pub struct Params {
 }
 
 impl<'a> Command<'a> for BotCommand {
-  fn run(&self, _: &Context, message: &Message, params: &[&str]) -> CommandResult<'a> {
+  fn run(&self, ctx: &Context, message: &Message, params: &[&str]) -> CommandResult<'a> {
     if !self.env.config.read().bot.administrators.contains(&message.author.id.0) {
       return Err(ExternalCommandFailure::default()
         .message(|e: CreateEmbed| e
@@ -43,14 +45,14 @@ impl<'a> Command<'a> for BotCommand {
     let params = self.params(USAGE, params)?;
     let args = params.args.unwrap_or_default();
     match params.subcommand.as_ref() {
-      "presence" | "presences" => self.presence(&args),
+      "presence" | "presences" => self.presence(ctx, &args),
       _ => Err("Invalid subcommand.".into())
     }
   }
 }
 
 impl BotCommand {
-  fn presence<'a>(&self, args: &[String]) -> CommandResult<'a> {
+  fn presence<'a>(&self, ctx: &Context, args: &[String]) -> CommandResult<'a> {
     if args.len() < 1 {
       return self.list_all_presences();
     }
@@ -59,6 +61,8 @@ impl BotCommand {
     match subcommand.as_str() {
       "add" | "create" => self.add_presence(args),
       "remove" | "delete" => self.remove_presence(args),
+      "change" | "set" => self.change_presence(ctx, args),
+      "random" => self.random_presence(ctx),
       _ => Err("Invalid subcommand".into())
     }
   }
@@ -72,6 +76,32 @@ impl BotCommand {
       .map(|p| format!("{}. {} {}", p.id, PresenceKind::from_i16(p.kind).map(|x| x.to_string()).unwrap_or_else(|| "<invalid type>".to_string()), p.content))
       .join("\n");
     return Ok(strings.into());
+  }
+
+  fn change_presence<'a>(&self, ctx: &Context, args: &[String]) -> CommandResult<'a> {
+    if args.is_empty() {
+      return Err("!bot presence change [playing/listening] [content]".into());
+    }
+    let game_type = match args[0].as_str() {
+      "playing" => GameType::Playing,
+      "listening" => GameType::Listening,
+      _ => return Err("Invalid presence type.".into())
+    };
+    let game = Game {
+      kind: game_type,
+      name: args[1..].join(" "),
+      url: None
+    };
+    ctx.set_game(game);
+    Ok(CommandSuccess::default())
+  }
+
+  fn random_presence<'a>(&self, ctx: &Context) -> CommandResult<'a> {
+    match ::tasks::random_presence::random_game() {
+      Some(g) => ctx.set_game(g),
+      None => return Err("No presences.".into())
+    }
+    Ok(CommandSuccess::default())
   }
 
   fn remove_presence<'a>(&self, args: &[String]) -> CommandResult<'a> {
