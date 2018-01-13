@@ -44,7 +44,7 @@ impl LalafellBot {
       config: RwLock::new(config),
       xivdb: XivDb
     });
-    let client = Client::new(&env.environment.discord_bot_token, Handler::new(Arc::clone(&env)))?;
+    let client = Client::new(&env.environment.discord_bot_token, Handler::new(&env))?;
     Ok(LalafellBot {
       discord: client,
       env

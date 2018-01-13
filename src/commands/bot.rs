@@ -75,7 +75,7 @@ impl BotCommand {
     let strings = presences.iter()
       .map(|p| format!("{}. {} {}", p.id, PresenceKind::from_i16(p.kind).map(|x| x.to_string()).unwrap_or_else(|| "<invalid type>".to_string()), p.content))
       .join("\n");
-    return Ok(strings.into());
+    Ok(strings.into())
   }
 
   fn change_presence<'a>(&self, ctx: &Context, args: &[String]) -> CommandResult<'a> {
