@@ -62,12 +62,10 @@ impl<'a> Command<'a> for PollResultsCommand {
       Err(_) => return Err("Could not get that message.".into())
     };
     let mut reactions: Vec<(&String, u64)> = message.reactions.iter()
-      .map(|r| match r.reaction_type {
+      .filter_map(|r| match r.reaction_type {
         ReactionType::Unicode(ref s) if VALID_EMOJI.contains(&s.as_str()) && r.me => Some((s, r.count - 1)),
         _ => None
       })
-      .filter(|x| x.is_some())
-      .map(|x| x.unwrap())
       .collect();
     reactions.sort_by_key(|x| !x.1);
     let votes = reactions.iter()

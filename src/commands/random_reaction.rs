@@ -53,9 +53,7 @@ impl<'a> PublicChannelCommand<'a> for RandomReactionCommand {
     let roles: Vec<&Role> = reader.roles.values().collect();
     let members: Vec<&Member> = reader.members.values().collect();
     let members: Vec<&&Member> = reactions.into_iter()
-      .map(|u| members.iter().find(|m| m.user.read().id == u.id))
-      .filter(Option::is_some)
-      .map(Option::unwrap)
+      .filter_map(|u| members.iter().find(|m| m.user.read().id == u.id))
       .filter(|m| filters.iter().all(|f| f.matches(m, &roles)))
       .collect();
     if members.is_empty() {
