@@ -85,7 +85,7 @@ pub fn delete_all_messages<'a>(author: UserId, guild: GuildId, args: &[String]) 
         .map_err(|_| into!(CommandFailure, "Invalid parameters."))?;
       let affected = ::bot::CONNECTION.with(|c| {
         use database::schema::delete_all_messages::dsl;
-        diesel::delete(dsl::delete_all_messages.filter(dsl::id.eq(params.id)))
+        diesel::delete(dsl::delete_all_messages.find(params.id))
           .execute(c)
           .chain_err(|| "could not delete delete_all_messages")
       })?;

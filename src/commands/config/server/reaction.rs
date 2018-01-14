@@ -65,7 +65,7 @@ pub fn reaction<'a>(author: UserId, guild: GuildId, args: &[String]) -> CommandR
       let id: i32 = args[1].parse().map_err(|_| into!(CommandFailure, "Invalid ID."))?;
       let affected = ::bot::CONNECTION.with(|c| {
         use database::schema::reactions::dsl;
-        diesel::delete(dsl::reactions.filter(dsl::id.eq(id)))
+        diesel::delete(dsl::reactions.find(id))
           .execute(c)
           .chain_err(|| "could not delete reaction")
       })?;

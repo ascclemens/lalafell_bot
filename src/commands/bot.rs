@@ -103,7 +103,7 @@ impl BotCommand {
     let id: i32 = args[0].parse().map_err(|_| into!(CommandFailure, "Invalid ID."))?;
     let affected = ::bot::CONNECTION.with(|c| {
       use database::schema::presences::dsl;
-      ::diesel::delete(dsl::presences.filter(dsl::id.eq(id)))
+      ::diesel::delete(dsl::presences.find(id))
         .execute(c)
         .chain_err(|| "could not delete presence")
     })?;

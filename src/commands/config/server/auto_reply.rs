@@ -114,7 +114,7 @@ pub fn auto_reply<'a>(author: UserId, guild: GuildId, content: &str) -> CommandR
         .map_err(|_| into!(CommandFailure, "!config server autoreply remove [id]"))?;
       let affected = ::bot::CONNECTION.with(|c| {
         use database::schema::auto_replies::dsl;
-        diesel::delete(dsl::auto_replies.filter(dsl::id.eq(params.id)))
+        diesel::delete(dsl::auto_replies.find(params.id))
           .execute(c)
           .chain_err(|| "could not delete auto_replies")
       })?;
