@@ -1,0 +1,3 @@
+CREATE TABLE roles (
+  role_name VARCHAR(999) PRIMARY KEY
+)

@@ -9,7 +9,7 @@ pub use self::update_tag::UpdateTagCommand;
 pub use self::update_tags::UpdateTagsCommand;
 
 use bot::BotEnv;
-use database::models::{ToU64, Tag, NewTag, Verification};
+use database::models::{ToU64, Tag, NewTag, Verification, Role as DbRole};
 
 use lalafell::error::*;
 use lalafell::commands::prelude::*;
@@ -102,6 +102,14 @@ impl Tagger {
       }
     }
     Ok(())
+  }
+
+  fn get_roles() -> Result<Vec<String>> {
+    let roles: Vec<DbRole> = ::bot::CONNECTION.with(|c| {
+      use database::schema::roles::dsl;
+      dsl::roles.load(c).chain_err(|| "could not load roles")
+    })?;
+    Ok(roles.into_iter().map(|x| x.role_name.to_lowercase()).collect())
   }
 
   pub fn tag(env: &BotEnv, who: UserId, on: GuildId, char_id: u64, ignore_verified: bool) -> Result<Option<String>> {
@@ -223,7 +231,7 @@ impl Tagger {
     // Extend the roles to add with the roles we created.
     add_roles.extend(created_roles);
     // Get all the roles that are part of groups
-    let all_group_roles: Vec<String> = env.config.read().roles.groups.iter().flat_map(|x| x).map(|x| x.to_lowercase()).collect();
+    let all_group_roles = Tagger::get_roles()?;
     // Filter all roles on the server to only the roles the member has
     let keep: Vec<&Role> = roles.iter().filter(|x| member.roles.contains(&x.id)).collect();
     // Filter all the roles the member has, keeping the ones not in a group. These roles will not be touched when

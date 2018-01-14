@@ -72,6 +72,12 @@ table! {
 }
 
 table! {
+    roles (role_name) {
+        role_name -> Varchar,
+    }
+}
+
+table! {
     server_configs (id) {
         id -> Int4,
         server_id -> Int8,
@@ -122,6 +128,7 @@ allow_tables_to_appear_in_same_query!(
     presences,
     reactions,
     role_check_times,
+    roles,
     server_configs,
     tags,
     timeouts,
