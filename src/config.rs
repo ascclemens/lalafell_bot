@@ -3,12 +3,6 @@ use serde_json::Value;
 #[derive(Debug, Default, Deserialize)]
 #[serde(default)]
 pub struct Config {
-  pub bot: Bot
-}
-
-#[derive(Debug, Default, Deserialize)]
-#[serde(default)]
-pub struct Bot {
   pub timeouts: Timeouts,
   pub presence: Presence,
   pub tasks: Value

@@ -20,7 +20,7 @@ use std::collections::HashMap;
 
 macro_rules! config {
   ($env:expr) => {{
-    match $env.config.read().bot.tasks.get("role_check").cloned().map(serde_json::from_value) {
+    match $env.config.read().tasks.get("role_check").cloned().map(serde_json::from_value) {
       Some(Ok(rc)) => rc,
       Some(Err(e)) => {
         warn!("invalid role_check in config: {}", e);

@@ -55,7 +55,7 @@ impl RunsTask for TimeoutCheckTask {
           }
         });
       }
-      self.next_sleep = env.config.read().bot.timeouts.role_check_interval.unwrap_or(30);
+      self.next_sleep = env.config.read().timeouts.role_check_interval.unwrap_or(30);
     }
   }
 }
