@@ -23,6 +23,29 @@ impl TimeoutCheckTask {
   }
 }
 
+impl TimeoutCheckTask {
+  pub fn check_timeout(timeout: &Timeout, check_against: i64) {
+    if timeout.ends() >= check_against {
+      return;
+    }
+    let mut member = match GuildId(*timeout.server_id).member(*timeout.user_id) {
+      Ok(m) => m,
+      Err(e) => {
+        warn!("could not get member for timeout check: {}", e);
+        return;
+      }
+    };
+    if let Err(e) = member.remove_role(*timeout.role_id) {
+      warn!("could not remove timeout role from {}: {}", *timeout.user_id, e);
+    }
+    ::bot::CONNECTION.with(|c| {
+      if let Err(e) = ::diesel::delete(timeout).execute(c) {
+        warn!("could not delete timeout {}: {}", timeout.id, e);
+      }
+    });
+  }
+}
+
 impl RunsTask for TimeoutCheckTask {
   fn start(mut self, env: Arc<BotEnv>) {
     loop {
@@ -36,24 +59,7 @@ impl RunsTask for TimeoutCheckTask {
         }
       };
       for timeout in timeouts {
-        if timeout.ends() >= now {
-          continue;
-        }
-        let mut member = match GuildId(*timeout.server_id).member(*timeout.user_id) {
-          Ok(m) => m,
-          Err(e) => {
-            warn!("could not get member for timeout check: {}", e);
-            continue;
-          }
-        };
-        if let Err(e) = member.remove_role(*timeout.role_id) {
-          warn!("could not remove timeout role from {}: {}", *timeout.user_id, e);
-        }
-        ::bot::CONNECTION.with(|c| {
-          if let Err(e) = ::diesel::delete(&timeout).execute(c) {
-            warn!("could not delete timeout {}: {}", timeout.id, e);
-          }
-        });
+        TimeoutCheckTask::check_timeout(&timeout, now);
       }
       self.next_sleep = env.config.read().timeouts.role_check_interval.unwrap_or(30);
     }
