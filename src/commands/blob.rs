@@ -25,11 +25,9 @@ impl<'a> Command<'a> for BlobCommand {
     }
     let blob = BLOBS[params.blob.as_str()];
 
-    let name = match msg.guild() {
-      Some(guild) => guild.read().members.get(&msg.author.id).map(|a| a.display_name().into_owned()),
-      None => None
-    };
-    let name = name.unwrap_or_else(|| msg.author.name.clone());
+    let name = msg.guild()
+      .and_then(|guild| guild.read().members.get(&msg.author.id).map(|a| a.display_name().into_owned()))
+      .unwrap_or_else(|| msg.author.name.clone());
     let url = format!("https://cdn.discordapp.com/emojis/{}.{}", blob.0, if blob.1 { "gif" } else { "png" });
 
     if let Err(e) = msg.delete() {
