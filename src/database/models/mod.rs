@@ -54,7 +54,8 @@ use diesel::backend::Backend;
 use diesel::query_source::Queryable;
 use diesel::expression::AsExpression;
 use diesel::expression::helper_types::AsExprOf;
-use diesel::types::{FromSql, FromSqlRow, HasSqlType, BigInt};
+use diesel::types::{FromSql, FromSqlRow, HasSqlType};
+use diesel::sql_types::BigInt;
 
 #[derive(Debug)]
 struct SqlError(String);
