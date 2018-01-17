@@ -46,10 +46,7 @@ impl<'a> PublicChannelCommand<'a> for TimeoutCommand {
     let server_id = channel.read().guild_id;
     let who = params.who;
 
-    let mut timeout_member = match guild.member(*who) {
-      Ok(m) => m,
-      Err(_) => return Err("That user is not in this guild.".into())
-    };
+    let mut timeout_member = guild.member(*who).map_err(|_| into!(CommandFailure, "That user is not in this guild."))?;
 
     let guild = guild.find().chain_err(|| "could not find guild")?;
 
