@@ -45,10 +45,10 @@ impl<'a> Command<'a> for PollCommand {
     msg.delete().chain_err(|| "could not delete original message")?;
     let name = self.nick_or_name(channel.read().guild_id, msg.author.id).unwrap_or_else(|| "someone".into());
     let poll = Poll::new(name, &message, options);
-    let embed = channel.read().send_message(|c| c.embed(poll.create_embed())).chain_err(|| "could not send embed")?;
-    for i in 0..poll.options.len() {
-      embed.react(format!("{}⃣", i + 1)).chain_err(|| "could not add reaction")?;
-    }
+    channel.read().send_message(|c| c
+      .embed(poll.create_embed())
+      .reactions((0..poll.options.len()).map(|i| format!("{}⃣", i + 1))))
+      .chain_err(|| "could not send embed")?;
     Ok(CommandSuccess::default())
   }
 }
