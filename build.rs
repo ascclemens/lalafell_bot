@@ -1,6 +1,6 @@
 extern crate git2;
 
-use git2::{Repository, RepositoryState};
+use git2::{Repository, StatusOptions};
 use std::fs::File;
 use std::path::Path;
 use std::io::Write;
@@ -8,7 +8,7 @@ use std::io::Write;
 fn main() {
   let git = git_commit().map(|x| format!("-g{}", x)).unwrap_or_default();
   let clean = match git_clean() {
-    Some(true) => "-dirty",
+    Some(false) => "-dirty",
     _ => ""
   };
   let version = std::env::var("CARGO_PKG_VERSION").unwrap();
@@ -27,5 +27,10 @@ fn git_commit() -> Option<String> {
 
 fn git_clean() -> Option<bool> {
   let repo = Repository::open(".").ok()?;
-  Some(repo.state() == RepositoryState::Clean)
+  let mut options = StatusOptions::new();
+  options
+    .include_ignored(false)
+    .include_untracked(false);
+  let statuses = repo.statuses(Some(&mut options)).ok()?;
+  Some(statuses.is_empty())
 }
