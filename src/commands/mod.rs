@@ -23,6 +23,7 @@ pub mod search;
 pub mod tag;
 pub mod timeout;
 pub mod verify;
+pub mod version;
 pub mod view_tag;
 
 pub use self::archive::ArchiveCommand;
@@ -41,6 +42,7 @@ pub use self::search::SearchCommand;
 pub use self::tag::{TagCommand, AutoTagCommand, UpdateTagsCommand, UpdateTagCommand};
 pub use self::timeout::{TimeoutCommand, UntimeoutCommand};
 pub use self::verify::VerifyCommand;
+pub use self::version::VersionCommand;
 pub use self::view_tag::ViewTagCommand;
 
 use bot::BotEnv;

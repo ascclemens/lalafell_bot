@@ -130,6 +130,7 @@ fn command_listener<'a>(env: &Arc<BotEnv>) -> CommandListener<'a> {
     "updatetag" => UpdateTagCommand,
     "updatetags" => UpdateTagsCommand,
     "verify" => VerifyCommand,
+    "version" => VersionCommand,
     "viewtag" => ViewTagCommand
   }
 }

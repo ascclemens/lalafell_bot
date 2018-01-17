@@ -50,3 +50,6 @@ name = "lalafell_bot"
 [[bin]]
 name = "generate_handlers"
 required-features = ["source"]
+
+[build-dependencies]
+git2 = "0.6"
