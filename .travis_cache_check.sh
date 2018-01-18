@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 
 # Check the last rustc version, if any
-LAST_RUSTC_VERSION=$(cat target/rustc_version 2> /dev/null)
+LAST_RUSTC_VERSION=$(cat $TRAVIS_BUILD_DIR/target/rustc_version 2> /dev/null)
 
 # Get the new rustc version
 CURR_RUSTC_VERSION=$(rustc --version)
@@ -13,5 +13,8 @@ if [ "$LAST_RUSTC_VERSION" != "$CURR_RUSTC_VERSION" ]; then
   cargo clean
 fi
 
+# Recreate the target directory, if necessary.
+mkdir -p $TRAVIS_BUILD_DIR/target 2> /dev/null
+
 # Update the last rustc version to the current rustc version.
-echo "$CURR_RUSTC_VERSION" > target/rustc_version
+echo "$CURR_RUSTC_VERSION" > $TRAVIS_BUILD_DIR/target/rustc_version
