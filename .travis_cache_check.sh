@@ -1,0 +1,17 @@
+#!/usr/bin/env sh
+
+# Check the last rustc version, if any
+LAST_RUSTC_VERSION=$(cat target/rustc_version 2> /dev/null)
+
+# Get the new rustc version
+CURR_RUSTC_VERSION=$(rustc --version)
+
+# If the last rustc version doesn't match the current, rustc has been upgraded. This will cause all
+# dependencies to be rebuilt, bloating the cache. Clean out all the old dependency files in this
+# case.
+if [ "$LAST_RUSTC_VERSION" != "$CURR_RUSTC_VERSION" ]; then
+  cargo clean
+fi
+
+# Update the last rustc version to the current rustc version.
+echo "$CURR_RUSTC_VERSION" > target/rustc_version

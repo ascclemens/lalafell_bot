@@ -14,6 +14,8 @@ before_cache:
   - rm -rfv target/debug/deps/liblalafell_bot-*
   - cargo clean -p lalafell_bot
 dist: trusty
+before_script:
+  - ./.travis_cache_check.sh
 script:
   - cargo build --verbose --bin lalafell_bot
   - cargo build --verbose --features source --bin generate_handlers
