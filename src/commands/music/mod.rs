@@ -57,8 +57,11 @@ impl<'a> PublicChannelCommand<'a> for MusicCommand {
   fn run(&self, ctx: &Context, msg: &Message, guild: GuildId, channel: Arc<RwLock<GuildChannel>>, str_params: &[&str]) -> CommandResult<'a> {
     let params = self.params(USAGE, str_params)?;
 
+    let sub_params = params.args.unwrap_or_default();
+    let sub_param_refs: Vec<&str> = sub_params.iter().map(AsRef::as_ref).collect();
+
     match COMMANDS.get(&params.subcommand.to_lowercase().as_str()) {
-      Some(c) => c.run(ctx, msg, guild, channel, &str_params[1..]),
+      Some(c) => c.run(ctx, msg, guild, channel, &sub_param_refs),
       None => Err("Invalid subcommand.".into())
     }
   }
