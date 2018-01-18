@@ -3,6 +3,11 @@ rust:
   - nightly
 os: linux
 cache: cargo
+addons:
+  apt:
+    packages:
+      - libsodium-dev
+      - libopus-dev
 # Remove the local crate's build files, as they only add bloat to the cache.
 # TODO: Remove unused dependency build files
 before_cache:
