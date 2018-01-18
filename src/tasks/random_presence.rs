@@ -5,6 +5,7 @@ use database::models::{Presence, PresenceKind};
 use serenity::prelude::Mutex;
 use serenity::model::gateway::Game;
 use serenity::client::bridge::gateway::{ShardClientMessage, ShardRunnerMessage};
+use serenity::gateway::InterMessage;
 use serenity::client::bridge::gateway::ShardManager;
 
 use diesel::prelude::*;
@@ -49,7 +50,9 @@ impl RunsTask for RandomPresenceTask {
       let manager = self.shard_manager.lock();
       let runners = manager.runners.lock();
       for si in runners.values() {
-        let message = ShardClientMessage::Runner(ShardRunnerMessage::SetGame(Some(game.clone())));
+        let message = InterMessage::Client(
+          ShardClientMessage::Runner(ShardRunnerMessage::SetGame(Some(game.clone())))
+        );
         if let Err(e) = si.runner_tx.send(message) {
           warn!("Could not tell shard to change presence: {}", e);
         }
