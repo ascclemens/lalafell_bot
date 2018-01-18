@@ -63,16 +63,11 @@ use bot::LalafellBot;
 use std::sync::{Arc, Mutex};
 
 fn main() {
-  a_rad_function();
   if let Err(e) = inner() {
     for err in e.iter() {
       error!("{}", err);
     }
   }
-}
-
-fn a_rad_function() {
-  println!("I'm rad!");
 }
 
 fn inner() -> Result<()> {
