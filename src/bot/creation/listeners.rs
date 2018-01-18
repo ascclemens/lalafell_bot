@@ -1,6 +1,6 @@
 use bot::BotEnv;
 use commands::*;
-use listeners::{Timeouts, PollTagger, AutoReplyListener, ReactionAuthorize, Log};
+use listeners::*;
 
 use lalafell::listeners::CommandListener;
 
@@ -26,6 +26,7 @@ impl Handler {
       box Timeouts,
       box PollTagger,
       box AutoReplyListener::default(),
+      box Music,
       box Log
     ];
     Handler { listeners }
@@ -116,6 +117,7 @@ fn command_listener<'a>(env: &Arc<BotEnv>) -> CommandListener<'a> {
     "configure", "config" => ConfigureCommand,
     "imagedump", "dump" => ImageDumpCommand,
     "mention" => MentionCommand,
+    "music" => MusicCommand,
     "ping" => PingCommand,
     "poll" => PollCommand,
     "pollresults" => PollResultsCommand,
