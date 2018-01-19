@@ -2,11 +2,16 @@ language: rust
 rust:
   - nightly
 os: linux
-cache: cargo
+cache:
+  directories:
+    # Default directories for cargo cache
+    - $HOME/.cargo
+    - $TRAVIS_BUILD_DIR/target
+    # Our copy of libsodium
+    - $HOME/libsodium
 addons:
   apt:
     packages:
-      - libsodium-dev
       - libopus-dev
 # Remove the local crate's build files, as they only add bloat to the cache.
 # TODO: Remove unused dependency build files
@@ -20,7 +25,8 @@ before_cache:
   - cargo clean -p lalafell_bot
 dist: trusty
 before_script:
-  - ./.travis_cache_check.sh
+  - .travis/cache_check.sh
+  - .travis/libsodium.sh
 script:
   - cargo build --verbose --bin lalafell_bot
   - cargo build --verbose --features source --bin generate_handlers
