@@ -10,6 +10,7 @@ CURR_RUSTC_VERSION=$(rustc --version)
 # dependencies to be rebuilt, bloating the cache. Clean out all the old dependency files in this
 # case.
 if [ "$LAST_RUSTC_VERSION" != "$CURR_RUSTC_VERSION" ]; then
+  echo "rustc version discrepancy. running cargo clean"
   cargo clean
 fi
 

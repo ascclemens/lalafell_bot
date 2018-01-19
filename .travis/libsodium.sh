@@ -3,8 +3,12 @@
 # The path to install libsodium at
 SODIUM_PATH=$HOME/libsodium
 
+printf "Checking for libsodium at $SODIUM_PATH... "
+
 # If the cache didn't restore libsodium, build it
-if [ ! -d "$SODIUM_PATH" ]; then
+if [ ! -d "$SODIUM_PATH/lib" ]; then
+
+  echo "libsodium not found. Commencing build."
 
   # Clone the libsodium repo
   git clone git://github.com/jedisct1/libsodium.git
@@ -20,6 +24,10 @@ if [ ! -d "$SODIUM_PATH" ]; then
 
   # Make and install it
   make install
+
+else
+
+  echo "libsodium found."
 
 fi
 
