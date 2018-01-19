@@ -26,7 +26,7 @@ before_cache:
 dist: trusty
 before_script:
   - .travis/cache_check.sh
-  - .travis/libsodium.sh
+  - . .travis/libsodium.sh
 script:
   - cargo build --verbose --bin lalafell_bot
   - cargo build --verbose --features source --bin generate_handlers

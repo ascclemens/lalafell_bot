@@ -11,7 +11,7 @@ if [ ! -d "$SODIUM_PATH/lib" ]; then
   echo "libsodium not found. Commencing build."
 
   # Clone the libsodium repo
-  git clone git://github.com/jedisct1/libsodium.git
+  git clone -b stable git://github.com/jedisct1/libsodium.git
 
   # Change directory
   cd libsodium
