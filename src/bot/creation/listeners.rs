@@ -99,7 +99,7 @@ impl EventHandler for Handler {
 
 macro_rules! command_listener {
   (env => $env:expr, $($($alias:expr),+ => $name:ident),+) => {{
-    let mut command_listener = CommandListener::default();
+    let mut command_listener = CommandListener::new("!");
     $(
       command_listener.add_command(&[$($alias),*], box $name::new(Arc::clone($env)));
     )*
