@@ -567,7 +567,7 @@ dependencies = [
 [[package]]
 name = "lalafell"
 version = "0.1.0"
-source = "git+https://github.com/jkcclemens/lalafell#4e807cfddc0051ea1b3f6762ec2d6f6b0c306f01"
+source = "git+https://github.com/jkcclemens/lalafell#dd2740dab9e19d9b581b72f5a3515a804a6acfb8"
 dependencies = [
  "error-chain 0.11.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.4.1 (registry+https://github.com/rust-lang/crates.io-index)",
