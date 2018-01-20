@@ -65,7 +65,7 @@ impl Tagger {
     let search_chars = res.characters.unwrap().results;
     if search_chars.is_empty() {
       Tagger::add_to_xivdb(character_name, server);
-      return Ok(Some(format!("Could not find any character by the name {} on {}.\nIf you typed everything correctly, wait up to five minutes and try again.", character_name, server)));
+      return Ok(Some(format!("Could not find any character by the name {} on {} in the XIVDB database.\nIf you typed everything correctly, please wait five minutes for your character to get added to the database, then try again.", character_name, server)));
     }
 
     let char_id = match search_chars[0]["id"].as_u64() {
