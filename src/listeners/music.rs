@@ -21,7 +21,7 @@ impl EventHandler for Music {
       return;
     }
     // recount the channel status, and if the bot is alone, leave
-    let bot_channel = some_or!(guild.read().voice_states.iter().find(|x| x.0 == &bot_id), return).1.channel_id.clone();
+    let bot_channel = some_or!(guild.read().voice_states.iter().find(|x| x.0 == &bot_id), return).1.channel_id;
     if guild.read().voice_states.values().filter(|x| x.channel_id == bot_channel).count() == 1 {
       let vm = Arc::clone(some_or!(ctx.data.lock().get::<VoiceContainer>(), return));
       let mut vm = vm.lock();

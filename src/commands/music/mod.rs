@@ -27,7 +27,7 @@ impl MusicCommand {
   pub fn voice_manager(ctx: &Context) -> Result<Arc<Mutex<ClientVoiceManager>>> {
     match ctx.data.lock().get::<VoiceContainer>() {
       Some(vm) => Ok(Arc::clone(vm)),
-      None => return Err("No reference to voice manager. This is a bug.".into())
+      None => Err("No reference to voice manager. This is a bug.".into())
     }
   }
 }
