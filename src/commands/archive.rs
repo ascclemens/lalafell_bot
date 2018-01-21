@@ -48,10 +48,7 @@ impl<'a> PublicChannelCommand<'a> for ArchiveCommand {
         .wrap());
     }
 
-    let guild = match channel.guild_id.find() {
-      Some(g) => g,
-      None => return Err("The guild must be cached.".into())
-    };
+    let guild = some_or!(channel.guild_id.find(), bail!("could not find guild"));
 
     let archive_path = Path::new("./archives")
       .join(&guild.read().id.to_string())

@@ -55,10 +55,7 @@ impl EventHandler for Timeouts {
   fn channel_create(&self, _: Context, channel: Arc<RwLock<GuildChannel>>) {
     let inner = || -> Result<()> {
       let guild_id = channel.read().guild_id;
-      let guild = match guild_id.find() {
-        Some(g) => g,
-        None => bail!("could not find channel")
-      };
+      let guild = some_or!(guild_id.find(), bail!("could not find guild"));
       if let Err(e) = ::commands::timeout::set_up_timeouts(&guild.read()) {
         warn!("could not add timeout overwrite to {}: {}", channel.read().id.0, e);
       }
