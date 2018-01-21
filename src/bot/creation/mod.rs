@@ -9,9 +9,10 @@ use std::fs::File;
 
 mod listeners;
 mod tasks;
+pub mod data;
 
 use self::tasks::tasks;
-use bot::data::data;
+use self::data::data;
 
 pub use self::listeners::Handler;
 

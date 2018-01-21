@@ -21,8 +21,7 @@ use std::sync::Arc;
 
 mod creation;
 
-pub mod data;
-
+pub use self::creation::data;
 pub use self::creation::config;
 
 thread_local! {
