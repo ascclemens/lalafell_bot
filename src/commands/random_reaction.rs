@@ -30,14 +30,15 @@ impl HasParams for RandomReactionCommand {
 impl<'a> PublicChannelCommand<'a> for RandomReactionCommand {
   fn run(&self, _: &Context, _: &Message, guild: GuildId, _: Arc<RwLock<GuildChannel>>, params: &[&str]) -> CommandResult<'a> {
     let params = self.params(USAGE, params)?;
-    let mut reactions = params.channel.reaction_users(params.message_id, params.emoji.as_str(), Some(100), None)
+    let emoji = ::util::parse_emoji(&params.emoji);
+    let mut reactions = params.channel.reaction_users(params.message_id, emoji.clone(), Some(100), None)
       .map_err(|_| into!(CommandFailure, "Could not get reactions."))?;
     if reactions.is_empty() {
       return Err("No reactions on that message.".into());
     }
     loop {
       let last_reaction = reactions[reactions.len() - 1].id;
-      let next_batch = params.channel.reaction_users(params.message_id, params.emoji.as_str(), Some(100), last_reaction)
+      let next_batch = params.channel.reaction_users(params.message_id, emoji.clone(), Some(100), last_reaction)
       .map_err(|_| into!(CommandFailure, "Could not get reactions."))?;
       if next_batch.is_empty() {
         break;

@@ -1,5 +1,10 @@
 use error::*;
 
+use serenity::model::channel::ReactionType;
+use serenity::model::misc::EmojiIdentifier;
+
+use std::str::FromStr;
+
 pub fn parse_duration_secs<S: AsRef<str>>(duration: S) -> Result<u64> {
   let duration = duration.as_ref();
   let mut str_length = 0;
@@ -27,4 +32,10 @@ pub fn parse_duration_secs<S: AsRef<str>>(duration: S) -> Result<u64> {
     total_time += length * multiplier;
   }
   Ok(total_time)
+}
+
+pub fn parse_emoji(emoji: &str) -> ReactionType {
+  EmojiIdentifier::from_str(emoji)
+    .map(ReactionType::from)
+    .unwrap_or_else(|_| emoji.into())
 }

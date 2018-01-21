@@ -3,7 +3,7 @@ use database::models::{ToU64, Reaction as DbReaction};
 use diesel::prelude::*;
 
 use serenity::client::{Context, EventHandler};
-use serenity::model::channel::{Channel, Reaction, ReactionType};
+use serenity::model::channel::{Channel, Reaction};
 
 use error::*;
 
@@ -26,10 +26,7 @@ impl ReactionAuthorize {
         Channel::Guild(c) => c.read().clone(),
         _ => bail!("invalid channel: {}", r.channel_id.0)
       };
-      let emoji = match r.emoji {
-        ReactionType::Unicode(ref emoji)  => emoji,
-        _ => return Ok(())
-      };
+      let emoji = r.emoji.to_string();
       let reactions: Vec<DbReaction> = ::bot::CONNECTION.with(|c| {
         use database::schema::reactions::dsl;
         dsl::reactions

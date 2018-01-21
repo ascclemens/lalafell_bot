@@ -36,7 +36,7 @@ pub fn reaction<'a>(author: UserId, guild: GuildId, args: &[String]) -> CommandR
         return Err("!configure server reaction add [channel] [emoji] [messageID] [role]".into());
       }
       let channel = ChannelOrId::parse(&args[1]).map_err(|_| into!(CommandFailure, "Invalid channel reference."))?;
-      let emoji = &args[2];
+      let emoji = ::util::parse_emoji(&args[2]);
       let message_id: u64 = args[3].parse().map_err(|_| into!(CommandFailure, "Invalid message ID."))?;
       let role = args[4..].join(" ").to_lowercase();
       let role = match guild.read().roles.values().find(|r| r.name.to_lowercase() == role) {
