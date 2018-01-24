@@ -5,6 +5,7 @@ authors = ["Kyle Clemens <me@kyleclemens.com>"]
 
 [dependencies]
 ansi_term = "0.10"
+bot_command_derive = { path = "./bot_command_derive" }
 byteorder = "1.2"
 chrono = "0.4"
 ctrlc = { version = "3.0", features = ["termination"] }

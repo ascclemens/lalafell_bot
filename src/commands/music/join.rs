@@ -5,7 +5,7 @@ use lalafell::commands::prelude::*;
 
 const USAGE: &str = "!music join [channel]";
 
-#[derive(Default)]
+#[derive(BotCommand)]
 pub struct JoinCommand;
 
 #[derive(Debug, Deserialize)]

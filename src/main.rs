@@ -4,6 +4,8 @@
 #![recursion_limit = "1024"]
 
 extern crate ansi_term;
+#[macro_use]
+extern crate bot_command_derive;
 extern crate byteorder;
 extern crate chrono;
 extern crate ctrlc;

@@ -12,7 +12,7 @@ use itertools::Itertools;
 
 const USAGE: &str = "!bot [subcommand] (args)";
 
-#[derive(Default)]
+#[derive(BotCommand)]
 pub struct BotCommand;
 
 impl HasParams for BotCommand {

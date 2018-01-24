@@ -16,7 +16,7 @@ use std::path::Path;
 
 const USAGE: &str = "!archive <channel>";
 
-#[derive(Default)]
+#[derive(BotCommand)]
 pub struct ArchiveCommand;
 
 #[derive(Debug, Deserialize)]

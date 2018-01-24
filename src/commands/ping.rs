@@ -6,7 +6,7 @@ use serenity::client::bridge::gateway::ShardId;
 
 use chrono::Duration;
 
-#[derive(Default)]
+#[derive(BotCommand)]
 pub struct PingCommand;
 
 impl<'a> Command<'a> for PingCommand {

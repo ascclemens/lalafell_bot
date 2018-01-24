@@ -12,7 +12,7 @@ use std::sync::Arc;
 
 const USAGE: &str = "!viewtag <who>";
 
-#[derive(Default)]
+#[derive(BotCommand)]
 pub struct ViewTagCommand;
 
 #[derive(Debug, Deserialize)]

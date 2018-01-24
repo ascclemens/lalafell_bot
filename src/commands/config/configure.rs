@@ -8,7 +8,7 @@ use super::server;
 
 const USAGE: &str = "!configure <subcommand/help>";
 
-#[derive(Default)]
+#[derive(BotCommand)]
 pub struct ConfigureCommand;
 
 impl ConfigureCommand {

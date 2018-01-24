@@ -2,7 +2,7 @@ use commands::music::MusicCommand;
 
 use lalafell::commands::prelude::*;
 
-#[derive(Default)]
+#[derive(BotCommand)]
 pub struct LeaveCommand;
 
 impl<'a> PublicChannelCommand<'a> for LeaveCommand {

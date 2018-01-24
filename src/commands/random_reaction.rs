@@ -12,7 +12,7 @@ use std::sync::Arc;
 
 const USAGE: &str = "!randomreaction <channel/id> <message id> <emoji> [filters]";
 
-#[derive(Default)]
+#[derive(BotCommand)]
 pub struct RandomReactionCommand;
 
 #[derive(Debug, Deserialize)]

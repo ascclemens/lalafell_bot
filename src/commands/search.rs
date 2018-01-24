@@ -11,7 +11,7 @@ use chrono::Utc;
 
 const USAGE: &str = "!search <filters>";
 
-#[derive(Default)]
+#[derive(BotCommand)]
 pub struct SearchCommand;
 
 #[derive(Debug, Deserialize)]

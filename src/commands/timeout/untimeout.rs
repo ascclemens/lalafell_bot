@@ -12,7 +12,7 @@ use std::sync::Arc;
 
 const USAGE: &str = "!untimeout <who>";
 
-#[derive(Default)]
+#[derive(BotCommand)]
 pub struct UntimeoutCommand;
 
 #[derive(Debug, Deserialize)]

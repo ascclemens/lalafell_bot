@@ -39,7 +39,7 @@ const VALID_EMOJI: &[&str] = &[
   "9⃣"
 ];
 
-#[derive(Default)]
+#[derive(BotCommand)]
 pub struct PollResultsCommand;
 
 #[derive(Debug, Deserialize)]

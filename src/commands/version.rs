@@ -1,6 +1,6 @@
 use lalafell::commands::prelude::*;
 
-#[derive(Default)]
+#[derive(BotCommand)]
 pub struct VersionCommand;
 
 impl<'a> Command<'a> for VersionCommand {

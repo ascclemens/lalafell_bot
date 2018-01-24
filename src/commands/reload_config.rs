@@ -1,18 +1,12 @@
 use bot::{self, BotEnv, is_administrator};
-use commands::BotCommand;
 
 use lalafell::commands::prelude::*;
 
 use serenity::builder::CreateEmbed;
 
+#[derive(BotCommand)]
 pub struct ReloadConfigCommand {
   env: Arc<BotEnv>
-}
-
-impl BotCommand for ReloadConfigCommand {
-  fn new(env: Arc<BotEnv>) -> Self {
-    ReloadConfigCommand { env }
-  }
 }
 
 impl<'a> Command<'a> for ReloadConfigCommand {

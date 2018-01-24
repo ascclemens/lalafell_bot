@@ -18,7 +18,7 @@ use std::sync::Arc;
 
 const USAGE: &str = "!timeout <who> <length>";
 
-#[derive(Default)]
+#[derive(BotCommand)]
 pub struct TimeoutCommand;
 
 #[derive(Debug, Deserialize)]

@@ -12,14 +12,9 @@ use lalafell::error::*;
 
 use diesel::prelude::*;
 
+#[derive(BotCommand)]
 pub struct UpdateTagCommand {
   env: Arc<BotEnv>
-}
-
-impl BotCommand for UpdateTagCommand {
-  fn new(env: Arc<BotEnv>) -> Self {
-    UpdateTagCommand { env }
-  }
 }
 
 #[derive(Debug, Deserialize)]

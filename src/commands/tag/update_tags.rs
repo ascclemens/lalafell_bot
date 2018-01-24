@@ -1,6 +1,5 @@
 use bot::{BotEnv, is_administrator};
 use tasks::AutoTagTask;
-use commands::BotCommand;
 
 use lalafell::commands::prelude::*;
 
@@ -8,14 +7,9 @@ use serenity::builder::CreateEmbed;
 
 use std::sync::Arc;
 
+#[derive(BotCommand)]
 pub struct UpdateTagsCommand {
   env: Arc<BotEnv>
-}
-
-impl BotCommand for UpdateTagsCommand {
-  fn new(env: Arc<BotEnv>) -> Self {
-    UpdateTagsCommand { env }
-  }
 }
 
 impl<'a> Command<'a> for UpdateTagsCommand {

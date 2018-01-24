@@ -19,7 +19,7 @@ use std::io::Read;
 const USAGE: &str = "!imagedump <url>";
 const VALID_EXTENSIONS: &[&str] = &["jpg", "jpeg", "png", "gif", "gifv", "mp4", "mpeg4"];
 
-#[derive(Default)]
+#[derive(BotCommand)]
 pub struct ImageDumpCommand;
 
 #[derive(Debug, Deserialize)]

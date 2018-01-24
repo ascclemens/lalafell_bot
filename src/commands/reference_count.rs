@@ -1,16 +1,10 @@
 use bot::{BotEnv, is_administrator};
-use commands::BotCommand;
 
 use lalafell::commands::prelude::*;
 
+#[derive(BotCommand)]
 pub struct ReferenceCountCommand {
   env: Arc<BotEnv>
-}
-
-impl BotCommand for ReferenceCountCommand {
-  fn new(env: Arc<BotEnv>) -> Self {
-    ReferenceCountCommand { env }
-  }
 }
 
 impl<'a> Command<'a> for ReferenceCountCommand {

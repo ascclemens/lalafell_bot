@@ -1,5 +1,4 @@
 use bot::BotEnv;
-use commands::BotCommand;
 use commands::tag::Tagger;
 
 use lalafell::commands::prelude::*;
@@ -8,14 +7,9 @@ use serenity::builder::CreateEmbed;
 
 const USAGE: &str = "!autotag <server> <character>";
 
+#[derive(BotCommand)]
 pub struct AutoTagCommand {
   env: Arc<BotEnv>
-}
-
-impl BotCommand for AutoTagCommand {
-  fn new(env: Arc<BotEnv>) -> Self {
-    AutoTagCommand { env }
-  }
 }
 
 #[derive(Debug, Deserialize)]

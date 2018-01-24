@@ -9,14 +9,9 @@ use serenity::builder::CreateEmbed;
 
 const USAGE: &str = "!tag <who> <server> <character>";
 
+#[derive(BotCommand)]
 pub struct TagCommand {
   env: Arc<BotEnv>
-}
-
-impl BotCommand for TagCommand {
-  fn new(env: Arc<BotEnv>) -> Self {
-    TagCommand { env }
-  }
 }
 
 #[derive(Debug, Deserialize)]

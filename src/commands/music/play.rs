@@ -8,7 +8,7 @@ use serenity::model::id::UserId;
 
 const USAGE: &str = "!music play [youtube url]";
 
-#[derive(Default)]
+#[derive(BotCommand)]
 pub struct PlayCommand;
 
 #[derive(Debug, Deserialize)]

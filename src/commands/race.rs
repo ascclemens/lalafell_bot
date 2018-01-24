@@ -1,5 +1,4 @@
 use bot::BotEnv;
-use commands::BotCommand;
 
 use lalafell::commands::prelude::*;
 
@@ -8,14 +7,9 @@ use lalafell::error::*;
 
 const USAGE: &str = "!race <server> <character>";
 
+#[derive(BotCommand)]
 pub struct RaceCommand {
   env: Arc<BotEnv>
-}
-
-impl BotCommand for RaceCommand {
-  fn new(env: Arc<BotEnv>) -> Self {
-    RaceCommand { env }
-  }
 }
 
 #[derive(Debug, Deserialize)]

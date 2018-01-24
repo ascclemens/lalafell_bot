@@ -20,7 +20,7 @@ use std::collections::HashMap;
 
 const USAGE: &str = "!music [subcommand] (args)";
 
-#[derive(Default)]
+#[derive(BotCommand)]
 pub struct MusicCommand;
 
 impl MusicCommand {

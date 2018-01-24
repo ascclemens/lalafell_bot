@@ -7,7 +7,7 @@ use std::sync::Arc;
 
 const USAGE: &str = "!mention <role name> [message]";
 
-#[derive(Default)]
+#[derive(BotCommand)]
 pub struct MentionCommand;
 
 #[derive(Debug, Deserialize)]

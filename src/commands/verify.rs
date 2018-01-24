@@ -8,7 +8,7 @@ use diesel::prelude::*;
 
 use serenity::builder::CreateEmbed;
 
-#[derive(Default)]
+#[derive(BotCommand)]
 pub struct VerifyCommand;
 
 impl<'a> PublicChannelCommand<'a> for VerifyCommand {

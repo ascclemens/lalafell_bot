@@ -10,7 +10,7 @@ use std::boxed::FnBox;
 
 const USAGE: &str = "!poll <poll text>\n<option>\n<option>...";
 
-#[derive(Default)]
+#[derive(BotCommand)]
 pub struct PollCommand;
 
 impl PollCommand {

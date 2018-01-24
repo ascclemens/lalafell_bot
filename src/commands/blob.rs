@@ -4,7 +4,7 @@ use std::collections::HashMap;
 
 const USAGE: &str = "!blob <emoji name>";
 
-#[derive(Default)]
+#[derive(BotCommand)]
 pub struct BlobCommand;
 
 #[derive(Debug, Deserialize)]
