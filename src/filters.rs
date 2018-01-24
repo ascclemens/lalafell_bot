@@ -144,6 +144,7 @@ impl FilterKind {
 impl ToString for FilterKind {
   fn to_string(&self) -> String {
     match *self {
+      FilterKind::Role(ref role) if role.contains(' ') => format!("role:`{}`", role),
       FilterKind::Role(ref role) => format!("role:{}", role),
       FilterKind::User(id) => format!("user:{}", id)
     }
