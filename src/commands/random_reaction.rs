@@ -1,5 +1,6 @@
 use filters::Filter;
 
+use lalafell::error::*;
 use lalafell::commands::prelude::*;
 use lalafell::commands::ChannelOrId;
 
@@ -49,7 +50,7 @@ impl<'a> PublicChannelCommand<'a> for RandomReactionCommand {
       Some(f) => f,
       None => return Err("Invalid filters.".into())
     };
-    let guild = some_or!(guild.find(), bail!("could not find guild"));
+    let guild = guild.find().chain_err(|| "could not find guild")?;
     let reader = guild.read();
     let roles: Vec<&Role> = reader.roles.values().collect();
     let members: Vec<&Member> = reader.members.values().collect();

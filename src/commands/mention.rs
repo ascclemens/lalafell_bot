@@ -31,7 +31,7 @@ impl<'a> PublicChannelCommand<'a> for MentionCommand {
         .wrap());
     }
     let params = self.params(USAGE, params)?;
-    let guild = some_or!(guild_id.find(), return Err("Could not find guild.".into()));
+    let guild = guild_id.find().chain_err(|| "could not find guild")?;
     let lower_name = params.role_name.to_lowercase();
     let role = match guild.read().roles.values().find(|r| r.name.to_lowercase() == lower_name) {
       Some(r) => r.clone(),

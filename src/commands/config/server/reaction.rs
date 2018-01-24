@@ -12,7 +12,7 @@ use lalafell::commands::ChannelOrId;
 
 pub fn reaction<'a>(author: UserId, guild: GuildId, args: &[String]) -> CommandResult<'a> {
   let member = guild.member(author).chain_err(|| "could not get member")?;
-  let guild = some_or!(guild.find(), bail!("could not find guild"));
+  let guild = guild.find().chain_err(|| "could not find guild")?;
   if !member.permissions().chain_err(|| "could not get permissions")?.manage_roles() {
     return Err(ExternalCommandFailure::default()
       .message(|e: CreateEmbed| e

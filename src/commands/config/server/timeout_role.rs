@@ -10,7 +10,7 @@ use lalafell::error::*;
 use lalafell::commands::prelude::*;
 
 pub fn timeout_role<'a>(author: UserId, guild: GuildId, args: &[String]) -> CommandResult<'a> {
-  let guild = some_or!(guild.find(), bail!("could not find guild"));
+  let guild = guild.find().chain_err(|| "could not find guild")?;
   if author != guild.read().owner_id {
     return Err(ExternalCommandFailure::default()
       .message(|e: CreateEmbed| e

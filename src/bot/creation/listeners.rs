@@ -88,6 +88,7 @@ impl EventHandler for Handler {
   handler!(webhook_update, param1: Context, param2: GuildId, param3: ChannelId);
 
   fn ready(&self, ctx: Context, ready: Ready) {
+    // TODO: move this to a random presence listener
     if let Some(g) = ::tasks::random_presence::random_game() {
       ctx.shard.set_game(Some(g));
     }
