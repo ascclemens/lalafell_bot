@@ -26,6 +26,7 @@ impl Handler {
       box Timeouts,
       box PollTagger,
       box AutoReplyListener::default(),
+      box PartyFinder::default(),
       box Music,
       box Log
     ];
