@@ -99,7 +99,7 @@ impl EventHandler for PartyFinder {
         Some(&(ref a, Some(b))) => (a.clone(), b),
         _ => return Ok(())
       };
-      status.process(config, message_id, message, channel.as_ref(), &self.statuses)
+      status.process(&config, message_id, &message, channel.as_ref(), &self.statuses)
     };
     if let Err(e) = inner() {
       warn!("error in PartyFinder::message: {}", e);
@@ -127,7 +127,7 @@ pub enum PfStatus {
 }
 
 impl PfStatus {
-  fn process(&self, config: PartyFinderConfig, message_id: MessageId, message: Message, channel: &RwLock<GuildChannel>, statuses: &RwLock<StatusRegistry>) -> Result<()> {
+  fn process(&self, config: &PartyFinderConfig, message_id: MessageId, message: &Message, channel: &RwLock<GuildChannel>, statuses: &RwLock<StatusRegistry>) -> Result<()> {
     match *self {
       PfStatus::Started => self.process_started(config, message_id, message, channel, statuses),
       PfStatus::DataCenter { ref data_center } => self.process_data_center(data_center, config, message_id, message, channel, statuses),
@@ -135,7 +135,7 @@ impl PfStatus {
     }
   }
 
-  fn process_started(&self, _: PartyFinderConfig, message_id: MessageId, message: Message, channel: &RwLock<GuildChannel>, statuses: &RwLock<StatusRegistry>) -> Result<()> {
+  fn process_started(&self, _: &PartyFinderConfig, message_id: MessageId, message: &Message, channel: &RwLock<GuildChannel>, statuses: &RwLock<StatusRegistry>) -> Result<()> {
     let data_center = message.content.trim().to_lowercase();
     if !DATA_CENTERS.contains(&data_center.as_str()) {
       return channel.read().edit_message(message_id, |m| m
@@ -161,7 +161,7 @@ impl PfStatus {
     Ok(())
   }
 
-  fn process_data_center(&self, data_center: &str, _: PartyFinderConfig, message_id: MessageId, message: Message, channel: &RwLock<GuildChannel>, statuses: &RwLock<StatusRegistry>) -> Result<()> {
+  fn process_data_center(&self, data_center: &str, _: &PartyFinderConfig, message_id: MessageId, message: &Message, channel: &RwLock<GuildChannel>, statuses: &RwLock<StatusRegistry>) -> Result<()> {
     let duty = message.content.trim().to_string();
     channel.read().edit_message(message_id, |m| m
       .embed(|e| e
@@ -179,7 +179,8 @@ impl PfStatus {
     Ok(())
   }
 
-  fn process_duty(&self, data_center: &str, duty: &str, config: PartyFinderConfig, message_id: MessageId, message: Message, channel: &RwLock<GuildChannel>, statuses: &RwLock<StatusRegistry>) -> Result<()> {
+  #[cfg_attr(feature = "cargo-clippy", allow(too_many_arguments))]
+  fn process_duty(&self, data_center: &str, duty: &str, config: &PartyFinderConfig, message_id: MessageId, message: &Message, channel: &RwLock<GuildChannel>, statuses: &RwLock<StatusRegistry>) -> Result<()> {
     let guild_id = channel.read().guild_id;
     let mut member = guild_id.member(&message.author).chain_err(|| "could not get member")?;
     member.remove_role(*config.role_id).ok();
