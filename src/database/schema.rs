@@ -68,7 +68,7 @@ table! {
         channel_id -> Int8,
         message_id -> Int8,
         emoji -> Text,
-        role -> Text,
+        role_id -> Int8,
     }
 }
 

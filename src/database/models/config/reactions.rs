@@ -11,6 +11,6 @@ insertable! {
     pub channel_id: U64,
     pub message_id: U64,
     pub emoji: String,
-    pub role: String
+    pub role_id: U64
   }
 }

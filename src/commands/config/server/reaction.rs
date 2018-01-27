@@ -1,7 +1,7 @@
 use database::models::{Reaction, NewReaction};
 
 use serenity::prelude::Mentionable;
-use serenity::model::id::{ChannelId, UserId};
+use serenity::model::id::{ChannelId, UserId, RoleId};
 
 use diesel;
 use diesel::prelude::*;
@@ -26,7 +26,7 @@ pub fn reaction<'a>(author: UserId, guild: GuildId, args: &[String]) -> CommandR
       dsl::reactions.load(c).chain_err(|| "could not load reactions")
     })?;
     let strings: Vec<String> = reactions.iter()
-      .map(|r| format!("{}. {} grants `{}` on {} in {}", r.id, r.emoji, r.role, *r.message_id, ChannelId(*r.channel_id).mention()))
+      .map(|r| format!("{}. {} grants {} on {} in {}", r.id, r.emoji, RoleId(*r.role_id).mention(), *r.message_id, ChannelId(*r.channel_id).mention()))
       .collect();
     return Ok(strings.join("\n").into());
   }
@@ -39,8 +39,8 @@ pub fn reaction<'a>(author: UserId, guild: GuildId, args: &[String]) -> CommandR
       let emoji = ::util::parse_emoji(&args[2]);
       let message_id: u64 = args[3].parse().map_err(|_| into!(CommandFailure, "Invalid message ID."))?;
       let role = args[4..].join(" ").to_lowercase();
-      let role = match guild.read().roles.values().find(|r| r.name.to_lowercase() == role) {
-        Some(r) => r.name.clone(),
+      let role_id = match guild.read().roles.values().find(|r| r.name.to_lowercase() == role) {
+        Some(r) => r.id,
         None => return Err("No such role.".into())
       };
       let new_reaction = NewReaction {
@@ -48,7 +48,7 @@ pub fn reaction<'a>(author: UserId, guild: GuildId, args: &[String]) -> CommandR
         channel_id: channel.into(),
         message_id: message_id.into(),
         emoji: emoji.to_string(),
-        role
+        role_id: role_id.into()
       };
       ::bot::CONNECTION.with(|c| {
         diesel::insert_into(::database::schema::reactions::table)

@@ -1,0 +1,2 @@
+ALTER TABLE reactions ALTER COLUMN role TYPE BIGINT USING 0;
+ALTER TABLE reactions RENAME COLUMN role TO role_id;

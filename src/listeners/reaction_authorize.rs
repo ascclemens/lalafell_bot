@@ -40,17 +40,10 @@ impl ReactionAuthorize {
       let guild = channel.guild_id.get().chain_err(|| "could not get guild")?;
       let mut member = guild.member(r.user_id).chain_err(|| "could not get member")?;
       for reac in reactions {
-        let role = match guild.role_by_name(&reac.role) {
-          Some(r) => r,
-          None => {
-            warn!("couldn't find role for name \"{}\"", reac.role);
-            continue;
-          }
-        };
         if added {
-          member.add_role(role.id).chain_err(|| "could not add role")?;
+          member.add_role(*reac.role_id).chain_err(|| "could not add role")?;
         } else {
-          member.remove_role(role.id).chain_err(|| "could not remove role")?;
+          member.remove_role(*reac.role_id).chain_err(|| "could not remove role")?;
         }
       }
       Ok(())

@@ -1,0 +1,2 @@
+ALTER TABLE reactions ALTER COLUMN role TYPE TEXT;
+ALTER TABLE reactions RENAME COLUMN role_id TO role;
