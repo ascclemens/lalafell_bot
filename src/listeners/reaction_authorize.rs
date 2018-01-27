@@ -24,7 +24,7 @@ impl ReactionAuthorize {
     let inner = || -> Result<()> {
       let channel = match r.channel_id.get().chain_err(|| "could not get channel")? {
         Channel::Guild(c) => c.read().clone(),
-        _ => bail!("invalid channel: {}", r.channel_id.0)
+        _ => return Ok(())
       };
       let emoji = r.emoji.to_string();
       let reactions: Vec<DbReaction> = ::bot::CONNECTION.with(|c| {
