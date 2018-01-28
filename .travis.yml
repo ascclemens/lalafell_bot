@@ -17,10 +17,10 @@ addons:
 # TODO: Remove unused dependency build files
 before_cache:
   - rm -rfv target/debug/{generate_handlers,lalafell_bot,liblalafell_bot}.d
-  - rm -rfv target/debug/incremental/{generate_handlers,lalafell_bot,build_script_build}-*
-  - rm -rfv target/debug/.fingerprint/lalafell_bot-*
+  - rm -rfv target/debug/incremental/{generate_handlers,lalafell_bot,bot_command_derive,build_script_build}-*
+  - rm -rfv target/debug/.fingerprint/{lalafell_bot,bot_command_derive}-*
   - rm -rfv target/debug/build/lalafell_bot-*
-  - rm -rfv target/debug/deps/lalafell_bot-*
+  - rm -rfv target/debug/deps/{lalafell_bot,liblalafell_bot,bot_command_derive,libbot_command_derive}-*
   - rm -rfv target/debug/deps/liblalafell_bot-*
   - cargo clean -p lalafell_bot
 dist: trusty
