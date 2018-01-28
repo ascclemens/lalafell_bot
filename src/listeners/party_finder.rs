@@ -28,8 +28,8 @@ pub struct PartyFinder {
 }
 
 impl EventHandler for PartyFinder {
-  fn reaction_add(&self, _: Context, reaction: Reaction) {
-    let inner = move || -> Result<()> {
+  result_wrap! {
+    fn reaction_add(&self, _ctx: Context, reaction: Reaction) -> Result<()> {
       let channel = reaction.channel()
         .chain_err(|| "could not get channel")?
         .guild()
@@ -66,17 +66,14 @@ impl EventHandler for PartyFinder {
         Err(e) => bail!("could not send message: {}", e)
       }
       Ok(())
-    };
-    if let Err(e) = inner() {
-      warn!("error in PartyFinder::reaction_add: {}", e);
-    }
+    } |e| warn!("{}", e)
   }
 
-  fn message(&self, _: Context, message: Message) {
-    if message.author.id == ::serenity::CACHE.read().user.id {
-      return;
-    }
-    let inner = move || -> Result<()> {
+  result_wrap! {
+    fn message(&self, _ctx: Context, message: Message) -> Result<()> {
+      if message.author.id == ::serenity::CACHE.read().user.id {
+        return Ok(());
+      }
       let channel = message.channel()
         .chain_err(|| "could not get channel")?
         .guild()
@@ -100,10 +97,7 @@ impl EventHandler for PartyFinder {
         _ => return Ok(())
       };
       status.process(&config, message_id, &message, channel.as_ref(), &self.statuses)
-    };
-    if let Err(e) = inner() {
-      warn!("error in PartyFinder::message: {}", e);
-    }
+    } |e| warn!("{}", e)
   }
 }
 

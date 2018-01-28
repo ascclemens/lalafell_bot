@@ -6,8 +6,8 @@ use serenity::model::channel::Message;
 pub struct PollTagger;
 
 impl EventHandler for PollTagger {
-  fn message(&self, _: Context, mut message: Message) {
-    let mut inner = || {
+  result_wrap! {
+    fn message(&self, _ctx: Context, mut message: Message) -> Result<()> {
       let current_user = ::serenity::CACHE.read().user.clone();
       if message.embeds.len() != 1 || message.author.id != current_user.id {
         return Ok(());
@@ -34,9 +34,6 @@ impl EventHandler for PollTagger {
         .description(description)
         .footer(|f| f.text(&format!("{}", id)))))
         .chain_err(|| "could not edit poll")
-    };
-    if let Err(e) = inner() {
-      warn!("PollTagger error: {}", e);
-    }
+    } |e| warn!("{}", e)
   }
 }

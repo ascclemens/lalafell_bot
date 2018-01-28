@@ -26,8 +26,8 @@ enum UserIdOrMember {
 }
 
 impl EventHandler for AutoReplyListener {
-  fn guild_member_addition(&self, _: Context, guild: GuildId, member: Member) {
-    let inner = move || {
+  result_wrap! {
+    fn guild_member_addition(&self, _ctx: Context, guild: GuildId, member: Member) -> Result<()> {
       let replies: Vec<AutoReply> = ::bot::CONNECTION.with(|c| {
         use database::schema::auto_replies::dsl;
         dsl::auto_replies
@@ -38,17 +38,14 @@ impl EventHandler for AutoReplyListener {
       })?;
       let user = UserIdOrMember::Member(member.clone());
       self.receive(replies, user, guild)
-    };
-    if let Err(e) = inner() {
-      warn!("error in AutoReplyListener: {}", e);
-    }
+    } |e| warn!("{}", e)
   }
 
-  fn message(&self, _: Context, m: Message) {
-    if m.author.id == ::serenity::CACHE.read().user.id {
-      return;
-    }
-    let inner = move || {
+  result_wrap! {
+    fn message(&self, _ctx: Context, m: Message) -> Result<()> {
+      if m.author.id == ::serenity::CACHE.read().user.id {
+        return Ok(());
+      }
       let replies: Vec<AutoReply> = ::bot::CONNECTION.with(|c| {
         use database::schema::auto_replies::dsl;
         dsl::auto_replies
@@ -64,11 +61,7 @@ impl EventHandler for AutoReplyListener {
         Err(e) => bail!("could not get channel for auto reply: {}", e)
       };
       self.receive(replies, user, guild)
-    };
-    if let Err(e) = inner() {
-      warn!("error in AutoReplyListener: {}", e);
-      return;
-    }
+    } |e| warn!("{}", e)
   }
 }
 

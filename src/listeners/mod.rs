@@ -1,3 +1,26 @@
+macro_rules! result_wrap {
+  ($(#[$($meta:meta),+])* fn $name:ident($($($kw:ident)+: $ty:ty),*) -> $res:ty $block:block $err:expr) => {
+    $(#[$($meta),+])*
+    fn $name($($($kw)+: $ty),*) {
+      #[allow(unused_mut)]
+      let mut inner = || -> $res { $block };
+      if let Err(e) = inner() {
+        $err(e);
+      }
+    }
+  };
+  ($(#[$($meta:meta),+])* fn $name:ident(&$self_:ident, $($($kw:ident)+: $ty:ty),*) -> $res:ty $block:block $err:expr) => {
+    $(#[$($meta),+])*
+    fn $name(&$self_, $($($kw)+: $ty),*) {
+      #[allow(unused_mut)]
+      let mut inner = || -> $res { $block };
+      if let Err(e) = inner() {
+        $err(e);
+      }
+    }
+  };
+}
+
 pub mod auto_reply;
 pub mod log;
 pub mod music;

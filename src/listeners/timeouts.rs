@@ -15,8 +15,8 @@ use std::sync::Arc;
 pub struct Timeouts;
 
 impl EventHandler for Timeouts {
-  fn message(&self, _: Context, message: Message) {
-    let inner = || -> Result<()> {
+  result_wrap! {
+    fn message(&self, _ctx: Context, message: Message) -> Result<()> {
       let channel = match message.channel_id.get().chain_err(|| "could not get channel")? {
         Channel::Guild(c) => c,
         _ => return Ok(())
@@ -46,23 +46,17 @@ impl EventHandler for Timeouts {
         warn!("could not delete message {} in {}: {}", message.id.0, message.channel_id.0, e);
       }
       Ok(())
-    };
-    if let Err(e) = inner() {
-      warn!("Timeouts error: {}", e);
-    }
+    } |e| warn!("{}", e)
   }
 
-  fn channel_create(&self, _: Context, channel: Arc<RwLock<GuildChannel>>) {
-    let inner = || -> Result<()> {
+  result_wrap! {
+    fn channel_create(&self, _ctx: Context, channel: Arc<RwLock<GuildChannel>>) -> Result<()> {
       let guild_id = channel.read().guild_id;
       let guild = guild_id.find().chain_err(|| "could not find guild")?;
       if let Err(e) = ::commands::timeout::set_up_timeouts(&guild.read()) {
         warn!("could not add timeout overwrite to {}: {}", channel.read().id.0, e);
       }
       Ok(())
-    };
-    if let Err(e) = inner() {
-      warn!("Timeouts error: {}", e);
-    }
+    } |e| warn!("{}", e)
   }
 }

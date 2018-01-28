@@ -20,8 +20,8 @@ impl EventHandler for ReactionAuthorize {
 }
 
 impl ReactionAuthorize {
-  fn receive(_: Context, r: &Reaction, added: bool) {
-    let inner = || -> Result<()> {
+  result_wrap! {
+    fn receive(_ctx: Context, r: &Reaction, added: bool) -> Result<()> {
       let channel = match r.channel_id.get().chain_err(|| "could not get channel")? {
         Channel::Guild(c) => c.read().clone(),
         _ => return Ok(())
@@ -47,9 +47,6 @@ impl ReactionAuthorize {
         }
       }
       Ok(())
-    };
-    if let Err(e) = inner() {
-      warn!("ReactionAuthorize error: {}", e);
-    }
+    } |e| warn!("{}", e)
   }
 }
