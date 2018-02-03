@@ -1,6 +1,8 @@
+use bot::data::AudioContainer;
 use commands::music::MusicCommand;
 
 use lalafell::commands::prelude::*;
+use lalafell::error::*;
 
 use serenity::voice::{self, Handler};
 use serenity::client::bridge::voice::ClientVoiceManager;
@@ -42,7 +44,14 @@ impl<'a> PublicChannelCommand<'a> for PlayCommand {
 
     let handler = handler.ok_or_else(|| into!(CommandFailure, "I'm not in any voice channel and neither are you."))?;
 
-    handler.play(youtube);
+    let audio = handler.play_returning(youtube);
+    {
+      let mut data = ctx.data.lock();
+      let container = data.get_mut::<AudioContainer>().chain_err(|| "could not get audio container")?;
+      let audios = container.entry(handler.channel_id.chain_err(|| "no channel id")?).or_insert_with(Default::default);
+      audios.retain(|a| !a.lock().finished);
+      audios.push(audio);
+    }
 
     Ok(CommandSuccess::default())
   }

@@ -1,10 +1,12 @@
 mod join;
 mod leave;
+mod pause;
 mod play;
 mod stop;
 
 use self::join::JoinCommand;
 use self::leave::LeaveCommand;
+use self::pause::PauseCommand;
 use self::play::PlayCommand;
 use self::stop::StopCommand;
 
@@ -48,6 +50,7 @@ lazy_static! {
     map.insert("join", box JoinCommand);
     map.insert("leave", box LeaveCommand);
     map.insert("play", box PlayCommand);
+    map.insert("pause", box PauseCommand);
     map.insert("stop", box StopCommand);
     map
   };
