@@ -56,8 +56,7 @@ impl RunsTask for TagQueueTask {
           _ => false
         }
       });
-      let diff = len - queue.len();
-      info!("Successfully tagged {}/{} queued tags", diff, len);
+      info!("Successfully tagged {}/{} queued tags", queue.len(), len);
       for remove in queue {
         if let Err(e) = ::bot::CONNECTION.with(|c| ::diesel::delete(&remove).execute(c)) {
           warn!("could not remove item from queue after successful tagging: {}", e);
