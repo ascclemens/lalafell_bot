@@ -16,16 +16,14 @@ extern crate envy;
 #[macro_use]
 extern crate error_chain;
 extern crate fern;
-extern crate hyper_rustls;
-extern crate hyper;
 extern crate itertools;
 extern crate lalafell;
 #[macro_use]
 extern crate lazy_static;
 #[macro_use]
 extern crate log;
-extern crate make_hyper_great_again;
 extern crate rand;
+extern crate reqwest;
 extern crate scraper;
 #[macro_use]
 extern crate serde_derive;

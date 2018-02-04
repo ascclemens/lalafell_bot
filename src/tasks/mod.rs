@@ -11,12 +11,14 @@ pub mod autotag;
 pub mod delete_all_messages;
 pub mod random_presence;
 pub mod role_check;
+pub mod tag_queue;
 pub mod timeout_check;
 
 pub use self::autotag::AutoTagTask;
 pub use self::delete_all_messages::DeleteAllMessagesTask;
 pub use self::random_presence::RandomPresenceTask;
 pub use self::role_check::RoleCheckTask;
+pub use self::tag_queue::TagQueueTask;
 pub use self::timeout_check::TimeoutCheckTask;
 
 pub struct TaskManager {

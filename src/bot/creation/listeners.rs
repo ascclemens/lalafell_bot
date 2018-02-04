@@ -123,6 +123,7 @@ fn command_listener<'a>(env: &Arc<BotEnv>) -> CommandListener<'a> {
     "ping" => PingCommand,
     "poll" => PollCommand,
     "pollresults" => PollResultsCommand,
+    "queuetag" => QueueTagCommand,
     "race" => RaceCommand,
     "randomreaction", "reaction" => RandomReactionCommand,
     "referencecount" => ReferenceCountCommand,

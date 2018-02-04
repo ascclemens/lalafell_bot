@@ -5,8 +5,7 @@ use diesel::prelude::*;
 use lalafell::commands::prelude::*;
 use lalafell::error::*;
 
-use make_hyper_great_again::Client;
-use hyper_rustls::HttpsConnector;
+use reqwest::Client;
 
 use url::Url;
 use url_serde;
@@ -51,8 +50,8 @@ impl<'a> PublicChannelCommand<'a> for ImageDumpCommand {
     ::std::thread::spawn(move || {
       let link = params.link;
       fn get_lines(link: &Url) -> Result<Vec<String>> {
-        let client = Client::create_connector(|c| HttpsConnector::new(4, &c.handle())).chain_err(|| "could not create client")?;
-        let mut res = client.get(link).send().chain_err(|| "could not download")?;
+        let client = Client::new();
+        let mut res = client.get(link.clone()).send().chain_err(|| "could not download")?;
         let mut content = String::new();
         res.read_to_string(&mut content).chain_err(|| "could not read download")?;
         Ok(content.lines()

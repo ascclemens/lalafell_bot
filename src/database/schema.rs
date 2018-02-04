@@ -97,6 +97,16 @@ table! {
 }
 
 table! {
+    tag_queue (id) {
+        id -> Int4,
+        server_id -> Int8,
+        user_id -> Int8,
+        server -> Text,
+        character -> Text,
+    }
+}
+
+table! {
     tags (id) {
         id -> Int4,
         user_id -> Int8,
@@ -142,6 +152,7 @@ allow_tables_to_appear_in_same_query!(
     role_check_times,
     roles,
     server_configs,
+    tag_queue,
     tags,
     timeouts,
     verifications,

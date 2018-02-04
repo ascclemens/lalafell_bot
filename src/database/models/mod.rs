@@ -25,6 +25,7 @@ pub mod presences;
 pub mod role_check_times;
 pub mod roles;
 pub mod tags;
+pub mod tag_queue;
 pub mod timeouts;
 pub mod verifications;
 
@@ -37,6 +38,7 @@ pub use self::presences::{Presence, NewPresence, PresenceKind};
 pub use self::role_check_times::{RoleCheckTime, NewRoleCheckTime};
 pub use self::roles::{Role, NewRole};
 pub use self::tags::{Tag, NewTag};
+pub use self::tag_queue::{TagQueue, NewTagQueue};
 pub use self::timeouts::{Timeout, NewTimeout};
 pub use self::verifications::{Verification, NewVerification};
 

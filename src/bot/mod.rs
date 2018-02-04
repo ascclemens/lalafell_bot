@@ -46,7 +46,7 @@ impl LalafellBot {
     let env = Arc::new(BotEnv {
       environment,
       config: RwLock::new(config),
-      xivdb: XivDb
+      xivdb: XivDb::default()
     });
     let client = Client::new(&env.environment.discord_bot_token, Handler::new(&env))?;
     Ok(LalafellBot {

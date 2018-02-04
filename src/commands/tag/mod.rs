@@ -1,9 +1,11 @@
 pub mod autotag;
+pub mod queue_tag;
 pub mod tag_command;
 pub mod update_tag;
 pub mod update_tags;
 
 pub use self::autotag::AutoTagCommand;
+pub use self::queue_tag::QueueTagCommand;
 pub use self::tag_command::TagCommand;
 pub use self::update_tag::UpdateTagCommand;
 pub use self::update_tags::UpdateTagsCommand;
@@ -25,8 +27,7 @@ use diesel::prelude::*;
 
 use url::Url;
 
-use hyper_rustls::HttpsConnector;
-use make_hyper_great_again::Client;
+use reqwest::Client;
 
 use std::thread;
 use std::sync::Mutex;
@@ -48,7 +49,7 @@ impl Tagger {
       url.query_pairs_mut()
         .append_pair("name", &name)
         .append_pair("server", &server);
-      let client = Client::create_connector(|c| HttpsConnector::new(4, &c.handle())).unwrap();
+      let client = Client::new();
       client.get(url).send().ok();
     });
   }

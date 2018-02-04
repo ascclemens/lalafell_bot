@@ -11,5 +11,6 @@ pub fn tasks(bot: &LalafellBot) -> Result<()> {
   task_manager.start_task(DeleteAllMessagesTask::new());
   task_manager.start_task(RandomPresenceTask::new(Arc::clone(&bot.discord.shard_manager)));
   task_manager.start_task(RoleCheckTask::new());
+  task_manager.start_task(TagQueueTask::default());
   Ok(())
 }

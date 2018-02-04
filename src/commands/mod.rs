@@ -41,7 +41,7 @@ pub use self::random_reaction::RandomReactionCommand;
 pub use self::reference_count::ReferenceCountCommand;
 pub use self::reload_config::ReloadConfigCommand;
 pub use self::search::SearchCommand;
-pub use self::tag::{TagCommand, AutoTagCommand, UpdateTagsCommand, UpdateTagCommand};
+pub use self::tag::{TagCommand, AutoTagCommand, QueueTagCommand, UpdateTagsCommand, UpdateTagCommand};
 pub use self::timeout::{TimeoutCommand, UntimeoutCommand};
 pub use self::verify::VerifyCommand;
 pub use self::version::VersionCommand;

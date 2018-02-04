@@ -1,20 +1,19 @@
 use lalafell::error::*;
 
-use hyper_rustls::HttpsConnector;
-use make_hyper_great_again::Client;
+use reqwest::Client;
 
 use scraper::{Html, Selector};
 
 use std::io::Read;
 
 pub struct Lodestone {
-  client: Client<HttpsConnector>
+  client: Client
 }
 
 impl Lodestone {
   pub fn new() -> Lodestone {
     Lodestone {
-      client: Client::create_connector(|c| HttpsConnector::new(4, &c.handle())).unwrap()
+      client: Client::new()
     }
   }
 
