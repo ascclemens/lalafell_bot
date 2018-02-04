@@ -8,8 +8,8 @@ insertable! {
   #[derive(Debug, Insertable)]
   #[table_name = "tag_queue"]
   pub struct NewTagQueue {
-    pub user_id: U64,
     pub server_id: U64,
+    pub user_id: U64,
     pub server: String,
     pub character: String
   }
