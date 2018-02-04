@@ -4,6 +4,10 @@
 Vagrant.configure("2") do |config|
   config.vm.box = "ubuntu/trusty64"
 
+  config.vm.post_up_message = "SSH in using `vagrant ssh`, then build lalafell_bot using the `build` alias.
+    The results will be in the `target` folder.
+    To build an optimized release version use `build --release`."
+
   config.vm.provider "virtualbox" do |vb|
     vb.cpus = 6
     vb.memory = 4072
