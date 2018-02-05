@@ -43,6 +43,7 @@ impl RunsTask for TagQueueTask {
       } else {
         info!("{} queued tag{}", len, if len == 1 { "" } else { "s" });
       }
+      // TODO: count number of fails and remove from queue after certain point
       queue.retain(|item| {
         match Tagger::search_tag(
           env.as_ref(),
