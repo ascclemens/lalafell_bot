@@ -19,6 +19,7 @@ use lalafell::commands::prelude::*;
 use serenity::Error as SError;
 use serenity::builder::EditRole;
 use serenity::model::guild::Role;
+use serenity::model::permissions::Permissions;
 use serenity::prelude::Mentionable;
 use serenity::model::id::{RoleId, UserId};
 use serenity::http::{HttpError, StatusCode};
@@ -98,7 +99,7 @@ impl Tagger {
     match guild.roles.values().find(|x| x.name.to_lowercase() == lower_name) {
       Some(r) => add_roles.push(r.clone()),
       None => {
-        let role = guild.create_role(|r| f(r).name(&lower_name)).chain_err(|| "could not create role")?;
+        let role = guild.create_role(|r| f(r.permissions(Permissions::empty())).name(&lower_name)).chain_err(|| "could not create role")?;
         created_roles.push(role);
       }
     }
