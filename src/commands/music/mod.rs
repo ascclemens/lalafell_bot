@@ -35,14 +35,20 @@ impl MusicCommand {
 pub enum Params {
   #[structopt(name = "join", about = "Tell the bot to join a channel")]
   #[structopt(raw(template = "::lalafell::commands::TEMPLATE"))]
+  #[structopt(raw(setting = "::structopt::clap::AppSettings::ArgRequiredElseHelp"))]
   Join(join::Params),
+
   #[structopt(name = "leave", about = "Tell the bot to leave the channel it's in")]
   Leave,
+
   #[structopt(name = "pause", alias = "resume", about = "Tell the bot to pause or resume the currently playing song")]
   Pause,
+
   #[structopt(name = "play", about = "Tell the bot to play a song")]
   #[structopt(raw(template = "::lalafell::commands::TEMPLATE"))]
+  #[structopt(raw(setting = "::structopt::clap::AppSettings::ArgRequiredElseHelp"))]
   Play(play::Params),
+
   #[structopt(name = "stop", about = "Tell the bot to stop playing")]
   Stop
 }

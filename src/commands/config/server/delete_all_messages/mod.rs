@@ -11,10 +11,12 @@ use serenity::model::id::{GuildId, UserId};
 pub enum Params {
   #[structopt(name = "add", alias = "create", about = "Add DAMs")]
   #[structopt(raw(template = "::lalafell::commands::TEMPLATE"))]
+  #[structopt(raw(setting = "::structopt::clap::AppSettings::ArgRequiredElseHelp"))]
   Add(add::Params),
 
   #[structopt(name = "remove", alias = "delete", about = "Remove DAMs")]
   #[structopt(raw(template = "::lalafell::commands::TEMPLATE"))]
+  #[structopt(raw(setting = "::structopt::clap::AppSettings::ArgRequiredElseHelp"))]
   Remove(remove::Params),
 
   #[structopt(name = "list", alias = "show", about = "List active DAMs")]
