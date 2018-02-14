@@ -31,7 +31,7 @@ impl<'a> PublicChannelCommand<'a> for MentionCommand {
           .description("You don't have enough permissions to use this command."))
         .wrap());
     }
-    let params = self.params("mention", params)?;
+    let params = self.params_then("mention", params, |a| a.setting(::structopt::clap::AppSettings::ArgRequiredElseHelp))?;
     let guild = guild_id.find().chain_err(|| "could not find guild")?;
     let lower_name = params.role_name.to_lowercase();
     let role = match guild.read().roles.values().find(|r| r.name.to_lowercase() == lower_name) {

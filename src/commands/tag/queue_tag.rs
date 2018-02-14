@@ -30,7 +30,7 @@ impl HasParams for QueueTagCommand {
 
 impl<'a> PublicChannelCommand<'a> for QueueTagCommand {
   fn run(&self, _: &Context, message: &Message, guild: GuildId, _: Arc<RwLock<GuildChannel>>, params: &[&str]) -> CommandResult<'a> {
-    let params = self.params("queuetag", params)?;
+    let params = self.params_then("queuetag", params, |a| a.setting(::structopt::clap::AppSettings::ArgRequiredElseHelp))?;
     let member = guild.member(&message.author).chain_err(|| "could not get member")?;
     if !member.permissions().chain_err(|| "could not get permissions")?.manage_roles() {
       return Err(ExternalCommandFailure::default()

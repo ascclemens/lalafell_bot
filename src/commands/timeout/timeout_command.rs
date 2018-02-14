@@ -34,7 +34,7 @@ impl HasParams for TimeoutCommand {
 
 impl<'a> PublicChannelCommand<'a> for TimeoutCommand {
   fn run(&self, _: &Context, message: &Message, guild: GuildId, channel: Arc<RwLock<GuildChannel>>, params: &[&str]) -> CommandResult<'a> {
-    let params = self.params("timeout", params)?;
+    let params = self.params_then("timeout", params, |a| a.setting(::structopt::clap::AppSettings::ArgRequiredElseHelp))?;
     let member = guild.member(&message.author).chain_err(|| "could not get member")?;
     if !member.permissions().chain_err(|| "could not get permissions")?.manage_roles() {
       return Err(ExternalCommandFailure::default()

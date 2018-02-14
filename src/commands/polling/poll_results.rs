@@ -56,7 +56,7 @@ impl HasParams for PollResultsCommand {
 
 impl<'a> Command<'a> for PollResultsCommand {
   fn run(&self, _: &Context, _: &Message, params: &[&str]) -> CommandResult<'a> {
-    let params = self.params("pollresults", params)?;
+    let params = self.params_then("pollresults", params, |a| a.setting(::structopt::clap::AppSettings::ArgRequiredElseHelp))?;
     let channel = params.channel;
     let message_id = params.message_id;
     let message = match channel.message(message_id) {

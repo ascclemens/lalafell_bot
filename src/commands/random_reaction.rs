@@ -33,7 +33,7 @@ impl HasParams for RandomReactionCommand {
 
 impl<'a> PublicChannelCommand<'a> for RandomReactionCommand {
   fn run(&self, _: &Context, _: &Message, guild: GuildId, _: Arc<RwLock<GuildChannel>>, params: &[&str]) -> CommandResult<'a> {
-    let params = self.params("randomreaction", params)?;
+    let params = self.params_then("randomreaction", params, |a| a.setting(::structopt::clap::AppSettings::ArgRequiredElseHelp))?;
     let emoji = ::util::parse_emoji(&params.emoji);
     let mut reactions = params.channel.reaction_users(params.message_id, emoji.clone(), Some(100), None)
       .map_err(|_| into!(CommandFailure, "Could not get reactions."))?;

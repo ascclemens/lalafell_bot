@@ -18,7 +18,7 @@ impl HasParams for BlobCommand {
 
 impl<'a> Command<'a> for BlobCommand {
   fn run(&self, _: &Context, msg: &Message, params: &[&str]) -> CommandResult<'a> {
-    let params = self.params("blob", params)?;
+    let params = self.params_then("blob", params, |a| a.setting(::structopt::clap::AppSettings::ArgRequiredElseHelp))?;
 
     if !BLOBS.contains_key(&params.name.as_str()) {
       return Err("That's not a valid blob name.".into());

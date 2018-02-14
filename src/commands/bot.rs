@@ -36,7 +36,7 @@ impl<'a> Command<'a> for BotCommand {
           .description("You don't have enough permissions to use this command."))
         .wrap());
     }
-    let params = self.params("bot", params)?;
+    let params = self.params_then("bot", params, |a| a.setting(::structopt::clap::AppSettings::ArgRequiredElseHelp))?;
     let args = params.args;
     match params.subcommand.as_ref() {
       "presence" | "presences" => self.presence(ctx, &args),

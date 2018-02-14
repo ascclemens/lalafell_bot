@@ -27,7 +27,7 @@ impl HasParams for RaceCommand {
 
 impl<'a> Command<'a> for RaceCommand {
   fn run(&self, _: &Context, _: &Message, params: &[&str]) -> CommandResult<'a> {
-    let params = self.params("race", params)?;
+    let params = self.params_then("race", params, |a| a.setting(::structopt::clap::AppSettings::ArgRequiredElseHelp))?;
     let server = params.server;
     let name = format!("{} {}", params.first_name, params.last_name);
     let params = &[

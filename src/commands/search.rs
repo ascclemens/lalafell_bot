@@ -26,7 +26,7 @@ impl HasParams for SearchCommand {
 
 impl<'a> PublicChannelCommand<'a> for SearchCommand {
   fn run(&self, _: &Context, _: &Message, guild: GuildId, _: Arc<RwLock<GuildChannel>>, params: &[&str]) -> CommandResult<'a> {
-    let params = self.params("search", params)?;
+    let params = self.params_then("search", params, |a| a.setting(::structopt::clap::AppSettings::ArgRequiredElseHelp))?;
 
     let filters = match Filter::all_filters(&params.filter_strings.join(" ")) {
       Some(f) => f,

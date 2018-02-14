@@ -26,7 +26,7 @@ impl HasParams for ViewTagCommand {
 
 impl<'a> PublicChannelCommand<'a> for ViewTagCommand {
   fn run(&self, _: &Context, _: &Message, guild: GuildId, _: Arc<RwLock<GuildChannel>>, params: &[&str]) -> CommandResult<'a> {
-    let params = self.params("viewtag", params)?;
+    let params = self.params_then("viewtag", params, |a| a.setting(::structopt::clap::AppSettings::ArgRequiredElseHelp))?;
     let who = params.who;
 
     let tag: Option<Tag> = ::bot::CONNECTION.with(|c| {
