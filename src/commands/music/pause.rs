@@ -7,8 +7,8 @@ use lalafell::error::*;
 #[derive(BotCommand)]
 pub struct PauseCommand;
 
-impl<'a> PublicChannelCommand<'a> for PauseCommand {
-  fn run(&self, ctx: &Context, _: &Message, guild: GuildId, _: Arc<RwLock<GuildChannel>>, _: &[&str]) -> CommandResult<'a> {
+impl<'a> PauseCommand {
+  pub fn run(&self, ctx: &Context, _: &Message, guild: GuildId, _: Arc<RwLock<GuildChannel>>) -> CommandResult<'a> {
     let vm = MusicCommand::voice_manager(ctx)?;
     let manager = vm.lock();
 

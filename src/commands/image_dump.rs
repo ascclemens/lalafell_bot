@@ -8,22 +8,21 @@ use lalafell::error::*;
 use reqwest::Client;
 
 use url::Url;
-use url_serde;
 
 use chrono::Duration;
 
 use std::sync::Arc;
 use std::io::Read;
 
-const USAGE: &str = "!imagedump <url>";
 const VALID_EXTENSIONS: &[&str] = &["jpg", "jpeg", "png", "gif", "gifv", "mp4", "mpeg4"];
 
 #[derive(BotCommand)]
 pub struct ImageDumpCommand;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, StructOpt)]
+#[structopt(about = "Tell the bot to dump images in a text file to this channel")]
 pub struct Params {
-  #[serde(with = "url_serde")]
+  #[structopt(help = "The URL to a file containing image URLs on each line")]
   link: Url
 }
 
@@ -45,7 +44,7 @@ impl<'a> PublicChannelCommand<'a> for ImageDumpCommand {
       return Err("`!imagedump` is not allowed in this channel.".into());
     }
 
-    let params = self.params(USAGE, params)?;
+    let params = self.params("imagedump", params)?;
     let id = channel.read().id;
     ::std::thread::spawn(move || {
       let link = params.link;

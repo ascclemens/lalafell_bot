@@ -5,17 +5,20 @@ use lalafell::commands::prelude::*;
 use lalafell::error;
 use lalafell::error::*;
 
-const USAGE: &str = "!race <server> <character>";
-
 #[derive(BotCommand)]
 pub struct RaceCommand {
   env: Arc<BotEnv>
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, StructOpt)]
+#[structopt(about = "Display the race of the specified character")]
 pub struct Params {
+  #[structopt(help = "The server the character is on")]
   server: String,
-  name: [String; 2]
+  #[structopt(help = "The character's first name")]
+  first_name: String,
+  #[structopt(help = "The character's last name")]
+  last_name: String
 }
 
 impl HasParams for RaceCommand {
@@ -24,9 +27,9 @@ impl HasParams for RaceCommand {
 
 impl<'a> Command<'a> for RaceCommand {
   fn run(&self, _: &Context, _: &Message, params: &[&str]) -> CommandResult<'a> {
-    let params = self.params(USAGE, params)?;
+    let params = self.params("race", params)?;
     let server = params.server;
-    let name = params.name.join(" ");
+    let name = format!("{} {}", params.first_name, params.last_name);
     let params = &[
       ("one", "characters"),
       ("strict", "on"),

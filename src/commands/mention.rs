@@ -5,15 +5,16 @@ use serenity::prelude::Mentionable;
 
 use std::sync::Arc;
 
-const USAGE: &str = "!mention <role name> [message]";
-
 #[derive(BotCommand)]
 pub struct MentionCommand;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, StructOpt)]
+#[structopt(about = "Mention roles that aren't mentionable")]
 pub struct Params {
+  #[structopt(help = "The role to mention")]
   role_name: String,
-  message: Option<Vec<String>>
+  #[structopt(help = "The message to send when mentioning the role")]
+  message: Vec<String>
 }
 
 impl HasParams for MentionCommand {
@@ -30,7 +31,7 @@ impl<'a> PublicChannelCommand<'a> for MentionCommand {
           .description("You don't have enough permissions to use this command."))
         .wrap());
     }
-    let params = self.params(USAGE, params)?;
+    let params = self.params("mention", params)?;
     let guild = guild_id.find().chain_err(|| "could not find guild")?;
     let lower_name = params.role_name.to_lowercase();
     let role = match guild.read().roles.values().find(|r| r.name.to_lowercase() == lower_name) {
@@ -42,7 +43,11 @@ impl<'a> PublicChannelCommand<'a> for MentionCommand {
       guild_id.edit_role(role.id, |r| r.mentionable(true)).ok();
     }
     msg.delete().ok();
-    let p_message = params.message.map(|x| format!(" – {}", x.join(" "))).unwrap_or_default();
+    let p_message = if params.message.is_empty() {
+      Default::default()
+    } else {
+      format!(" – {}", params.message.join(" "))
+    };
     let message = format!("{}{}", role.mention(), p_message);
     channel.read().send_message(|m| m.content(&message)).ok();
     if !mentionable {

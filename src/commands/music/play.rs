@@ -8,25 +8,21 @@ use serenity::voice::{self, Handler};
 use serenity::client::bridge::voice::ClientVoiceManager;
 use serenity::model::id::UserId;
 
-const USAGE: &str = "!music play [youtube url]";
+use url::Url;
 
 #[derive(BotCommand)]
 pub struct PlayCommand;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, StructOpt)]
+#[structopt(about = "Tell the bot to play a YouTube video's audio")]
 pub struct Params {
-  url: String
+  #[structopt(help = "The YouTube URL to play")]
+  url: Url
 }
 
-impl HasParams for PlayCommand {
-  type Params = Params;
-}
-
-impl<'a> PublicChannelCommand<'a> for PlayCommand {
-  fn run(&self, ctx: &Context, msg: &Message, guild: GuildId, _: Arc<RwLock<GuildChannel>>, params: &[&str]) -> CommandResult<'a> {
-    let params = self.params(USAGE, params)?;
-
-    let youtube = match voice::ytdl(&params.url) {
+impl<'a> PlayCommand {
+  pub fn run(&self, ctx: &Context, msg: &Message, guild: GuildId, _: Arc<RwLock<GuildChannel>>, params: Params) -> CommandResult<'a> {
+    let youtube = match voice::ytdl(&params.url.to_string()) {
       Ok(y) => y,
       Err(e) => return Err(format!("Could not open that YouTube URL: {}", e).into())
     };

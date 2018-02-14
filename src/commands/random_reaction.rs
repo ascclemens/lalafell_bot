@@ -11,17 +11,20 @@ use rand::{thread_rng, Rng};
 
 use std::sync::Arc;
 
-const USAGE: &str = "!randomreaction <channel/id> <message id> <emoji> [filters]";
-
 #[derive(BotCommand)]
 pub struct RandomReactionCommand;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, StructOpt)]
+#[structopt(about = "Pick a random member who reaction to a message")]
 pub struct Params {
+  #[structopt(help = "The channel the message is in")]
   channel: ChannelOrId,
+  #[structopt(help = "The message ID")]
   message_id: u64,
+  #[structopt(help = "The emoji of the reaction")]
   emoji: String,
-  filters: Option<Vec<String>>
+  #[structopt(help = "A list of filters to apply when picking a random member")]
+  filters: Vec<String>
 }
 
 impl HasParams for RandomReactionCommand {
@@ -30,7 +33,7 @@ impl HasParams for RandomReactionCommand {
 
 impl<'a> PublicChannelCommand<'a> for RandomReactionCommand {
   fn run(&self, _: &Context, _: &Message, guild: GuildId, _: Arc<RwLock<GuildChannel>>, params: &[&str]) -> CommandResult<'a> {
-    let params = self.params(USAGE, params)?;
+    let params = self.params("randomreaction", params)?;
     let emoji = ::util::parse_emoji(&params.emoji);
     let mut reactions = params.channel.reaction_users(params.message_id, emoji.clone(), Some(100), None)
       .map_err(|_| into!(CommandFailure, "Could not get reactions."))?;
@@ -46,7 +49,7 @@ impl<'a> PublicChannelCommand<'a> for RandomReactionCommand {
       }
       reactions.extend(next_batch);
     }
-    let filters = match Filter::all_filters(&params.filters.unwrap_or_default().join(" ")) {
+    let filters = match Filter::all_filters(&params.filters.join(" ")) {
       Some(f) => f,
       None => return Err("Invalid filters.".into())
     };

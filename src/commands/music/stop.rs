@@ -5,8 +5,8 @@ use lalafell::commands::prelude::*;
 #[derive(BotCommand)]
 pub struct StopCommand;
 
-impl<'a> PublicChannelCommand<'a> for StopCommand {
-  fn run(&self, ctx: &Context, _: &Message, guild: GuildId, _: Arc<RwLock<GuildChannel>>, _: &[&str]) -> CommandResult<'a> {
+impl<'a> StopCommand {
+  pub fn run(&self, ctx: &Context, _: &Message, guild: GuildId, _: Arc<RwLock<GuildChannel>>) -> CommandResult<'a> {
     let vm = MusicCommand::voice_manager(ctx)?;
     let mut manager = vm.lock();
     let handler = match manager.get_mut(guild) {

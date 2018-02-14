@@ -16,14 +16,15 @@ use chrono::prelude::*;
 
 use std::sync::Arc;
 
-const USAGE: &str = "!timeout <who> <length>";
-
 #[derive(BotCommand)]
 pub struct TimeoutCommand;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, StructOpt)]
+#[structopt(help = "Put a member in time out, preventing them from doing anything")]
 pub struct Params {
+  #[structopt(help = "Who to timeout")]
   who: MentionOrId,
+  #[structopt(help = "How long to time out the person for")]
   length: Vec<String>
 }
 
@@ -33,7 +34,7 @@ impl HasParams for TimeoutCommand {
 
 impl<'a> PublicChannelCommand<'a> for TimeoutCommand {
   fn run(&self, _: &Context, message: &Message, guild: GuildId, channel: Arc<RwLock<GuildChannel>>, params: &[&str]) -> CommandResult<'a> {
-    let params = self.params(USAGE, params)?;
+    let params = self.params("timeout", params)?;
     let member = guild.member(&message.author).chain_err(|| "could not get member")?;
     if !member.permissions().chain_err(|| "could not get permissions")?.manage_roles() {
       return Err(ExternalCommandFailure::default()

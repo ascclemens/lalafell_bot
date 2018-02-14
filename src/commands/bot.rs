@@ -10,8 +10,6 @@ use diesel::prelude::*;
 
 use itertools::Itertools;
 
-const USAGE: &str = "!bot [subcommand] (args)";
-
 #[derive(BotCommand)]
 pub struct BotCommand;
 
@@ -19,10 +17,14 @@ impl HasParams for BotCommand {
   type Params = Params;
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, StructOpt)]
+#[structopt(about = "Control the bot")]
 pub struct Params {
+  // FIXME: Use subcommands via clap
+  #[structopt(help = "The subcommand")]
   subcommand: String,
-  args: Option<Vec<String>>
+  #[structopt(help = "Any arguments")]
+  args: Vec<String>
 }
 
 impl<'a> Command<'a> for BotCommand {
@@ -34,8 +36,8 @@ impl<'a> Command<'a> for BotCommand {
           .description("You don't have enough permissions to use this command."))
         .wrap());
     }
-    let params = self.params(USAGE, params)?;
-    let args = params.args.unwrap_or_default();
+    let params = self.params("bot", params)?;
+    let args = params.args;
     match params.subcommand.as_ref() {
       "presence" | "presences" => self.presence(ctx, &args),
       _ => Err("Invalid subcommand.".into())

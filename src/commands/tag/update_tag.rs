@@ -17,8 +17,10 @@ pub struct UpdateTagCommand {
   env: Arc<BotEnv>
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, StructOpt)]
+#[structopt(about = "Update your own tag or someone else's right now")]
 pub struct Params {
+  #[structopt(help = "Who to update the tag for if not yourself (assuming you have permission)")]
   who: Option<MentionOrId>
 }
 
@@ -28,7 +30,7 @@ impl HasParams for UpdateTagCommand {
 
 impl<'a> PublicChannelCommand<'a> for UpdateTagCommand {
   fn run(&self, _: &Context, message: &Message, guild: GuildId, _: Arc<RwLock<GuildChannel>>, params: &[&str]) -> CommandResult<'a> {
-    let params = self.params("", params)?;
+    let params = self.params("updatetag", params)?;
     let id = match params.who {
       Some(who) => {
         let member = guild.member(&message.author).chain_err(|| "could not get member")?;

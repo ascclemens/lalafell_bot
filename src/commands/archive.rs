@@ -14,13 +14,13 @@ use serde_json;
 use std::fs::{self, File};
 use std::path::Path;
 
-const USAGE: &str = "!archive <channel>";
-
 #[derive(BotCommand)]
 pub struct ArchiveCommand;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, StructOpt)]
+#[structopt(help = "Archive a channel")]
 pub struct Params {
+  #[structopt(help = "The channel to archive")]
   channel: ChannelOrId
 }
 
@@ -30,7 +30,7 @@ impl HasParams for ArchiveCommand {
 
 impl<'a> PublicChannelCommand<'a> for ArchiveCommand {
   fn run(&self, _: &Context, message: &Message, _: GuildId, _: Arc<RwLock<GuildChannel>>, params: &[&str]) -> CommandResult<'a> {
-    let params = self.params(USAGE, params)?;
+    let params = self.params("archive", params)?;
     let channel = match params.channel.get().chain_err(|| "could not get channel")? {
       Channel::Guild(g) => g,
       _ => return Err("This channel must be a guild channel.".into())

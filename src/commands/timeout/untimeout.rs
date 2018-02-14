@@ -10,13 +10,13 @@ use diesel::prelude::*;
 
 use std::sync::Arc;
 
-const USAGE: &str = "!untimeout <who>";
-
 #[derive(BotCommand)]
 pub struct UntimeoutCommand;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, StructOpt)]
+#[structopt(help = "Take a member out of time out")]
 pub struct Params {
+  #[structopt(help = "Who to untimeout")]
   who: MentionOrId
 }
 
@@ -26,7 +26,7 @@ impl HasParams for UntimeoutCommand {
 
 impl<'a> PublicChannelCommand<'a> for UntimeoutCommand {
   fn run(&self, _: &Context, message: &Message, guild: GuildId, _: Arc<RwLock<GuildChannel>>, params: &[&str]) -> CommandResult<'a> {
-    let params = self.params(USAGE, params)?;
+    let params = self.params("who", params)?;
     let member = guild.member(&message.author).chain_err(|| "could not get member")?;
     if !member.permissions().chain_err(|| "could not get permissions")?.manage_roles() {
       return Err(ExternalCommandFailure::default()

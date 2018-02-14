@@ -26,7 +26,6 @@ use lalafell::commands::prelude::*;
 
 use serenity::model::channel::ReactionType;
 
-const USAGE: &str = "!pollresults <channel> <message id>";
 const VALID_EMOJI: &[&str] = &[
   "1⃣",
   "2⃣",
@@ -42,9 +41,12 @@ const VALID_EMOJI: &[&str] = &[
 #[derive(BotCommand)]
 pub struct PollResultsCommand;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, StructOpt)]
+#[structopt(about = "View the results of a poll")]
 pub struct Params {
+  #[structopt(help = "The channel the poll was posted in")]
   channel: ChannelOrId,
+  #[structopt(help = "The message ID of the poll")]
   message_id: u64
 }
 
@@ -54,7 +56,7 @@ impl HasParams for PollResultsCommand {
 
 impl<'a> Command<'a> for PollResultsCommand {
   fn run(&self, _: &Context, _: &Message, params: &[&str]) -> CommandResult<'a> {
-    let params = self.params(USAGE, params)?;
+    let params = self.params("pollresults", params)?;
     let channel = params.channel;
     let message_id = params.message_id;
     let message = match channel.message(message_id) {

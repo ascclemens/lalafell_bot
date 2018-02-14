@@ -5,8 +5,8 @@ use lalafell::commands::prelude::*;
 #[derive(BotCommand)]
 pub struct LeaveCommand;
 
-impl<'a> PublicChannelCommand<'a> for LeaveCommand {
-  fn run(&self, ctx: &Context, _: &Message, guild: GuildId, _: Arc<RwLock<GuildChannel>>, _: &[&str]) -> CommandResult<'a> {
+impl<'a> LeaveCommand {
+  pub fn run(&self, ctx: &Context, _: &Message, guild: GuildId, _: Arc<RwLock<GuildChannel>>) -> CommandResult<'a> {
     let vm = MusicCommand::voice_manager(ctx)?;
     let mut manager = vm.lock();
     if manager.leave(guild).is_some() {

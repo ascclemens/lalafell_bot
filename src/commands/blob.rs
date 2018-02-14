@@ -2,14 +2,14 @@ use lalafell::commands::prelude::*;
 
 use std::collections::HashMap;
 
-const USAGE: &str = "!blob <emoji name>";
-
 #[derive(BotCommand)]
 pub struct BlobCommand;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, StructOpt)]
+#[structopt(about = "Have the bot post a blob emoji for you")]
 pub struct Params {
-  blob: String
+  #[structopt(help = "The name of the blob emoji")]
+  name: String
 }
 
 impl HasParams for BlobCommand {
@@ -18,12 +18,12 @@ impl HasParams for BlobCommand {
 
 impl<'a> Command<'a> for BlobCommand {
   fn run(&self, _: &Context, msg: &Message, params: &[&str]) -> CommandResult<'a> {
-    let params = self.params(USAGE, params)?;
+    let params = self.params("blob", params)?;
 
-    if !BLOBS.contains_key(&params.blob.as_str()) {
+    if !BLOBS.contains_key(&params.name.as_str()) {
       return Err("That's not a valid blob name.".into());
     }
-    let blob = BLOBS[params.blob.as_str()];
+    let blob = BLOBS[params.name.as_str()];
 
     let name = msg.guild()
       .and_then(|guild| guild.read().members.get(&msg.author.id).map(|a| a.display_name().into_owned()))

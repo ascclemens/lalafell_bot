@@ -10,13 +10,13 @@ use diesel::prelude::*;
 
 use std::sync::Arc;
 
-const USAGE: &str = "!viewtag <who>";
-
 #[derive(BotCommand)]
 pub struct ViewTagCommand;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, StructOpt)]
+#[structopt(about = "View the FFXIV character tag of a member")]
 pub struct Params {
+  #[structopt(help = "Who to view the tag of")]
   who: MentionOrId
 }
 
@@ -26,7 +26,7 @@ impl HasParams for ViewTagCommand {
 
 impl<'a> PublicChannelCommand<'a> for ViewTagCommand {
   fn run(&self, _: &Context, _: &Message, guild: GuildId, _: Arc<RwLock<GuildChannel>>, params: &[&str]) -> CommandResult<'a> {
-    let params = self.params(USAGE, params)?;
+    let params = self.params("viewtag", params)?;
     let who = params.who;
 
     let tag: Option<Tag> = ::bot::CONNECTION.with(|c| {

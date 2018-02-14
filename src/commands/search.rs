@@ -10,13 +10,13 @@ use itertools::Itertools;
 
 use chrono::Utc;
 
-const USAGE: &str = "!search <filters>";
-
 #[derive(BotCommand)]
 pub struct SearchCommand;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, StructOpt)]
+#[structopt(about = "Search the members of the server with filters")]
 pub struct Params {
+  #[structopt(name = "filters", help = "A list of filters to apply when searching")]
   filter_strings: Vec<String>
 }
 
@@ -26,7 +26,7 @@ impl HasParams for SearchCommand {
 
 impl<'a> PublicChannelCommand<'a> for SearchCommand {
   fn run(&self, _: &Context, _: &Message, guild: GuildId, _: Arc<RwLock<GuildChannel>>, params: &[&str]) -> CommandResult<'a> {
-    let params = self.params(USAGE, params)?;
+    let params = self.params("search", params)?;
 
     let filters = match Filter::all_filters(&params.filter_strings.join(" ")) {
       Some(f) => f,

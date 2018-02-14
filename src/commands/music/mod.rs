@@ -18,10 +18,6 @@ use lalafell::error::*;
 use serenity::prelude::Mutex;
 use serenity::client::bridge::voice::ClientVoiceManager;
 
-use std::collections::HashMap;
-
-const USAGE: &str = "!music [subcommand] (args)";
-
 #[derive(BotCommand)]
 pub struct MusicCommand;
 
@@ -34,38 +30,55 @@ impl MusicCommand {
   }
 }
 
-#[derive(Debug, Deserialize)]
-pub struct Params {
-  subcommand: String,
-  args: Option<Vec<String>>
+#[derive(Debug, StructOpt)]
+#[structopt(about = "Control the bot's music capabilities.")]
+pub enum Params {
+  #[structopt(name = "join", about = "Tell the bot to join a channel")]
+  #[structopt(raw(template = "::lalafell::commands::TEMPLATE"))]
+  Join(join::Params),
+  #[structopt(name = "leave", about = "Tell the bot to leave the channel it's in")]
+  Leave,
+  #[structopt(name = "pause", alias = "resume", about = "Tell the bot to pause or resume the currently playing song")]
+  Pause,
+  #[structopt(name = "play", about = "Tell the bot to play a song")]
+  #[structopt(raw(template = "::lalafell::commands::TEMPLATE"))]
+  Play(play::Params),
+  #[structopt(name = "stop", about = "Tell the bot to stop playing")]
+  Stop
 }
 
 impl HasParams for MusicCommand {
   type Params = Params;
 }
 
+struct Commands {
+  join: JoinCommand,
+  leave: LeaveCommand,
+  play: PlayCommand,
+  pause: PauseCommand,
+  stop: StopCommand
+}
+
 lazy_static! {
-  static ref COMMANDS: HashMap<&'static str, Box<PublicChannelCommand<'static> + Send + Sync>> = {
-    let mut map: HashMap<&'static str, Box<PublicChannelCommand<'static> + Send + Sync>> = HashMap::new();
-    map.insert("join", box JoinCommand);
-    map.insert("leave", box LeaveCommand);
-    map.insert("play", box PlayCommand);
-    map.insert("pause", box PauseCommand);
-    map.insert("stop", box StopCommand);
-    map
+  static ref COMMANDS: Commands = Commands {
+    join: JoinCommand,
+    leave: LeaveCommand,
+    play: PlayCommand,
+    pause: PauseCommand,
+    stop: StopCommand
   };
 }
 
 impl<'a> PublicChannelCommand<'a> for MusicCommand {
   fn run(&self, ctx: &Context, msg: &Message, guild: GuildId, channel: Arc<RwLock<GuildChannel>>, str_params: &[&str]) -> CommandResult<'a> {
-    let params = self.params(USAGE, str_params)?;
+    let params = self.params("music", str_params)?;
 
-    let sub_params = params.args.unwrap_or_default();
-    let sub_param_refs: Vec<&str> = sub_params.iter().map(AsRef::as_ref).collect();
-
-    match COMMANDS.get(&params.subcommand.to_lowercase().as_str()) {
-      Some(c) => c.run(ctx, msg, guild, channel, &sub_param_refs),
-      None => Err("Invalid subcommand.".into())
+    match params {
+      Params::Join(p) => COMMANDS.join.run(ctx, msg, guild, channel, p),
+      Params::Leave => COMMANDS.leave.run(ctx, msg, guild, channel),
+      Params::Play(p) => COMMANDS.play.run(ctx, msg, guild, channel, p),
+      Params::Pause => COMMANDS.pause.run(ctx, msg, guild, channel),
+      Params::Stop => COMMANDS.stop.run(ctx, msg, guild, channel)
     }
   }
 }

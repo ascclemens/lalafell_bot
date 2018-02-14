@@ -3,25 +3,19 @@ use commands::music::MusicCommand;
 use lalafell::commands::ChannelOrId;
 use lalafell::commands::prelude::*;
 
-const USAGE: &str = "!music join [channel]";
-
 #[derive(BotCommand)]
 pub struct JoinCommand;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, StructOpt)]
+#[structopt(about = "Tell the bot to join a voice channel")]
 pub struct Params {
   // FIXME: Take String and check against voice channels
+  #[structopt(help = "The voice channel to join")]
   channel: ChannelOrId
 }
 
-impl HasParams for JoinCommand {
-  type Params = Params;
-}
-
-impl<'a> PublicChannelCommand<'a> for JoinCommand {
-  fn run(&self, ctx: &Context, _: &Message, guild: GuildId, _: Arc<RwLock<GuildChannel>>, params: &[&str]) -> CommandResult<'a> {
-    let params = self.params(USAGE, params)?;
-
+impl<'a> JoinCommand {
+  pub fn run(&self, ctx: &Context, _: &Message, guild: GuildId, _: Arc<RwLock<GuildChannel>>, params: Params) -> CommandResult<'a> {
     let vm = MusicCommand::voice_manager(ctx)?;
     let mut manager = vm.lock();
     if manager.join(guild, *params.channel).is_some() {

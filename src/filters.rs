@@ -3,6 +3,7 @@ use lalafell::commands::MentionOrId;
 use serenity::model::guild::{Member, Role};
 
 use std::borrow::Borrow;
+use std::str::FromStr;
 
 pub enum Filter {
   Include(FilterKind),
@@ -133,7 +134,7 @@ impl FilterKind {
     match kind.to_lowercase().as_str() {
       "role" => Some(FilterKind::Role(value.to_string())),
       "user" | "member" => {
-        let id = MentionOrId::parse(value).ok()?;
+        let id = MentionOrId::from_str(value).ok()?;
         Some(FilterKind::User(id.0))
       }
       _ => None
