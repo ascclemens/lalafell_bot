@@ -65,17 +65,28 @@ impl Tagger {
     let res = env.xivdb.search(character_name, params).chain_err(|| "could not query XIVDB")?;
 
     let search_chars = res.characters.unwrap().results;
-    if search_chars.is_empty() {
-      Tagger::add_to_xivdb(character_name, server);
-      return Ok(Some(format!("Could not find any character by the name {} on {} in the XIVDB database.\nIf you typed everything correctly, please wait five minutes for your character to get added to the database, then try again.", character_name, server)));
-    }
 
-    let char_id = match search_chars[0]["id"].as_u64() {
+    let character = match search_chars
+      .into_iter()
+      .find(|x|
+        x["name"]
+          .as_str()
+          .map(|z| z.to_lowercase()) == Some(character_name.to_lowercase())
+      )
+    {
+      Some(c) => c,
+      None => {
+        Tagger::add_to_xivdb(character_name, server);
+        return Ok(Some(format!("Could not find any character by the name {} on {} in the XIVDB database.\nIf you typed everything correctly, please wait five minutes for your character to get added to the database, then try again.", character_name, server)));
+      }
+    };
+
+    let char_id = match character["id"].as_u64() {
       Some(u) => u,
       None => bail!("character ID was not a u64")
     };
 
-    let name = match search_chars[0]["name"].as_str() {
+    let name = match character["name"].as_str() {
       Some(s) => s,
       None => bail!("character name was not a string")
     };
