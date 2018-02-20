@@ -1,5 +1,6 @@
 use database::models::NewAutoReply;
 use filters::Filter;
+use util::ParsedDuration;
 
 use diesel::prelude::*;
 
@@ -17,7 +18,8 @@ pub struct Params {
   on_join: bool,
 
   #[structopt(short = "d", long = "delay", help = "The time string for how long to wait before sending the message again")]
-  delay: Option<String>,
+  #[structopt(parse(try_from_str))]
+  delay: Option<ParsedDuration>,
 
   #[structopt(short = "f", long = "filter", help = "A filter to add to this auto reply")]
   #[structopt(raw(number_of_values = "1"))]
@@ -42,11 +44,7 @@ impl<'a> AddCommand {
         None => return Err("Invalid filters.".into())
       }
     };
-    let delay: i32 = match params.delay.map(::util::parse_duration_secs) {
-      Some(Ok(d)) => d as i32,
-      Some(Err(_)) => return Err("Invalid delay.".into()),
-      None => 0
-    };
+    let delay: i32 = params.delay.unwrap_or_default().0 as i32;
     let message = params.message.join(" ");
     if message.is_empty() {
       return Err("Empty message.".into());

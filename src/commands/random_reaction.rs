@@ -1,4 +1,5 @@
 use filters::Filter;
+use util::ParsedEmoji;
 
 use lalafell::error::*;
 use lalafell::commands::prelude::*;
@@ -22,7 +23,8 @@ pub struct Params {
   #[structopt(help = "The message ID")]
   message_id: u64,
   #[structopt(help = "The emoji of the reaction")]
-  emoji: String,
+  #[structopt(parse(from_str))]
+  emoji: ParsedEmoji,
   #[structopt(help = "A list of filters to apply when picking a random member")]
   filters: Vec<String>
 }
@@ -34,7 +36,7 @@ impl HasParams for RandomReactionCommand {
 impl<'a> PublicChannelCommand<'a> for RandomReactionCommand {
   fn run(&self, _: &Context, _: &Message, guild: GuildId, _: Arc<RwLock<GuildChannel>>, params: &[&str]) -> CommandResult<'a> {
     let params = self.params_then("randomreaction", params, |a| a.setting(::structopt::clap::AppSettings::ArgRequiredElseHelp))?;
-    let emoji = ::util::parse_emoji(&params.emoji);
+    let emoji = params.emoji;
     let mut reactions = params.channel.reaction_users(params.message_id, emoji.clone(), Some(100), None)
       .map_err(|_| into!(CommandFailure, "Could not get reactions."))?;
     if reactions.is_empty() {
