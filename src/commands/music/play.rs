@@ -21,6 +21,7 @@ pub struct Params {
 }
 
 impl<'a> PlayCommand {
+  #[cfg_attr(feature = "cargo-clippy", allow(needless_pass_by_value))]
   pub fn run(&self, ctx: &Context, msg: &Message, guild: GuildId, _: Arc<RwLock<GuildChannel>>, params: Params) -> CommandResult<'a> {
     let youtube = match voice::ytdl(&params.url.to_string()) {
       Ok(y) => y,

@@ -16,6 +16,7 @@ pub struct Params {
 }
 
 impl<'a> RemoveCommand {
+  #[cfg_attr(feature = "cargo-clippy", allow(needless_pass_by_value))]
   pub fn run(&self, guild: GuildId, params: Params) -> CommandResult<'a> {
     let affected = ::bot::CONNECTION.with(|c| {
       use database::schema::auto_replies::dsl;
