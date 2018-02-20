@@ -64,7 +64,7 @@ impl Tagger {
 
     let res = env.xivdb.search(character_name, params).chain_err(|| "could not query XIVDB")?;
 
-    let search_chars = res.characters.unwrap().results;
+    let search_chars = res.characters.chain_err(|| "no characters field in result")?.results;
 
     let character = match search_chars
       .into_iter()

@@ -2,7 +2,6 @@ use bot::BotEnv;
 
 use lalafell::commands::prelude::*;
 
-use lalafell::error;
 use lalafell::error::*;
 
 #[derive(BotCommand)]
@@ -36,17 +35,13 @@ impl<'a> Command<'a> for RaceCommand {
       ("server|et", &server)
     ];
     let res = self.env.xivdb.search(&name, params).chain_err(|| "could not search XIVDB")?;
-    let search_chars = match res.characters {
-      Some(c) => c.results,
-      None => return Err(into!(error::Error, "no characters field in search result").into())
+    let search_chars = res.characters.chain_err(|| "no characters field in search result")?.results;
+    let character = match search_chars.into_iter().find(|c| c["name"].as_str().map(|z| z.to_lowercase()) == Some(name.to_lowercase())) {
+      Some(c) => c,
+      None => return Err(format!("Could not find any character by the name {}.", name).into())
     };
-    if search_chars.is_empty() {
-      return Err(format!("Could not find any character by the name {}.", name).into());
-    }
-    let character = self.env.xivdb.character(search_chars[0]["id"].as_u64().unwrap()).unwrap();
-    if character.name.to_lowercase() != name.to_lowercase() {
-      return Err(format!("Could not find any character by the name {}.", name).into());
-    }
+    let character_id = character["id"].as_u64().chain_err(|| "invalid character object")?;
+    let character = self.env.xivdb.character(character_id).chain_err(|| "could not download character")?;
     Ok(format!("{} ({})", character.data.race, character.data.clan).into())
   }
 }
