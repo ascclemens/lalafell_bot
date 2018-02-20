@@ -39,15 +39,18 @@ impl<'a> ServerCommand {
 #[structopt(about = "Configure server settings.")]
 pub enum Params {
   #[structopt(name = "autoreply", alias = "ar", about = "Manage auto-reply settings")]
+  #[structopt(raw(setting = "::structopt::clap::AppSettings::ArgRequiredElseHelp"))]
   #[structopt(raw(template = "::lalafell::commands::TEMPLATE"))]
   AutoReply(auto_reply::Params),
 
   #[structopt(name = "deleteallmessages", alias = "dam", about = "Manage channel message deletion settings")]
   #[structopt(raw(aliases = r#"&["dam", "dams"]"#))]
+  #[structopt(raw(setting = "::structopt::clap::AppSettings::ArgRequiredElseHelp"))]
   #[structopt(raw(template = "::lalafell::commands::TEMPLATE"))]
   DeleteAllMessages(delete_all_messages::Params),
 
   #[structopt(name = "reaction", alias = "reactions", about = "Manage reaction role settings")]
+  #[structopt(raw(setting = "::structopt::clap::AppSettings::ArgRequiredElseHelp"))]
   #[structopt(raw(template = "::lalafell::commands::TEMPLATE"))]
   Reaction(reaction::Params),
 
