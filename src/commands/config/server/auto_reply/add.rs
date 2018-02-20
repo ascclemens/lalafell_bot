@@ -42,7 +42,7 @@ impl<'a> AddCommand {
         None => return Err("Invalid filters.".into())
       }
     };
-    let delay: i32 = match params.delay.map(|x| ::util::parse_duration_secs(x)) {
+    let delay: i32 = match params.delay.map(::util::parse_duration_secs) {
       Some(Ok(d)) => d as i32,
       Some(Err(_)) => return Err("Invalid delay.".into()),
       None => 0

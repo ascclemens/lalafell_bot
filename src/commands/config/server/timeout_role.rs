@@ -69,7 +69,7 @@ impl<'a> TimeoutRoleCommand {
           Some(role) => role,
           None => String::from("unset (disabled)")
         };
-        return Ok(format!("Timeout role on {}: {}", guild.read().name, status).into());
+        Ok(format!("Timeout role on {}: {}", guild.read().name, status).into())
       }
     }
   }
