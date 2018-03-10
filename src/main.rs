@@ -16,6 +16,7 @@ extern crate envy;
 #[macro_use]
 extern crate error_chain;
 extern crate fern;
+extern crate fflogs;
 extern crate itertools;
 extern crate lalafell;
 #[macro_use]
@@ -121,5 +122,6 @@ fn inner() -> Result<()> {
 pub struct Environment {
   pub discord_bot_token: String,
   pub database_location: String,
-  pub config_location: String
+  pub config_location: String,
+  pub fflogs_api_key: String
 }

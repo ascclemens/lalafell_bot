@@ -117,6 +117,7 @@ fn command_listener<'a>(env: &Arc<BotEnv>) -> CommandListener<'a> {
     "blob" => BlobCommand,
     "bot" => ActualBotCommand,
     "configure", "config" => ConfigureCommand,
+    "fflogs" => FfLogsCommand,
     "imagedump", "dump" => ImageDumpCommand,
     "mention" => MentionCommand,
     "music" => MusicCommand,
