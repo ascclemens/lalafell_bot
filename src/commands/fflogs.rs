@@ -3,24 +3,18 @@ use lalafell::commands::prelude::*;
 use lalafell::error::*;
 
 use fflogs::{self, FfLogs};
-use fflogs::models::classes::Classes;
-use fflogs::models::zones::Zones;
 use fflogs::net::{ServerRegion, Metric};
 
-use serenity::prelude::RwLock;
+use std::cmp::Ordering;
 
 pub struct FfLogsCommand {
-  fflogs: FfLogs,
-  zones: RwLock<Option<Zones>>,
-  classes: RwLock<Option<Classes>>
+  fflogs: FfLogs
 }
 
 impl ::commands::BotCommand for FfLogsCommand {
   fn new(env: Arc<::bot::BotEnv>) -> Self {
     FfLogsCommand {
-      fflogs: FfLogs::new(&env.environment.fflogs_api_key),
-      zones: Default::default(),
-      classes: Default::default()
+      fflogs: FfLogs::new(&env.environment.fflogs_api_key)
     }
   }
 }
@@ -42,8 +36,6 @@ impl HasParams for FfLogsCommand {
 
 impl<'a> Command<'a> for FfLogsCommand {
   fn run(&self, _: &Context, _: &Message, params: &[&str]) -> CommandResult<'a> {
-    self.check_zones_classes()?;
-
     let params = self.params_then("fflogs", params, |a| a.setting(::structopt::clap::AppSettings::ArgRequiredElseHelp))?;
     let server = params.server;
     let region = match FfLogsCommand::region(&server) {
@@ -52,14 +44,14 @@ impl<'a> Command<'a> for FfLogsCommand {
     };
     let name = format!("{} {}", params.first_name, params.last_name);
 
-    let rankings = self.fflogs.rankings_character(
+    let parses = self.fflogs.parses(
       &name,
       &server,
       region,
       |x| x.metric(Metric::Dps)
     );
 
-    let rankings = match rankings {
+    let parses = match parses {
       Ok(r) => r,
       Err(fflogs::errors::Error::FfLogs(fflogs::net::FfLogsError { status, error })) => {
         return Err(format!("FF Logs didn't like that ({}): {}", status, error).into());
@@ -67,48 +59,51 @@ impl<'a> Command<'a> for FfLogsCommand {
       Err(e) => return Err(e).chain_err(|| "could not query fflogs")?
     };
 
-    if rankings.is_empty() {
+    if parses.is_empty() {
       return Ok("No parses found.".into());
     }
 
-    let zones = self.zones.read();
-    let zones = zones.as_ref().chain_err(|| "no zones")?;
-    let classes = self.classes.read();
-    let classes = classes.as_ref().chain_err(|| "no classes")?;
-
-    let class = match classes.iter().find(|c| c.id == rankings[0].class) {
-      Some(c) => c,
-      None => return Err("Could not find class.".into())
-    };
-    let spec = match class.specs.iter().find(|s| s.id == rankings[0].spec) {
+    let first_spec = match parses[0].specs.get(0) {
       Some(s) => s,
-      None => return Err("Could not find class specification.".into())
+      None => return Err("Somehow there was no first spec.".into())
     };
+    let first_data = match first_spec.data.get(0) {
+      Some(d) => d,
+      None => return Err("Somehow there was no first data.".into())
+    };
+
+    let job = &first_spec.spec;
+    let name = &first_data.character_name;
+    let id = first_data.character_id;
 
     let mut embed = CreateEmbed::default();
 
     embed = embed
       .title(&name)
-      .field("Job", &spec.name, true)
+      .url(format!("https://www.fflogs.com/character/id/{}", id))
+      .field("Job", &job, true)
       .field("Server", &server, true);
 
-    for ranking in rankings.into_iter().filter(|r| r.class == class.id && r.spec == spec.id) {
-      let encounter = match zones.iter().flat_map(|z| z.encounters.iter()).find(|e| e.id == ranking.encounter) {
-        Some(n) => n,
+    for parse in &parses {
+      let spec = match parse.specs.iter().filter(|s| s.spec == *job).next() {
+        Some(s) => s,
+        None => continue
+      };
+      let data = match spec.data.iter().max_by(|a, b| a.historical_percent.partial_cmp(&b.historical_percent).unwrap_or(Ordering::Less)) {
+        Some(d) => d,
         None => continue
       };
 
-      let url = format!("https://www.fflogs.com/reports/{}#fight={}", ranking.report_id, ranking.fight_id);
+      let url = format!("https://www.fflogs.com/reports/{}#fight={}", data.report_code, data.report_fight);
 
-      let string = format!("[Link]({}) – {:.2} DPS – {}/{} parses (T%: {:.2})",
-        url,
-        ranking.total,
-        ranking.rank,
-        ranking.out_of,
-        (1.0 - ranking.rank as f32 / ranking.out_of as f32) * 100.0
+      let string = format!("[Link]({url}) – {dps:.2} DPS – {perc:.2} percentile out of {total_parses} parses",
+        url = url,
+        dps = data.persecondamount,
+        perc = data.historical_percent,
+        total_parses = data.historical_count
       );
 
-      embed = embed.field(&encounter.name, string, false);
+      embed = embed.field(&parse.name, string, false);
     }
     Ok(CommandSuccess::default().message(|_| embed))
   }
@@ -128,15 +123,5 @@ impl FfLogsCommand {
         => Some(ServerRegion::Europe),
       _ => None
     }
-  }
-
-  fn check_zones_classes(&self) -> Result<()> {
-    if self.zones.read().is_none() {
-      *self.zones.write() = Some(self.fflogs.zones().chain_err(|| "could not download zones")?);
-    }
-    if self.classes.read().is_none() {
-      *self.classes.write() = Some(self.fflogs.classes().chain_err(|| "could not download classes")?);
-    }
-    Ok(())
   }
 }
