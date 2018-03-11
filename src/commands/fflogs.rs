@@ -93,6 +93,8 @@ impl<'a> Command<'a> for FfLogsCommand {
       .field("Job", &job, true)
       .field("Server", &server, true);
 
+    let mut count = 0;
+
     for parse in &parses {
       let spec = match parse.specs.iter().filter(|s| s.spec.to_lowercase() == lower_job).next() {
         Some(s) => s,
@@ -102,6 +104,8 @@ impl<'a> Command<'a> for FfLogsCommand {
         Some(d) => d,
         None => continue
       };
+
+      count += 1;
 
       let url = format!("https://www.fflogs.com/reports/{}#fight={}", data.report_code, data.report_fight);
 
@@ -114,6 +118,11 @@ impl<'a> Command<'a> for FfLogsCommand {
 
       embed = embed.field(&parse.name, string, false);
     }
+
+    if count == 0 {
+      return Ok("No parses for that job.".into());
+    }
+
     Ok(CommandSuccess::default().message(|_| embed))
   }
 }
