@@ -379,7 +379,7 @@ dependencies = [
 [[package]]
 name = "fflogs"
 version = "0.1.0"
-source = "git+https://github.com/jkcclemens/fflogs_rs#0f1c0a93a524dca83f8756faf57bad525ea460a1"
+source = "git+https://github.com/jkcclemens/fflogs_rs#dba4ebf281d904656406283e5a7fa0c3b53d7595"
 dependencies = [
  "reqwest 0.8.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde 1.0.29 (registry+https://github.com/rust-lang/crates.io-index)",
