@@ -6,6 +6,7 @@ use fflogs::{self, FfLogs};
 use fflogs::net::{ServerRegion, Metric};
 
 use std::cmp::Ordering;
+use std::str::FromStr;
 
 pub struct FfLogsCommand {
   fflogs: FfLogs
@@ -31,9 +32,10 @@ pub struct Params {
   #[structopt(
     short = "j",
     long = "job",
-    help = "The job to look at"
+    help = "The job to look at",
+    parse(try_from_str)
   )]
-  job: Option<String>
+  job: Option<Job>
 }
 
 impl HasParams for FfLogsCommand {
@@ -78,8 +80,8 @@ impl<'a> Command<'a> for FfLogsCommand {
       None => return Err("Somehow there was no first data.".into())
     };
 
-    let job = params.job.as_ref().unwrap_or(&first_spec.spec);
-    let lower_job = job.to_lowercase();
+    let job = params.job.or_else(|| Job::from_str(&first_spec.spec).ok()).unwrap().to_string();
+    let lower_job = job.to_lowercase().replace(" ", "");
     let name = &first_data.character_name;
     let id = first_data.character_id;
 
@@ -130,5 +132,72 @@ impl FfLogsCommand {
         => Some(ServerRegion::Europe),
       _ => None
     }
+  }
+}
+
+#[derive(Debug)]
+enum Job {
+  Astrologian,
+  Bard,
+  BlackMage,
+  DarkKnight,
+  Dragoon,
+  Machinist,
+  Monk,
+  Ninja,
+  Paladin,
+  RedMage,
+  Samurai,
+  Scholar,
+  Summoner,
+  Warrior,
+  WhiteMage
+}
+
+impl FromStr for Job {
+  type Err = String;
+
+  fn from_str(s: &str) -> ::std::result::Result<Self, Self::Err> {
+    let job = match s.to_lowercase().as_str() {
+      "astrologian" | "astro" | "ast" => Job::Astrologian,
+      "bard" | "brd" => Job::Bard,
+      "blackmage" | "black mage" | "blm" => Job::BlackMage,
+      "darkknight" | "dark knight" | "drk" => Job::DarkKnight,
+      "dragoon" | "lolgoon" | "loldrg" | "drg" => Job::Dragoon,
+      "machinist" | "mch" => Job::Machinist,
+      "monk" | "mnk" => Job::Monk,
+      "ninja" | "nin" => Job::Ninja,
+      "paladin" | "pld" => Job::Paladin,
+      "redmage" | "red mage" | "rdm" => Job::RedMage,
+      "samurai" | "sam" => Job::Samurai,
+      "scholar" | "sch" => Job::Scholar,
+      "summoner" | "smn" => Job::Summoner,
+      "warrior" | "war" | "best" => Job::Warrior,
+      "whitemage" | "white mage" | "whm" => Job::WhiteMage,
+      x => return Err(format!("Unknown job: {}", x))
+    };
+    Ok(job)
+  }
+}
+
+impl ToString for Job {
+  fn to_string(&self) -> String {
+    match *self {
+      Job::Astrologian => "Astrologian",
+      Job::Bard => "Bard",
+      Job::BlackMage => "Black Mage",
+      Job::DarkKnight => "Dark Knight",
+      Job::Dragoon => "Dragoon",
+      Job::Machinist => "Machinist",
+      Job::Monk => "Monk",
+      Job::Ninja => "Ninja",
+      Job::Paladin => "Paladin",
+      Job::RedMage => "Red Mage",
+      Job::Samurai => "Samurai",
+      Job::Scholar => "Scholar",
+      Job::Summoner => "Summoner",
+      Job::Warrior => "Warrior",
+      Job::WhiteMage => "White Mage",
+    }.to_string()
   }
 }
