@@ -27,7 +27,13 @@ pub struct Params {
   #[structopt(help = "The character's first name")]
   first_name: String,
   #[structopt(help = "The character's last name")]
-  last_name: String
+  last_name: String,
+  #[structopt(
+    short = "j",
+    long = "job",
+    help = "The job to look at"
+  )]
+  job: Option<String>
 }
 
 impl HasParams for FfLogsCommand {
@@ -72,7 +78,8 @@ impl<'a> Command<'a> for FfLogsCommand {
       None => return Err("Somehow there was no first data.".into())
     };
 
-    let job = &first_spec.spec;
+    let job = params.job.as_ref().unwrap_or(&first_spec.spec);
+    let lower_job = job.to_lowercase();
     let name = &first_data.character_name;
     let id = first_data.character_id;
 
@@ -85,7 +92,7 @@ impl<'a> Command<'a> for FfLogsCommand {
       .field("Server", &server, true);
 
     for parse in &parses {
-      let spec = match parse.specs.iter().filter(|s| s.spec == *job).next() {
+      let spec = match parse.specs.iter().filter(|s| s.spec.to_lowercase() == lower_job).next() {
         Some(s) => s,
         None => continue
       };
