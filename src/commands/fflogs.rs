@@ -3,7 +3,7 @@ use lalafell::commands::prelude::*;
 use lalafell::error::*;
 
 use fflogs::{self, FfLogs};
-use fflogs::net::{ServerRegion, Metric};
+use fflogs::net::{Server, Metric, Job};
 
 use std::cmp::Ordering;
 use std::str::FromStr;
@@ -45,17 +45,15 @@ impl HasParams for FfLogsCommand {
 impl<'a> Command<'a> for FfLogsCommand {
   fn run(&self, _: &Context, _: &Message, params: &[&str]) -> CommandResult<'a> {
     let params = self.params_then("fflogs", params, |a| a.setting(::structopt::clap::AppSettings::ArgRequiredElseHelp))?;
-    let server = params.server;
-    let region = match FfLogsCommand::region(&server) {
-      Some(r) => r,
-      None => return Err("Invalid server.".into())
+    let server = match Server::from_str(&params.server) {
+      Ok(s) => s,
+      Err(_) => return Err("Invalid server.".into())
     };
     let name = format!("{} {}", params.first_name, params.last_name);
 
     let parses = self.fflogs.parses(
       &name,
-      &server,
-      region,
+      server,
       |x| x.metric(Metric::Dps)
     );
 
@@ -91,7 +89,7 @@ impl<'a> Command<'a> for FfLogsCommand {
       .title(&name)
       .url(format!("https://www.fflogs.com/character/id/{}", id))
       .field("Job", &job, true)
-      .field("Server", &server, true);
+      .field("Server", server.as_ref(), true);
 
     let mut count = 0;
 
@@ -124,89 +122,5 @@ impl<'a> Command<'a> for FfLogsCommand {
     }
 
     Ok(CommandSuccess::default().message(|_| embed))
-  }
-}
-
-impl FfLogsCommand {
-  fn region(server: &str) -> Option<ServerRegion> {
-    match server.to_lowercase().as_str() {
-      "adamantoise" | "balmung" | "cactuar" | "coeurl" | "faerie" | "gilgamesh" | "goblin" | "jenova" | "mateus" | "midgardsormr" | "sargatanas" | "siren" | "zalera"
-      | "behemoth" | "brynhildr" | "diabolos" | "excalibur" | "exodus" | "famfrit" | "hyperion" | "lamia" | "leviathan" | "malboro" | "ultros"
-        => Some(ServerRegion::NorthAmerica),
-      "aegis" | "atomos" | "carbuncle" | "garuda" | "gungnir" | "kujata" | "ramuh" | "tonberry" | "typhon" | "unicorn"
-      | "alexander" | "bahamut" | "durandal" | "fenrir" | "ifrit" | "ridill" | "tiamat" | "ultima" | "valefor" | "yojimbo" | "zeromus"
-      | "anima" | "asura" | "belias" | "chocobo" | "hades" | "ixion" | "mandragora" | "masamune" | "pandaemonium" | "shinryu" | "titan"
-        => Some(ServerRegion::Japan),
-      "cerberus" | "lich" | "louisoix" | "moogle" | "odin" | "omega" | "phoenix" | "ragnarok" | "shiva" | "zodiark"
-        => Some(ServerRegion::Europe),
-      _ => None
-    }
-  }
-}
-
-#[derive(Debug)]
-enum Job {
-  Astrologian,
-  Bard,
-  BlackMage,
-  DarkKnight,
-  Dragoon,
-  Machinist,
-  Monk,
-  Ninja,
-  Paladin,
-  RedMage,
-  Samurai,
-  Scholar,
-  Summoner,
-  Warrior,
-  WhiteMage
-}
-
-impl FromStr for Job {
-  type Err = String;
-
-  fn from_str(s: &str) -> ::std::result::Result<Self, Self::Err> {
-    let job = match s.to_lowercase().as_str() {
-      "astrologian" | "astro" | "ast" => Job::Astrologian,
-      "bard" | "brd" => Job::Bard,
-      "blackmage" | "black mage" | "blm" => Job::BlackMage,
-      "darkknight" | "dark knight" | "drk" => Job::DarkKnight,
-      "dragoon" | "lolgoon" | "loldrg" | "drg" => Job::Dragoon,
-      "machinist" | "mch" => Job::Machinist,
-      "monk" | "mnk" => Job::Monk,
-      "ninja" | "nin" => Job::Ninja,
-      "paladin" | "pld" => Job::Paladin,
-      "redmage" | "red mage" | "rdm" => Job::RedMage,
-      "samurai" | "sam" => Job::Samurai,
-      "scholar" | "sch" => Job::Scholar,
-      "summoner" | "smn" => Job::Summoner,
-      "warrior" | "war" | "best" => Job::Warrior,
-      "whitemage" | "white mage" | "whm" => Job::WhiteMage,
-      x => return Err(format!("Unknown job: {}", x))
-    };
-    Ok(job)
-  }
-}
-
-impl ToString for Job {
-  fn to_string(&self) -> String {
-    match *self {
-      Job::Astrologian => "Astrologian",
-      Job::Bard => "Bard",
-      Job::BlackMage => "Black Mage",
-      Job::DarkKnight => "Dark Knight",
-      Job::Dragoon => "Dragoon",
-      Job::Machinist => "Machinist",
-      Job::Monk => "Monk",
-      Job::Ninja => "Ninja",
-      Job::Paladin => "Paladin",
-      Job::RedMage => "Red Mage",
-      Job::Samurai => "Samurai",
-      Job::Scholar => "Scholar",
-      Job::Summoner => "Summoner",
-      Job::Warrior => "Warrior",
-      Job::WhiteMage => "White Mage",
-    }.to_string()
   }
 }
