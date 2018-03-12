@@ -68,7 +68,8 @@ impl EventHandler for Log {
       embed = embed
         .field("Mention", mention, true)
         .field("Action", "Leave server", true)
-        .timestamp(&Utc::now());
+        .timestamp(&Utc::now())
+        .footer(|f| f.text(user.id));
       embed
     })).ok();
   }
@@ -83,7 +84,8 @@ impl EventHandler for Log {
       embed = embed
         .field("Mention", member.mention(), true)
         .field("Action", "Join server", true)
-        .timestamp(&Utc::now());
+        .timestamp(&Utc::now())
+        .footer(|f| f.text(member.user.read().id));
       embed
     })).ok();
   }
