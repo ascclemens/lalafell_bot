@@ -1,7 +1,5 @@
 use serenity::client::{Context, EventHandler};
-use serenity::model::id::GuildId;
-use serenity::model::gateway::Ready;
-use serenity::model::guild::GuildStatus;
+use serenity::model::guild::Guild;
 
 /// Extra functionality for big boi guilds.
 ///
@@ -11,19 +9,15 @@ use serenity::model::guild::GuildStatus;
 pub struct GuildsExt;
 
 impl EventHandler for GuildsExt {
-  fn ready(&self, ctx: Context, rdy: Ready) {
-    let ids: Vec<GuildId> = rdy.guilds
-      .into_iter()
-      .filter_map(|g| match g {
-        GuildStatus::OnlinePartialGuild(partial) => Some(partial),
-        _ => None
-      })
-      .map(|partial| partial.id)
-      .collect();
-    info!("Asking for more information about {} guild{}",
-      ids.len(),
-      if ids.len() == 1 { "" } else { "s" }
-    );
-    ctx.shard.chunk_guilds(ids, None, None);
+  fn guild_create(&self, ctx: Context, guild: Guild, new: bool) {
+    if new {
+      return;
+    }
+    if !guild.is_large() {
+      return;
+    }
+
+    info!("Asking for offline users of {} ({})", guild.name, guild.id);
+    ctx.shard.chunk_guilds(vec![guild.id], None, None);
   }
 }
