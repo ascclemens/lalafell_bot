@@ -10,10 +10,7 @@ pub struct GuildsExt;
 
 impl EventHandler for GuildsExt {
   fn guild_create(&self, ctx: Context, guild: Guild, new: bool) {
-    if new {
-      return;
-    }
-    if !guild.is_large() {
+    if new || !guild.is_large() {
       return;
     }
 
