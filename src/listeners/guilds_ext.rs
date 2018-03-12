@@ -14,7 +14,7 @@ impl EventHandler for GuildsExt {
       return;
     }
 
-    info!("Asking for offline users of {} ({})", guild.name, guild.id);
+    info!("Asking for offline members of {} ({})", guild.name, guild.id);
     ctx.shard.chunk_guilds(vec![guild.id], None, None);
   }
 }
