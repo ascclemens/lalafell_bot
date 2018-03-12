@@ -94,7 +94,7 @@ impl<'a> Command<'a> for FfLogsCommand {
     let mut count = 0;
 
     for parse in &parses {
-      let spec = match parse.specs.iter().filter(|s| s.spec.to_lowercase() == lower_job).next() {
+      let spec = match parse.specs.iter().find(|s| s.spec.to_lowercase() == lower_job) {
         Some(s) => s,
         None => continue
       };
