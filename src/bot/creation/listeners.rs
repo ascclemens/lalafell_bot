@@ -29,7 +29,7 @@ impl Handler {
       box AutoReplyListener::default(),
       box PartyFinder::default(),
       box Music,
-      box Log
+      box Log::default()
     ];
     Handler { listeners }
   }

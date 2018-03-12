@@ -1,4 +1,4 @@
-#![feature(mpsc_select, box_syntax, fnbox)]
+#![feature(mpsc_select, box_syntax, fnbox, entry_or_default)]
 // areyoufuckingkiddingme.jpg
 #![cfg_attr(feature = "cargo-clippy", allow(unreadable_literal))]
 #![recursion_limit = "1024"]
