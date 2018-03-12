@@ -22,6 +22,7 @@ impl Handler {
   pub fn new(env: &Arc<BotEnv>) -> Self {
     let listeners: Vec<Box<EventHandler + Send + Sync>> = vec![
       box command_listener(env),
+      box GuildsExt,
       box ReactionAuthorize,
       box Timeouts,
       box PollTagger,
