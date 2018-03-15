@@ -28,14 +28,13 @@ impl<'a> TimeoutRoleCommand {
           .description("You don't have enough permissions to use this command."))
         .wrap());
     }
-    let config: Option<ServerConfig> = ::bot::CONNECTION.with(|c| {
+    let config: Option<ServerConfig> = ::bot::with_connection(|c| {
       use database::schema::server_configs::dsl;
       dsl::server_configs
         .filter(dsl::server_id.eq(guild.read().id.to_u64()))
         .first(c)
         .optional()
-        .chain_err(|| "could not load channel configs")
-    })?;
+    }).chain_err(|| "could not load channel configs")?;
     match params.role {
       Some(given) => {
         let role_name = given.to_lowercase();
@@ -46,10 +45,10 @@ impl<'a> TimeoutRoleCommand {
         match config {
           Some(mut conf) => {
             conf.timeout_role = Some(role.name.clone());
-            ::bot::CONNECTION.with(|c| conf.save_changes::<ServerConfig>(c).chain_err(|| "could not update config"))?;
+            ::bot::with_connection(|c| conf.save_changes::<ServerConfig>(c)).chain_err(|| "could not update config")?;
           },
           None => {
-            ::bot::CONNECTION.with(|c| {
+            ::bot::with_connection(|c| {
               let new = NewServerConfig {
                 server_id: guild.read().id.into(),
                 timeout_role: Some(role.name.clone())
@@ -57,8 +56,7 @@ impl<'a> TimeoutRoleCommand {
               diesel::insert_into(::database::schema::server_configs::table)
                 .values(&new)
                 .execute(c)
-                .chain_err(|| "could not add config")
-            })?;
+            }).chain_err(|| "could not add config")?;
           }
         }
         let guild = guild.read();

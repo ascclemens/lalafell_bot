@@ -44,19 +44,18 @@ impl<'a> PublicChannelCommand<'a> for UntimeoutCommand {
       Err(_) => return Err("That user is not in this guild.".into())
     };
 
-    let timeouts: Vec<Timeout> = ::bot::CONNECTION.with(|c| {
+    let timeouts: Vec<Timeout> = ::bot::with_connection(|c| {
       use database::schema::timeouts::dsl;
       dsl::timeouts
         .filter(dsl::user_id.eq(who.to_u64()).and(dsl::server_id.eq(guild_id.to_u64())))
         .load(c)
-        .chain_err(|| "could not load timeouts")
-    })?;
+    }).chain_err(|| "could not load timeouts")?;
     if timeouts.is_empty() {
       return Err("That user is not timed out.".into());
     }
     let timeout = &timeouts[0];
 
-    ::bot::CONNECTION.with(|c| ::diesel::delete(timeout).execute(c).chain_err(|| "could not delete timeout"))?;
+    ::bot::with_connection(|c| ::diesel::delete(timeout).execute(c)).chain_err(|| "could not delete timeout")?;
     timeout_member.remove_role(*timeout.role_id).chain_err(|| "could not remove role")?;
 
     Ok(CommandSuccess::default())

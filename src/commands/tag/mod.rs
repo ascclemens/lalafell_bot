@@ -118,27 +118,26 @@ impl Tagger {
   }
 
   fn get_roles() -> Result<Vec<String>> {
-    let roles: Vec<DbRole> = ::bot::CONNECTION.with(|c| {
+    let roles: Vec<DbRole> = ::bot::with_connection(|c| {
       use database::schema::roles::dsl;
-      dsl::roles.load(c).chain_err(|| "could not load roles")
-    })?;
+      dsl::roles.load(c)
+    }).chain_err(|| "could not load roles")?;
     Ok(roles.into_iter().map(|x| x.role_name.to_lowercase()).collect())
   }
 
   pub fn tag(env: &BotEnv, who: UserId, on: GuildId, char_id: u64, ignore_verified: bool) -> Result<Option<String>> {
-    let tag: Option<Tag> = ::bot::CONNECTION.with(|c| {
+    let tag: Option<Tag> = ::bot::with_connection(|c| {
       use database::schema::tags::dsl;
       dsl::tags
         .filter(dsl::user_id.eq(who.to_u64()).and(dsl::server_id.eq(on.to_u64())))
         .first(c)
         .optional()
-        .chain_err(|| "could not load tags")
-    })?;
+    }).chain_err(|| "could not load tags")?;
     let is_verified = match tag {
       Some(t) => {
-        let verification: Verification = ::bot::CONNECTION.with(|c| {
-          Verification::belonging_to(&t).first(c).optional().chain_err(|| "could not load verifications")
-        })?.unwrap_or_default();
+        let verification: Verification = ::bot::with_connection(|c| {
+          Verification::belonging_to(&t).first(c).optional()
+        }).chain_err(|| "could not load verifications")?.unwrap_or_default();
         if verification.verified && !ignore_verified && char_id != *t.character_id {
           return Ok(Some(format!("{} is verified as {} on {}, so they cannot switch to another account.", who.mention(), t.character, t.server)));
         }
@@ -151,13 +150,12 @@ impl Tagger {
     let member = match on.member(who) {
       Ok(m) => m,
       Err(SError::Http(HttpError::UnsuccessfulRequest(ref r))) if r.status == StatusCode::NotFound => {
-        ::bot::CONNECTION.with(|c| {
+        ::bot::with_connection(|c| {
           use database::schema::tags::dsl;
           ::diesel::delete(dsl::tags
             .filter(dsl::user_id.eq(who.to_u64()).and(dsl::server_id.eq(on.to_u64()))))
             .execute(c)
-            .chain_err(|| format!("could not remove tag {} on {}, but it was expected to be in database", who.0, on.0))
-        })?;
+        }).chain_err(|| format!("could not remove tag {} on {}, but it was expected to be in database", who.0, on.0))?;
         bail!("could not get user {} as a member of {}: removing their tag", who.0, on.0);
       },
       Err(e) => return Err(e).chain_err(|| "could not get member for tagging")
@@ -165,21 +163,20 @@ impl Tagger {
 
     let character = env.xivdb.character(char_id).chain_err(|| "could not look up character")?;
 
-    let tag: Option<Tag> = ::bot::CONNECTION.with(|c| {
+    let tag: Option<Tag> = ::bot::with_connection(|c| {
       use database::schema::tags::dsl;
       dsl::tags
         .filter(dsl::user_id.eq(who.to_u64()).and(dsl::server_id.eq(on.to_u64())))
         .first(c)
         .optional()
-        .chain_err(|| "could not load tags")
-    })?;
+    }).chain_err(|| "could not load tags")?;
     match tag {
       Some(mut t) => {
         let (id, name, server) = (character.lodestone_id, character.name.clone(), character.server.clone());
         t.character_id = id.into();
         t.character = name;
         t.server = server;
-        ::bot::CONNECTION.with(|c| t.save_changes::<Tag>(c).chain_err(|| "could not update tag"))?;
+        ::bot::with_connection(|c| t.save_changes::<Tag>(c)).chain_err(|| "could not update tag")?;
       },
       None => {
         let new_tag = NewTag::new(
@@ -189,10 +186,10 @@ impl Tagger {
           &character.name,
           &character.server
         );
-        ::bot::CONNECTION.with(|c| {
+        ::bot::with_connection(|c| {
           use database::schema::tags;
-          ::diesel::insert_into(tags::table).values(&new_tag).execute(c).chain_err(|| "could not insert tag")
-        })?;
+          ::diesel::insert_into(tags::table).values(&new_tag).execute(c)
+        }).chain_err(|| "could not insert tag")?;
       }
     }
 

@@ -33,7 +33,7 @@ impl AutoTagTask {
     thread::sleep(Duration::seconds(self.next_sleep).to_std().unwrap());
     self.next_sleep = Duration::minutes(10).num_seconds();
     info!("Autotag task running");
-    let users: Vec<Tag> = match ::bot::CONNECTION.with(|c| {
+    let users: Vec<Tag> = match ::bot::with_connection(|c| {
       use database::schema::tags::dsl;
       let twelve_hours_ago = Utc::now().timestamp() - Duration::hours(12).num_seconds();
       dsl::tags
@@ -53,7 +53,7 @@ impl AutoTagTask {
         continue;
       }
       tag.last_updated = Utc::now().timestamp();
-      let res: ::std::result::Result<Tag, _> = ::bot::CONNECTION.with(|c| tag.save_changes(c));
+      let res: ::std::result::Result<Tag, _> = ::bot::with_connection(|c| tag.save_changes(c));
       if let Err(e) = res {
         warn!("could not update tag last_updated: {}", e);
       }

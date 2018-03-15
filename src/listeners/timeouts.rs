@@ -21,7 +21,7 @@ impl EventHandler for Timeouts {
         Channel::Guild(c) => c,
         _ => return Ok(())
       };
-      let timeout = ::bot::CONNECTION.with(|c| {
+      let timeout = ::bot::with_connection(|c| {
         use database::schema::timeouts::dsl;
         dsl::timeouts
           .filter(dsl::user_id.eq(message.author.id.to_u64()).and(dsl::server_id.eq(channel.read().guild_id.to_u64())))
@@ -34,11 +34,9 @@ impl EventHandler for Timeouts {
       };
 
       if timeout.ends() < Utc::now().timestamp() {
-        ::bot::CONNECTION.with(|c| {
-          if let Err(e) = ::diesel::delete(&timeout).execute(c).chain_err(|| "could not delete timeout") {
-            warn!("could not delete timeout: {}", e);
-          }
-        });
+        if let Err(e) = ::bot::with_connection(|c| ::diesel::delete(&timeout).execute(c)) {
+          warn!("could not delete timeout: {}", e);
+        }
         return Ok(());
       }
 

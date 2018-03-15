@@ -103,13 +103,12 @@ impl EventHandler for PartyFinder {
 
 impl PartyFinder {
   fn config(guild: GuildId, channel: ChannelId) -> Option<PartyFinderConfig> {
-    ::bot::CONNECTION.with(|c| {
+    ::bot::with_connection(|c| {
       use database::schema::party_finder_configs::dsl;
       dsl::party_finder_configs
         .filter(dsl::server_id.eq(guild.to_u64()).and(dsl::channel_id.eq(channel.to_u64())))
         .first(c)
-        .ok()
-    })
+    }).ok()
   }
 }
 

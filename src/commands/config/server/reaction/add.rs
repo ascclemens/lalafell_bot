@@ -41,12 +41,11 @@ impl<'a> AddCommand {
       emoji: params.emoji.to_string(),
       role_id: role_id.into()
     };
-    ::bot::CONNECTION.with(|c| {
+    ::bot::with_connection(|c| {
       ::diesel::insert_into(::database::schema::reactions::table)
         .values(&new_reaction)
         .execute(c)
-        .chain_err(|| "could not insert reaction")
-    })?;
+    }).chain_err(|| "could not insert reaction")?;
     Ok(CommandSuccess::default())
   }
 }

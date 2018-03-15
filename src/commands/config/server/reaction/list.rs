@@ -16,12 +16,12 @@ impl<'a> ListCommand {
   }
 
   fn list_all(guild: GuildId) -> Result<String> {
-    let ars: Vec<AutoReply> = ::bot::CONNECTION.with(|c| {
+    let ars: Vec<AutoReply> = ::bot::with_connection(|c| {
       use database::schema::auto_replies::dsl;
       dsl::auto_replies
         .filter(dsl::server_id.eq(guild.to_u64()))
-        .load(c).chain_err(|| "could not load auto_replies")
-    })?;
+        .load(c)
+    }).chain_err(|| "could not load auto_replies")?;
     Ok(ars.iter()
       .map(|r| format!("{id}. Replying to messages in {channel}{filters} with a delay of {delay} second{plural}.\n```{message}\n```",
                       id = r.id,

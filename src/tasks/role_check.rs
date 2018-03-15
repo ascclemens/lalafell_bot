@@ -75,13 +75,12 @@ impl RunsTask for RoleCheckTask {
         };
         let guild = some_or!(GuildId(check.guild).find(), continue);
         let roles = guild.read().roles.clone();
-        let times: Result<Vec<RoleCheckTime>> = ::bot::CONNECTION.with(|c| {
+        let times: Result<Vec<RoleCheckTime>> = ::bot::with_connection(|c| {
           use database::schema::role_check_times::dsl;
           dsl::role_check_times
             .filter(dsl::check_id.eq(check.id))
             .load(c)
-            .chain_err(|| "could not load role_check_times")
-        });
+        }).chain_err(|| "could not load role_check_times");
         let times = match times {
           Ok(t) => t,
           Err(e) => {
@@ -95,13 +94,11 @@ impl RunsTask for RoleCheckTask {
           .collect();
         let (remove, times): (Vec<RoleCheckTime>, Vec<RoleCheckTime>) = times.into_iter()
           .partition(|t| members.iter().find(|&&(id, _)| id.0 == *t.user_id).is_none());
-        ::bot::CONNECTION.with(|c| {
-          for r in remove {
-            if let Err(e) = ::diesel::delete(&r).execute(c) {
-              warn!("Could not delete old role_check_time {}: {}", r.id, e);
-            }
+        for r in remove {
+          if let Err(e) = ::bot::with_connection(|c| ::diesel::delete(&r).execute(c)) {
+            warn!("Could not delete old role_check_time {}: {}", r.id, e);
           }
-        });
+        }
         let mut reminders = Vec::new();
         for (user_id, member) in members {
           match times.iter().find(|x| *x.user_id == user_id.0) {
@@ -115,11 +112,9 @@ impl RunsTask for RoleCheckTask {
                   guild.read().id.0,
                   check.id);
                 match member.kick() {
-                  Ok(_) => ::bot::CONNECTION.with(|c| {
-                    if let Err(e) = ::diesel::delete(time).execute(c) {
-                      warn!("Could not remove database entry for check after kick: {}", e);
-                    }
-                  }),
+                  Ok(_) => if let Err(e) = ::bot::with_connection(|c| ::diesel::delete(time).execute(c)) {
+                    warn!("Could not remove database entry for check after kick: {}", e);
+                  },
                   Err(e) => warn!("Kick was not successful: {}", e)
                 }
               }
@@ -128,13 +123,12 @@ impl RunsTask for RoleCheckTask {
               if now.signed_duration_since(joined.with_timezone(&Utc)) >= Duration::seconds(reminder_secs as i64) {
                 reminders.push(member.mention());
                 let new_time = NewRoleCheckTime::new(check.id, user_id.0, now.timestamp(), kick_secs as i32);
-                ::bot::CONNECTION.with(move |c| {
+                ::bot::with_connection(move |c| {
                   use database::schema::role_check_times::dsl;
                   ::diesel::insert_into(dsl::role_check_times)
                     .values(&new_time)
                     .execute(c)
-                    .ok();
-                });
+                }).ok();
               }
             }
           }

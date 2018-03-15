@@ -63,10 +63,10 @@ impl RunsTask for RandomPresenceTask {
 }
 
 pub fn random_game() -> Option<Game> {
-  let presences: Vec<Presence> = ::bot::CONNECTION.with(|c| {
+  let presences: Vec<Presence> = ::bot::with_connection(|c| {
     use database::schema::presences::dsl;
-    dsl::presences.load(c).ok()
-  })?;
+    dsl::presences.load(c)
+  }).ok()?;
   let presence = thread_rng().choose(&presences)?;
   let game_type = PresenceKind::from_i16(presence.kind)?.as_discord();
   Some(Game {

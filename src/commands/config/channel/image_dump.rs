@@ -29,14 +29,13 @@ impl<'a> ImageDumpCommand {
           .description("You don't have enough permissions to use this command."))
         .wrap());
     }
-    let config: Option<ChannelConfig> = ::bot::CONNECTION.with(|c| {
+    let config: Option<ChannelConfig> = ::bot::with_connection(|c| {
       use database::schema::channel_configs::dsl;
       dsl::channel_configs
         .filter(dsl::server_id.eq(guild.to_u64()).and(dsl::channel_id.eq(channel.to_u64())))
         .first(c)
         .optional()
-        .chain_err(|| "could not load channel configs")
-    })?;
+    }).chain_err(|| "could not load channel configs")?;
     let enabled = match params.enabled {
       Some(e) => match e.to_lowercase().as_str() {
         "enabled" | "enable" | "on" | "true" | "yes" => true,
@@ -55,10 +54,10 @@ impl<'a> ImageDumpCommand {
     match config {
       Some(mut conf) => {
         conf.image_dump_allowed = Some(enabled);
-        ::bot::CONNECTION.with(|c| conf.save_changes::<ChannelConfig>(c).chain_err(|| "could not update config"))?;
+        ::bot::with_connection(|c| conf.save_changes::<ChannelConfig>(c)).chain_err(|| "could not update config")?;
       },
       None => {
-        ::bot::CONNECTION.with(|c| {
+        ::bot::with_connection(|c| {
           let new = NewChannelConfig {
             server_id: guild.into(),
             channel_id: channel.into(),
@@ -67,8 +66,7 @@ impl<'a> ImageDumpCommand {
           diesel::insert_into(::database::schema::channel_configs::table)
             .values(&new)
             .execute(c)
-            .chain_err(|| "could not add config")
-        })?;
+        }).chain_err(|| "could not add config")?;
       }
     }
     Ok(format!("Set `!imagedump` status in {} to {}.", channel.mention(), if enabled { "enabled" } else { "disabled" }).into())

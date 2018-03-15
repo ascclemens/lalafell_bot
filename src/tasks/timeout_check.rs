@@ -38,11 +38,9 @@ impl TimeoutCheckTask {
     if let Err(e) = member.remove_role(*timeout.role_id) {
       warn!("could not remove timeout role from {}: {}", *timeout.user_id, e);
     }
-    ::bot::CONNECTION.with(|c| {
-      if let Err(e) = ::diesel::delete(timeout).execute(c) {
-        warn!("could not delete timeout {}: {}", timeout.id, e);
-      }
-    });
+    if let Err(e) = ::bot::with_connection(|c| ::diesel::delete(timeout).execute(c)) {
+      warn!("could not delete timeout {}: {}", timeout.id, e);
+    }
   }
 }
 
@@ -51,7 +49,7 @@ impl RunsTask for TimeoutCheckTask {
     loop {
       thread::sleep(Duration::seconds(self.next_sleep).to_std().unwrap());
       let now = Utc::now().timestamp();
-      let timeouts: Vec<Timeout> = match ::bot::CONNECTION.with(|c| ::database::schema::timeouts::dsl::timeouts.load(c)) {
+      let timeouts: Vec<Timeout> = match ::bot::with_connection(|c| ::database::schema::timeouts::dsl::timeouts.load(c)) {
         Ok(t) => t,
         Err(e) => {
           warn!("could not load timeouts: {}", e);

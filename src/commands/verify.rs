@@ -13,14 +13,13 @@ pub struct VerifyCommand;
 
 impl<'a> PublicChannelCommand<'a> for VerifyCommand {
   fn run(&self, _: &Context, message: &Message, guild: GuildId, _: Arc<RwLock<GuildChannel>>, _: &[&str]) -> CommandResult<'a> {
-    let user: Option<Tag> = ::bot::CONNECTION.with(|c| {
+    let user: Option<Tag> = ::bot::with_connection(|c| {
       use database::schema::tags::dsl;
       dsl::tags
         .filter(dsl::user_id.eq(message.author.id.to_u64()).and(dsl::server_id.eq(guild.to_u64())))
         .first(c)
         .optional()
-        .chain_err(|| "could not load tags")
-    })?;
+    }).chain_err(|| "could not load tags")?;
     let user = match user {
       Some(u) => u,
       None => return Err(ExternalCommandFailure::default()
@@ -29,12 +28,11 @@ impl<'a> PublicChannelCommand<'a> for VerifyCommand {
           .description("Please tag yourself with an account before verifying it."))
         .wrap())
     };
-    let mut verification: Verification = ::bot::CONNECTION.with(|c| {
+    let mut verification: Verification = ::bot::with_connection(|c| {
       Verification::belonging_to(&user)
         .first(c)
         .optional()
-        .chain_err(|| "could not load verifications")
-    })?.unwrap_or_default();
+    }).chain_err(|| "could not load verifications")?.unwrap_or_default();
     if verification.verified {
       return Err("You are already verified.".into());
     }
@@ -43,13 +41,12 @@ impl<'a> PublicChannelCommand<'a> for VerifyCommand {
       None => {
         let mut new_verification = verification.into_new(user.id);
         let msg = format!("Edit your Lodestone profile to contain `{}`.\nRerun the `!verify` command afterward.", new_verification.create_verification_string());
-        ::bot::CONNECTION.with(move |c| {
+        ::bot::with_connection(move |c| {
           use database::schema::verifications;
           ::diesel::insert_into(verifications::table)
             .values(&new_verification)
             .execute(c)
-            .chain_err(|| "could not insert verification")
-        })?;
+        }).chain_err(|| "could not insert verification")?;
         message.author.direct_message(|c| c.embed(|e| e
           .title("Verification instructions")
           .description(&msg)
@@ -62,7 +59,7 @@ impl<'a> PublicChannelCommand<'a> for VerifyCommand {
       let guild = guild.find().chain_err(|| "could not find guild")?;
 
       verification.verified = true;
-      ::bot::CONNECTION.with(|c| verification.save_changes::<Verification>(c).chain_err(|| "could not update verification"))?;
+      ::bot::with_connection(|c| verification.save_changes::<Verification>(c)).chain_err(|| "could not update verification")?;
 
       if let Some(r) = guild.read().roles.values().find(|x| x.name.to_lowercase() == "verified") {
         let mut member = guild.read().member(&message.author).chain_err(|| "could not get member for tagging")?;

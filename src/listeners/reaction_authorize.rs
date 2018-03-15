@@ -26,17 +26,15 @@ impl ReactionAuthorize {
         Channel::Guild(c) => c.read().clone(),
         _ => return Ok(())
       };
-      let emoji = r.emoji.to_string();
-      let reactions: Vec<DbReaction> = ::bot::CONNECTION.with(|c| {
+      let reactions: Vec<DbReaction> = ::bot::with_connection(|c| {
         use database::schema::reactions::dsl;
         dsl::reactions
           .filter(dsl::channel_id.eq(r.channel_id.to_u64())
             .and(dsl::server_id.eq(channel.guild_id.to_u64()))
             .and(dsl::message_id.eq(r.message_id.to_u64()))
-            .and(dsl::emoji.eq(emoji)))
+            .and(dsl::emoji.eq(r.emoji.to_string())))
           .load(c)
-          .chain_err(|| "could not load reactions")
-      })?;
+      }).chain_err(|| "could not load reactions")?;
       let guild = channel.guild_id.get().chain_err(|| "could not get guild")?;
       let mut member = guild.member(r.user_id).chain_err(|| "could not get member")?;
       for reac in reactions {

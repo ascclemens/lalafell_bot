@@ -84,7 +84,7 @@ impl Error for SqlError {
   }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub struct U64(u64);
 
 impl<DB> Queryable<BigInt, DB> for U64

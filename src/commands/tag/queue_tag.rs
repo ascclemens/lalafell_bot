@@ -46,13 +46,12 @@ impl<'a> PublicChannelCommand<'a> for QueueTagCommand {
 
     let item = NewTagQueue::new(who.0, guild.0, &ff_server, &name);
 
-    ::bot::CONNECTION.with(|c| {
+    ::bot::with_connection(|c| {
       use database::schema::tag_queue::dsl;
       ::diesel::insert_into(dsl::tag_queue)
         .values(&item)
         .execute(c)
-        .chain_err(|| "could not insert tag queue")
-    })?;
+    }).chain_err(|| "could not insert tag queue")?;
 
     Ok(CommandSuccess::default())
   }

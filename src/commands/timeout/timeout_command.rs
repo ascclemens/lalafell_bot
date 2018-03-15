@@ -51,7 +51,7 @@ impl<'a> PublicChannelCommand<'a> for TimeoutCommand {
 
     let guild = guild.find().chain_err(|| "could not find guild")?;
 
-    let timeouts = ::bot::CONNECTION.with(|c| {
+    let timeouts = ::bot::with_connection(|c| {
       use database::schema::timeouts::dsl;
       use diesel::expression::dsl::count;
       dsl::timeouts
@@ -59,8 +59,7 @@ impl<'a> PublicChannelCommand<'a> for TimeoutCommand {
         .select(count(dsl::id))
         .first(c)
         .optional()
-        .chain_err(|| "could not load timeouts")
-    })?;
+    }).chain_err(|| "could not load timeouts")?;
     if timeouts.unwrap_or(0) > 0 {
       return Err(format!("{} is already timed out.", who.mention()).into());
     }
@@ -86,7 +85,7 @@ impl<'a> PublicChannelCommand<'a> for TimeoutCommand {
     // TODO: spawn task to remove timeout as soon as it ends (versus 30s repeating task)
 
     let timeout_user = NewTimeout::new(who.0, server_id.0, role_id.0, duration as i32, Utc::now().timestamp());
-    ::bot::CONNECTION.with(|c| ::diesel::insert_into(timeouts::table).values(&timeout_user).execute(c).chain_err(|| "could not insert timeout"))?;
+    ::bot::with_connection(|c| ::diesel::insert_into(timeouts::table).values(&timeout_user).execute(c)).chain_err(|| "could not insert timeout")?;
     Ok(CommandSuccess::default())
   }
 }

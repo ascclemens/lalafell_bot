@@ -16,12 +16,12 @@ impl<'a> ListCommand {
   }
 
   fn list_all(guild: GuildId) -> Result<String> {
-    let dams: Vec<DeleteAllMessages> = ::bot::CONNECTION.with(|c| {
+    let dams: Vec<DeleteAllMessages> = ::bot::with_connection(|c| {
       use database::schema::delete_all_messages::dsl;
       dsl::delete_all_messages
         .filter(dsl::server_id.eq(guild.to_u64()))
-        .load(c).chain_err(|| "could not load delete_all_messages")
-    })?;
+        .load(c)
+    }).chain_err(|| "could not load delete_all_messages")?;
     Ok(dams.iter()
       .map(|d| format!("{id}. Deleting all messages in {channel} after {after} second{plural}{except}.",
                       id = d.id,

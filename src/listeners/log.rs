@@ -33,12 +33,11 @@ pub struct Log {
 
 impl Log {
   fn get_log_channel<G: Into<GuildId>>(&self, guild: G) -> Option<ChannelId> {
-    let log_channel: Option<LogChannel> = ::bot::CONNECTION.with(|c| {
+    let guild = guild.into().to_u64();
+    let log_channel: Option<LogChannel> = ::bot::with_connection(|c| {
       use database::schema::log_channels::dsl;
-      dsl::log_channels.filter(dsl::server_id.eq(guild.into().to_u64()))
-        .first(c)
-        .ok()
-    });
+      dsl::log_channels.filter(dsl::server_id.eq(guild)).first(c)
+    }).ok();
     log_channel.map(|x| ChannelId(*x.channel_id))
   }
 

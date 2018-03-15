@@ -32,14 +32,13 @@ impl HasParams for ImageDumpCommand {
 
 impl<'a> PublicChannelCommand<'a> for ImageDumpCommand {
   fn run(&self, _: &Context, _: &Message, guild: GuildId, channel: Arc<RwLock<GuildChannel>>, params: &[&str]) -> CommandResult<'a> {
-    let config: Option<ChannelConfig> = ::bot::CONNECTION.with(|c| {
+    let config: Option<ChannelConfig> = ::bot::with_connection(|c| {
       use database::schema::channel_configs::dsl;
       dsl::channel_configs
         .filter(dsl::channel_id.eq(channel.read().id.to_u64()).and(dsl::server_id.eq(guild.to_u64())))
         .first(c)
         .optional()
-        .chain_err(|| "could not load configs")
-    })?;
+    }).chain_err(|| "could not load configs")?;
     if !config.and_then(|c| c.image_dump_allowed).unwrap_or(false) {
       return Err("`!imagedump` is not allowed in this channel.".into());
     }

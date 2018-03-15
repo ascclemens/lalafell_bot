@@ -29,14 +29,13 @@ impl<'a> PublicChannelCommand<'a> for ViewTagCommand {
     let params = self.params_then("viewtag", params, |a| a.setting(::structopt::clap::AppSettings::ArgRequiredElseHelp))?;
     let who = params.who;
 
-    let tag: Option<Tag> = ::bot::CONNECTION.with(|c| {
+    let tag: Option<Tag> = ::bot::with_connection(|c| {
       use database::schema::tags::dsl;
       dsl::tags
         .filter(dsl::user_id.eq(who.to_u64()).and(dsl::server_id.eq(guild.to_u64())))
         .first(c)
         .optional()
-        .chain_err(|| "could not load tags")
-    })?;
+    }).chain_err(|| "could not load tags")?;
 
     let msg = match tag {
       Some(u) => format!("{} is {} on {}.", who.mention(), u.character, u.server),

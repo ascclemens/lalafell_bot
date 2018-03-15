@@ -28,14 +28,13 @@ enum UserIdOrMember {
 impl EventHandler for AutoReplyListener {
   result_wrap! {
     fn guild_member_addition(&self, _ctx: Context, guild: GuildId, member: Member) -> Result<()> {
-      let replies: Vec<AutoReply> = ::bot::CONNECTION.with(|c| {
+      let replies: Vec<AutoReply> = ::bot::with_connection(|c| {
         use database::schema::auto_replies::dsl;
         dsl::auto_replies
           .filter(dsl::server_id.eq(guild.to_u64())
             .and(dsl::on_join.eq(true)))
           .load(c)
-          .chain_err(|| "could not load auto_replies")
-      })?;
+      }).chain_err(|| "could not load auto_replies")?;
       let user = UserIdOrMember::Member(member.clone());
       self.receive(replies, user, guild)
     } |e| warn!("{}", e)
@@ -46,14 +45,13 @@ impl EventHandler for AutoReplyListener {
       if m.author.id == ::serenity::CACHE.read().user.id {
         return Ok(());
       }
-      let replies: Vec<AutoReply> = ::bot::CONNECTION.with(|c| {
+      let replies: Vec<AutoReply> = ::bot::with_connection(|c| {
         use database::schema::auto_replies::dsl;
         dsl::auto_replies
           .filter(dsl::channel_id.eq(m.channel_id.to_u64())
             .and(dsl::on_join.eq(false)))
           .load(c)
-          .chain_err(|| "could not load auto_replies")
-      })?;
+      }).chain_err(|| "could not load auto_replies")?;
       let user = UserIdOrMember::UserId(m.author.id);
       let guild = match m.channel_id.get() {
         Ok(Channel::Guild(c)) => c.read().guild_id,

@@ -45,14 +45,13 @@ impl<'a> PublicChannelCommand<'a> for UpdateTagCommand {
       },
       None => message.author.id
     };
-    let tag: Option<Tag> = ::bot::CONNECTION.with(|c| {
+    let tag: Option<Tag> = ::bot::with_connection(|c| {
       use database::schema::tags::dsl;
       dsl::tags
         .filter(dsl::user_id.eq(id.to_u64()).and(dsl::server_id.eq(guild.to_u64())))
         .first(c)
         .optional()
-        .chain_err(|| "could not load tags")
-    })?;
+    }).chain_err(|| "could not load tags")?;
     let tag = match tag {
       Some(u) => u,
       None => return if id == message.author.id {

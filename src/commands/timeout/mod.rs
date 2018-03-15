@@ -32,14 +32,13 @@ lazy_static! {
 }
 
 pub fn set_up_timeouts(guild: &Guild) -> Result<RoleId> {
-  let server_config: Option<ServerConfig> = ::bot::CONNECTION.with(|c| {
+  let server_config: Option<ServerConfig> = ::bot::with_connection(|c| {
     use database::schema::server_configs::dsl;
     dsl::server_configs
       .filter(dsl::server_id.eq(guild.id.to_u64()))
       .first(c)
       .optional()
-      .chain_err(|| "could not load server configs")
-  })?;
+  }).chain_err(|| "could not load server configs")?;
   let role_name = match server_config.and_then(|c| c.timeout_role) {
     Some(ref r) => r.to_string(),
     None => return Err("no timed-out role name".into())

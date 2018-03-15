@@ -57,13 +57,12 @@ impl<'a> AddCommand {
       delay,
       filters
     };
-    ::bot::CONNECTION.with(|c| {
+    ::bot::with_connection(|c| {
       use database::schema::auto_replies;
       ::diesel::insert_into(auto_replies::table)
         .values(&nar)
         .execute(c)
-        .chain_err(|| "could not insert new dam")
-    })?;
+    }).chain_err(|| "could not insert new dam")?;
     Ok(CommandSuccess::default())
   }
 }

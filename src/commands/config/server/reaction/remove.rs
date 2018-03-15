@@ -18,14 +18,13 @@ pub struct Params {
 impl<'a> RemoveCommand {
   #[cfg_attr(feature = "cargo-clippy", allow(needless_pass_by_value))]
   pub fn run(&self, guild: GuildId, params: Params) -> CommandResult<'a> {
-    let affected = ::bot::CONNECTION.with(|c| {
+    let affected = ::bot::with_connection(|c| {
       use database::schema::reactions::dsl;
       ::diesel::delete(
         dsl::reactions.filter(dsl::id.eq(params.id).and(dsl::server_id.eq(guild.to_u64())))
       )
         .execute(c)
-        .chain_err(|| "could not delete reaction")
-    })?;
+    }).chain_err(|| "could not delete reaction")?;
     if affected > 0 {
       Ok(CommandSuccess::default())
     } else {

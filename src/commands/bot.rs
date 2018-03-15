@@ -62,10 +62,10 @@ impl BotCommand {
   }
 
   fn list_all_presences<'a>(&self) -> CommandResult<'a> {
-    let presences: Vec<Presence> = ::bot::CONNECTION.with(|c| {
+    let presences: Vec<Presence> = ::bot::with_connection(|c| {
       use database::schema::presences::dsl;
-      dsl::presences.load(c).chain_err(|| "could not load presences")
-    })?;
+      dsl::presences.load(c)
+    }).chain_err(|| "could not load presences")?;
     let strings = presences.iter()
       .map(|p| format!("{}. {} {}", p.id, PresenceKind::from_i16(p.kind).map(|x| x.to_string()).unwrap_or_else(|| "<invalid type>".to_string()), p.content))
       .join("\n");
@@ -103,12 +103,10 @@ impl BotCommand {
       return Err("!bot presences remove [id]".into());
     }
     let id: i32 = args[0].parse().map_err(|_| into!(CommandFailure, "Invalid ID."))?;
-    let affected = ::bot::CONNECTION.with(|c| {
+    let affected = ::bot::with_connection(|c| {
       use database::schema::presences::dsl;
-      ::diesel::delete(dsl::presences.find(id))
-        .execute(c)
-        .chain_err(|| "could not delete presence")
-    })?;
+      ::diesel::delete(dsl::presences.find(id)).execute(c)
+    }).chain_err(|| "could not delete presence")?;
     if affected > 0 {
       Ok(CommandSuccess::default())
     } else {
@@ -125,14 +123,14 @@ impl BotCommand {
       "listening" => PresenceKind::Listening,
       _ => return Err("Invalid presence kind.".into())
     };
+    let kind = kind as i16;
     let content = args[1..].join(" ");
-    ::bot::CONNECTION.with(|c| {
+    ::bot::with_connection(|c| {
       use database::schema::presences::dsl;
       ::diesel::insert_into(dsl::presences)
-        .values(&NewPresence::new(kind as i16, &content))
+        .values(&NewPresence::new(kind, &content))
         .execute(c)
-        .chain_err(|| "could not add new presence")
-    })?;
+    }).chain_err(|| "could not add new presence")?;
     Ok(CommandSuccess::default())
   }
 }
