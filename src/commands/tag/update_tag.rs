@@ -30,7 +30,7 @@ impl HasParams for UpdateTagCommand {
 
 impl<'a> PublicChannelCommand<'a> for UpdateTagCommand {
   fn run(&self, _: &Context, message: &Message, guild: GuildId, _: Arc<RwLock<GuildChannel>>, params: &[&str]) -> CommandResult<'a> {
-    let params = self.params_then("updatetag", params, |a| a.setting(::structopt::clap::AppSettings::ArgRequiredElseHelp))?;
+    let params = self.params("updatetag", params)?;
     let id = match params.who {
       Some(who) => {
         let member = guild.member(&message.author).chain_err(|| "could not get member")?;
