@@ -38,6 +38,7 @@ fn impl_bot_command(ast: &syn::DeriveInput) -> quote::Tokens {
   match field_name {
     Some(ident) => quote! {
       impl ::commands::BotCommand for #name {
+        #[cfg_attr(feature = "cargo-clippy", allow(redundant_field_names))]
         fn new(env: Arc<::bot::BotEnv>) -> Self {
           #name { #ident: env }
         }

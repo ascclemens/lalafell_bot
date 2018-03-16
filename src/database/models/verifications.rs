@@ -18,7 +18,7 @@ insertable! {
 impl Verification {
   pub fn into_new(self, tag_id: i32) -> NewVerification {
     NewVerification {
-      tag_id: tag_id,
+      tag_id,
       verified: self.verified,
       verification_string: self.verification_string
     }

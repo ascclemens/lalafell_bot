@@ -32,7 +32,7 @@ impl NewDeleteAllMessages {
     NewDeleteAllMessages {
       server_id: server_id.into(),
       channel_id: channel_id.into(),
-      after: after,
+      after,
       exclude: bytes
     }
   }
