@@ -61,7 +61,7 @@ impl HasParams for TemporaryRoleCommand {
 
 impl<'a> PublicChannelCommand<'a> for TemporaryRoleCommand {
   fn run(&self, _: &Context, msg: &Message, guild_id: GuildId, _: Arc<RwLock<GuildChannel>>, params: &[&str]) -> CommandResult<'a> {
-    let mut member = guild_id.member(&msg.author).chain_err(|| "could not get member")?;
+    let member = guild_id.member(&msg.author).chain_err(|| "could not get member")?;
     if !member.permissions().chain_err(|| "could not get permissions")?.manage_roles() {
       return Err(ExternalCommandFailure::default()
         .message(|e: CreateEmbed| e
@@ -77,6 +77,11 @@ impl<'a> PublicChannelCommand<'a> for TemporaryRoleCommand {
         .required(true)))?;
 
     let guild = guild_id.find().chain_err(|| "could not find guild in cache")?;
+
+    let mut target = match guild_id.member(*params.who) {
+      Ok(m) => m,
+      Err(_) => return Err("That person is not in this guild.".into())
+    };
 
     let role_name = UniCase::new(params.role);
     let role = match guild.read().roles.values().find(|r| UniCase::new(r.name.as_str()) == role_name) {
@@ -105,7 +110,7 @@ impl<'a> PublicChannelCommand<'a> for TemporaryRoleCommand {
       }
     }
 
-    member.add_role(role).chain_err(|| "could not add role")?;
+    target.add_role(role).chain_err(|| "could not add role")?;
     Ok(CommandSuccess::default())
   }
 }
