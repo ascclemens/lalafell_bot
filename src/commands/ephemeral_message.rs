@@ -40,7 +40,16 @@ impl HasParams for EphemeralMessageCommand {
 }
 
 impl<'a> PublicChannelCommand<'a> for EphemeralMessageCommand {
-  fn run(&self, _: &Context, _: &Message, guild_id: GuildId, _: Arc<RwLock<GuildChannel>>, params: &[&str]) -> CommandResult<'a> {
+  fn run(&self, _: &Context, msg: &Message, guild_id: GuildId, _: Arc<RwLock<GuildChannel>>, params: &[&str]) -> CommandResult<'a> {
+    let member = guild_id.member(&msg.author).chain_err(|| "could not get member")?;
+    if !member.permissions().chain_err(|| "could not get permissions")?.manage_messages() {
+      return Err(ExternalCommandFailure::default()
+        .message(|e: CreateEmbed| e
+          .title("Not enough permissions.")
+          .description("You don't have enough permissions to use this command."))
+        .wrap());
+    }
+
     let params = self.params_then("ephemeralmessage", params, |a| a.setting(::structopt::clap::AppSettings::ArgRequiredElseHelp))?;
     if params.time < Utc::now() {
       return Err("Cannot create an ephemeral message with an expiration date in the past.".into());

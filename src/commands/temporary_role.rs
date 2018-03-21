@@ -61,6 +61,15 @@ impl HasParams for TemporaryRoleCommand {
 
 impl<'a> PublicChannelCommand<'a> for TemporaryRoleCommand {
   fn run(&self, _: &Context, msg: &Message, guild_id: GuildId, _: Arc<RwLock<GuildChannel>>, params: &[&str]) -> CommandResult<'a> {
+    let mut member = guild_id.member(&msg.author).chain_err(|| "could not get member")?;
+    if !member.permissions().chain_err(|| "could not get permissions")?.manage_roles() {
+      return Err(ExternalCommandFailure::default()
+        .message(|e: CreateEmbed| e
+          .title("Not enough permissions.")
+          .description("You don't have enough permissions to use this command."))
+        .wrap());
+    }
+
     let params = self.params_then("temporaryrole", params, |a| a
       .setting(::structopt::clap::AppSettings::ArgRequiredElseHelp)
       .group(ArgGroup::with_name("m_or_t")
@@ -68,7 +77,6 @@ impl<'a> PublicChannelCommand<'a> for TemporaryRoleCommand {
         .required(true)))?;
 
     let guild = guild_id.find().chain_err(|| "could not find guild in cache")?;
-    let mut member = guild.read().member(*params.who).chain_err(|| "could not find member")?;
 
     let role_name = UniCase::new(params.role);
     let role = match guild.read().roles.values().find(|r| UniCase::new(r.name.as_str()) == role_name) {
