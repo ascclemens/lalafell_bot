@@ -53,6 +53,11 @@ impl RunsTask for TimeoutCheckTask {
         }
       };
       timeouts.retain(|t| t.ends() <= next_five_minutes);
+
+      if timeouts.is_empty() {
+        continue;
+      }
+
       ::std::thread::spawn(move || {
         for (wait, timeout) in Wait::new(timeouts.into_iter().map(|t| (t.ends(), t))) {
           ::std::thread::sleep(Duration::seconds(wait).to_std().unwrap());

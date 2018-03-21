@@ -51,6 +51,11 @@ impl RunsTask for TemporaryRolesTask {
           continue;
         }
       };
+
+      if temp_roles.is_empty() {
+        continue;
+      }
+
       ::std::thread::spawn(move || {
         for (wait, temp_role) in Wait::new(temp_roles.into_iter().map(|t| (t.expires_on.unwrap(), t))) {
           ::std::thread::sleep(Duration::seconds(wait).to_std().unwrap());
