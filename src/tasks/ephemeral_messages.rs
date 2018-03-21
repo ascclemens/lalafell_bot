@@ -57,7 +57,7 @@ impl RunsTask for EphemeralMessageTask {
               if let Err(e) = ::bot::with_connection(|c| diesel::delete(&eph).execute(c)) {
                 warn!("could not delete ephemeral message (id: {}) from database: {}", eph.id, e);
               }
-            }
+            },
             Err(e) => warn!("could not delete ephemeral message (id: {}): {}", eph.id, e)
           }
         }
