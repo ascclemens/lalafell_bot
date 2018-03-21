@@ -5,8 +5,6 @@ use chrono::{Utc, DateTime};
 use std::thread;
 use std::sync::Arc;
 
-// TODO: Move most tasks to an ephemeral_message style task instead of current setup
-
 pub trait RunsTask {
   fn start(self, env: Arc<BotEnv>);
 }
