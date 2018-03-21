@@ -86,14 +86,24 @@ impl<'a> PublicChannelCommand<'a> for TemporaryRoleCommand {
 
     let messages = params.messages.map(|m| m as i32);
     let time = params.time
-      .map(|t| Utc::now() + Duration::seconds(*t as i64))
+      .as_ref()
+      .map(|t| Utc::now() + Duration::seconds(**t as i64))
       .map(|t| t.timestamp());
     let ntr = NewTemporaryRole::new(guild_id.0, params.who.0, role.0, msg.id.0, params.channel.map(|x| x.0), messages, time);
-    ::bot::with_connection(|c| {
+    let temp_role = ::bot::with_connection(|c| {
       use database::schema::temporary_roles::dsl;
 
-      diesel::insert_into(dsl::temporary_roles).values(&ntr).execute(c)
+      diesel::insert_into(dsl::temporary_roles).values(&ntr).get_result(c)
     }).chain_err(|| "could not store new temporary role")?;
+
+    if let Some(t) = params.time {
+      if *t < 600 {
+        ::std::thread::spawn(move || {
+          ::std::thread::sleep(Duration::seconds(*t as i64).to_std().unwrap());
+          ::tasks::temporary_roles::remove_temporary_role(&temp_role);
+        });
+      }
+    }
 
     member.add_role(role).chain_err(|| "could not add role")?;
     Ok(CommandSuccess::default())

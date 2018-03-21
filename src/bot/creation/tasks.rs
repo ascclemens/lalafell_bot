@@ -13,5 +13,6 @@ pub fn tasks(bot: &LalafellBot) -> Result<()> {
   task_manager.start_task(RoleCheckTask::new());
   task_manager.start_task(TagQueueTask::default());
   task_manager.start_task(EphemeralMessageTask::default());
+  task_manager.start_task(TemporaryRolesTask::default());
   Ok(())
 }

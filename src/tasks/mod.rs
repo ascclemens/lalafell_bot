@@ -17,6 +17,7 @@ pub mod ephemeral_messages;
 pub mod random_presence;
 pub mod role_check;
 pub mod tag_queue;
+pub mod temporary_roles;
 pub mod timeout_check;
 
 pub use self::autotag::AutoTagTask;
@@ -25,6 +26,7 @@ pub use self::ephemeral_messages::EphemeralMessageTask;
 pub use self::random_presence::RandomPresenceTask;
 pub use self::role_check::RoleCheckTask;
 pub use self::tag_queue::TagQueueTask;
+pub use self::temporary_roles::TemporaryRolesTask;
 pub use self::timeout_check::TimeoutCheckTask;
 
 pub struct TaskManager {
