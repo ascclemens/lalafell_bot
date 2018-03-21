@@ -44,7 +44,7 @@ pub struct Params {
     short = "c",
     long = "channel",
     help = "The channel to count messages against, if any",
-    conflicts_with = "time"
+    requires = "messages"
   )]
   channel: Option<ChannelOrId>,
   #[structopt(
@@ -74,6 +74,7 @@ impl<'a> PublicChannelCommand<'a> for TemporaryRoleCommand {
       .setting(::structopt::clap::AppSettings::ArgRequiredElseHelp)
       .group(ArgGroup::with_name("m_or_t")
         .args(&["messages", "time"])
+        .multiple(true)
         .required(true)))?;
 
     let guild = guild_id.find().chain_err(|| "could not find guild in cache")?;
