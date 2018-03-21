@@ -36,6 +36,16 @@ table! {
 }
 
 table! {
+    ephemeral_messages (id) {
+        id -> Int4,
+        guild_id -> Int8,
+        channel_id -> Int8,
+        message_id -> Int8,
+        expires_on -> Int8,
+    }
+}
+
+table! {
     log_channels (server_id, channel_id) {
         server_id -> Int8,
         channel_id -> Int8,
@@ -158,6 +168,7 @@ allow_tables_to_appear_in_same_query!(
     auto_replies,
     channel_configs,
     delete_all_messages,
+    ephemeral_messages,
     log_channels,
     party_finder_configs,
     presences,

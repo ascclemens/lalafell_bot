@@ -19,6 +19,7 @@ macro_rules! insertable {
 // pub mod administrators;
 pub mod auto_replies;
 pub mod config;
+pub mod ephemeral_messages;
 pub mod delete_all_messages;
 pub mod log_channels;
 pub mod presences;
@@ -33,6 +34,7 @@ pub mod verifications;
 // pub use self::administrators::{Administrator, NewAdministrator};
 pub use self::auto_replies::{AutoReply, NewAutoReply};
 pub use self::config::{ServerConfig, NewServerConfig, ChannelConfig, NewChannelConfig, Reaction, NewReaction, PartyFinderConfig, NewPartyFinderConfig};
+pub use self::ephemeral_messages::{EphemeralMessage, NewEphemeralMessage};
 pub use self::delete_all_messages::{DeleteAllMessages, NewDeleteAllMessages};
 pub use self::log_channels::{LogChannel, NewLogChannel};
 pub use self::presences::{Presence, NewPresence, PresenceKind};
