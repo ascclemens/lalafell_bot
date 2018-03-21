@@ -1,5 +1,7 @@
 use bot::BotEnv;
 
+use chrono::{Utc, DateTime};
+
 use std::thread;
 use std::sync::Arc;
 
@@ -39,5 +41,42 @@ impl TaskManager {
     thread::spawn(move || {
       task.start(thread_env);
     });
+  }
+}
+
+pub struct Wait<T> {
+  inner: T,
+  now: DateTime<Utc>,
+  last: i64
+}
+
+impl<T, R> Wait<T>
+  where T: Iterator<Item=(i64, R)>
+{
+  pub fn new(inner: T) -> Self {
+    Self {
+      inner,
+      now: Utc::now(),
+      last: 0
+    }
+  }
+}
+
+impl<T, R> Iterator for Wait<T>
+  where T: Iterator<Item=(i64, R)>
+{
+  type Item = (i64, R);
+
+  fn next(&mut self) -> Option<Self::Item> {
+    let item = self.inner.next()?;
+    if item.0 <= self.now.timestamp() {
+      return Some((0, item.1));
+    }
+    if self.last == 0 {
+      self.last = self.now.timestamp();
+    }
+    let wait = item.0 - self.last;
+    self.last += wait;
+    Some((wait, item.1))
   }
 }

@@ -1,9 +1,9 @@
 use bot::BotEnv;
 use database::models::EphemeralMessage;
 use error::*;
-use tasks::RunsTask;
+use tasks::{RunsTask, Wait};
 
-use chrono::{Utc, Duration, TimeZone};
+use chrono::{Utc, Duration};
 
 use diesel;
 use diesel::prelude::*;
@@ -25,9 +25,7 @@ impl RunsTask for EphemeralMessageTask {
       if self.next_sleep == 0 {
         self.next_sleep = 1800;
       }
-      let now = Utc::now();
-      let now_timestamp = now.timestamp();
-      let next_half_hour = (now + Duration::minutes(30)).timestamp();
+      let next_half_hour = (Utc::now() + Duration::minutes(30)).timestamp();
       info!("Checking for ephemeral messages");
       let res: Result<Vec<EphemeralMessage>> = ::bot::with_connection(|c| {
         use database::schema::ephemeral_messages::dsl;
@@ -49,31 +47,10 @@ impl RunsTask for EphemeralMessageTask {
 
       msgs.sort_by_key(|m| m.expires_on);
 
-      let (mut past, future): (Vec<EphemeralMessage>, Vec<EphemeralMessage>) = msgs.into_iter().partition(|x| x.expires_on <= now_timestamp);
-
-      let mut wait_durations: Vec<i64> = future
-        .windows(2)
-        .map(|slice| slice[1].expires_on - slice[0].expires_on)
-        .collect();
-
-      let seconds = Utc.timestamp(future[0].expires_on, 0).signed_duration_since(now).num_seconds();
-      wait_durations.insert(0, seconds);
-
-      let mut wait_durations: Vec<i64> = ::std::iter::repeat(0).take(past.len()).chain(wait_durations).collect();
-
-      debug_assert!(wait_durations.iter().all(|&x| x >= 0));
-
-      past.extend(future);
-
-      debug_assert!(wait_durations.len() == past.len());
-
       ::std::thread::spawn(move || {
-        loop {
-          if wait_durations.is_empty() {
-            return;
-          }
-          ::std::thread::sleep(Duration::seconds(wait_durations.remove(0)).to_std().unwrap());
-          let eph = past.remove(0);
+        for (wait, eph) in Wait::new(msgs.into_iter().map(|m| (m.expires_on, m))) {
+          ::std::thread::sleep(Duration::seconds(wait).to_std().unwrap());
+
           let channel = ChannelId(*eph.channel_id);
           match channel.delete_message(*eph.message_id) {
             Ok(_) => {
