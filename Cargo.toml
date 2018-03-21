@@ -27,6 +27,7 @@ serde_derive = "1.0"
 serde_json = "1.0"
 structopt = { version = "0.2", default-features = false }
 typemap = "0.3"
+unicase = "2"
 url = "1.6"
 uuid = { version = "0.6", features = ["v4"] }
 xivdb = { version = "*", git = "https://github.com/jkcclemens/xivdb-rs" }

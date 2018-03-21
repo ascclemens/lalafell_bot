@@ -119,6 +119,19 @@ table! {
 }
 
 table! {
+    temporary_roles (id) {
+        id -> Int4,
+        guild_id -> Int8,
+        user_id -> Int8,
+        role_id -> Int8,
+        message_id -> Int8,
+        channel_id -> Nullable<Int8>,
+        messages -> Nullable<Int4>,
+        expires_on -> Nullable<Int8>,
+    }
+}
+
+table! {
     timeouts (id) {
         id -> Int4,
         user_id -> Int8,
@@ -154,6 +167,7 @@ allow_tables_to_appear_in_same_query!(
     server_configs,
     tag_queue,
     tags,
+    temporary_roles,
     timeouts,
     verifications,
 );

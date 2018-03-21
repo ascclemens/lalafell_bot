@@ -634,6 +634,7 @@ dependencies = [
  "structopt 0.2.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "syn 0.12.14 (registry+https://github.com/rust-lang/crates.io-index)",
  "typemap 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "unicase 2.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "url 1.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "uuid 0.6.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "xivdb 0.1.0 (git+https://github.com/jkcclemens/xivdb-rs)",

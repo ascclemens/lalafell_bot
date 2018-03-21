@@ -27,6 +27,7 @@ impl Handler {
       box Timeouts,
       box PollTagger,
       box AutoReplyListener::default(),
+      box TemporaryRolesListener,
       box PartyFinder::default(),
       box Music,
       box Log::default()
@@ -132,6 +133,7 @@ fn command_listener<'a>(env: &Arc<BotEnv>) -> CommandListener<'a> {
     "reload", "reloadconfig" => ReloadConfigCommand,
     "search" => SearchCommand,
     "tag" => TagCommand,
+    "temporaryrole", "temprole" => TemporaryRoleCommand,
     "timeout" => TimeoutCommand,
     "untimeout" => UntimeoutCommand,
     "updatetag" => UpdateTagCommand,

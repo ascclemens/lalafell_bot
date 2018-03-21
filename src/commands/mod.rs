@@ -1,12 +1,5 @@
 pub use lalafell::commands::{MentionOrId, ChannelOrId};
 
-macro_rules! into {
-  ($t:ty, $e:expr) => {{
-    let x: $t = $e.into();
-    x
-  }}
-}
-
 pub mod archive;
 pub mod blob;
 pub mod bot;
@@ -23,6 +16,7 @@ pub mod reference_count;
 pub mod reload_config;
 pub mod search;
 pub mod tag;
+pub mod temporary_role;
 pub mod timeout;
 pub mod verify;
 pub mod version;
@@ -44,6 +38,7 @@ pub use self::reference_count::ReferenceCountCommand;
 pub use self::reload_config::ReloadConfigCommand;
 pub use self::search::SearchCommand;
 pub use self::tag::{TagCommand, AutoTagCommand, QueueTagCommand, UpdateTagsCommand, UpdateTagCommand};
+pub use self::temporary_role::TemporaryRoleCommand;
 pub use self::timeout::{TimeoutCommand, UntimeoutCommand};
 pub use self::verify::VerifyCommand;
 pub use self::version::VersionCommand;

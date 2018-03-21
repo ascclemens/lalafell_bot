@@ -33,12 +33,20 @@ extern crate serenity;
 #[macro_use]
 extern crate structopt;
 extern crate typemap;
+extern crate unicase;
 extern crate url;
 extern crate uuid;
 extern crate xivdb;
 
 // TODO: Efficiency. Every time a command is called, it creates a new App and calls the methods on
 //       it. Storing just one App per command would be ideal.
+
+macro_rules! into {
+  ($t:ty, $e:expr) => {{
+    let x: $t = $e.into();
+    x
+  }}
+}
 
 macro_rules! some_or {
   ($e: expr, $o: expr) => {{
