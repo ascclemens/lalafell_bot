@@ -13,6 +13,7 @@ use serenity::model::misc::Mentionable;
 use diesel::prelude::*;
 
 use chrono::prelude::*;
+use chrono::Duration;
 
 use std::sync::Arc;
 
@@ -82,10 +83,17 @@ impl<'a> PublicChannelCommand<'a> for TimeoutCommand {
       Err(_) => return Err("Invalid time length. Try \"15m\" or \"3 hours\" for example.".into())
     };
 
-    // TODO: spawn task to remove timeout as soon as it ends (versus 30s repeating task)
-
     let timeout_user = NewTimeout::new(who.0, server_id.0, role_id.0, duration as i32, Utc::now().timestamp());
-    ::bot::with_connection(|c| ::diesel::insert_into(timeouts::table).values(&timeout_user).execute(c)).chain_err(|| "could not insert timeout")?;
+    let timeout = ::bot::with_connection(|c| ::diesel::insert_into(timeouts::table).values(&timeout_user).get_result(c)).chain_err(|| "could not insert timeout")?;
+
+    // spawn a task if the duration is less than the check task period
+    if duration < 300 {
+      ::std::thread::spawn(move || {
+        ::std::thread::sleep(Duration::seconds(duration as i64).to_std().unwrap());
+        ::tasks::timeout_check::remove_timeout(&timeout);
+      });
+    }
+
     Ok(CommandSuccess::default())
   }
 }

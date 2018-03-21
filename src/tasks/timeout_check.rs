@@ -1,5 +1,5 @@
 use bot::BotEnv;
-use tasks::RunsTask;
+use tasks::{RunsTask, Wait};
 use chrono::prelude::*;
 use chrono::Duration;
 use database::models::Timeout;
@@ -23,24 +23,19 @@ impl TimeoutCheckTask {
   }
 }
 
-impl TimeoutCheckTask {
-  pub fn check_timeout(timeout: &Timeout, check_against: i64) {
-    if timeout.ends() >= check_against {
+pub fn remove_timeout(timeout: &Timeout) {
+  let mut member = match GuildId(*timeout.server_id).member(*timeout.user_id) {
+    Ok(m) => m,
+    Err(e) => {
+      warn!("could not get member for timeout check: {}", e);
       return;
     }
-    let mut member = match GuildId(*timeout.server_id).member(*timeout.user_id) {
-      Ok(m) => m,
-      Err(e) => {
-        warn!("could not get member for timeout check: {}", e);
-        return;
-      }
-    };
-    if let Err(e) = member.remove_role(*timeout.role_id) {
-      warn!("could not remove timeout role from {}: {}", *timeout.user_id, e);
-    }
-    if let Err(e) = ::bot::with_connection(|c| ::diesel::delete(timeout).execute(c)) {
-      warn!("could not delete timeout {}: {}", timeout.id, e);
-    }
+  };
+  if let Err(e) = member.remove_role(*timeout.role_id) {
+    warn!("could not remove timeout role from {}: {}", *timeout.user_id, e);
+  }
+  if let Err(e) = ::bot::with_connection(|c| ::diesel::delete(timeout).execute(c)) {
+    warn!("could not delete timeout {}: {}", timeout.id, e);
   }
 }
 
@@ -48,18 +43,23 @@ impl RunsTask for TimeoutCheckTask {
   fn start(mut self, env: Arc<BotEnv>) {
     loop {
       thread::sleep(Duration::seconds(self.next_sleep).to_std().unwrap());
-      let now = Utc::now().timestamp();
-      let timeouts: Vec<Timeout> = match ::bot::with_connection(|c| ::database::schema::timeouts::dsl::timeouts.load(c)) {
+      let now = Utc::now();
+      let next_five_minutes = (now + Duration::minutes(5)).timestamp();
+      let mut timeouts: Vec<Timeout> = match ::bot::with_connection(|c| ::database::schema::timeouts::dsl::timeouts.load(c)) {
         Ok(t) => t,
         Err(e) => {
           warn!("could not load timeouts: {}", e);
           continue;
         }
       };
-      for timeout in timeouts {
-        TimeoutCheckTask::check_timeout(&timeout, now);
-      }
-      self.next_sleep = env.config.read().timeouts.role_check_interval.unwrap_or(30);
+      timeouts.retain(|t| t.ends() <= next_five_minutes);
+      ::std::thread::spawn(move || {
+        for (wait, timeout) in Wait::new(timeouts.into_iter().map(|t| (t.ends(), t))) {
+          ::std::thread::sleep(Duration::seconds(wait).to_std().unwrap());
+          remove_timeout(&timeout);
+        }
+      });
+      self.next_sleep = env.config.read().timeouts.role_check_interval.unwrap_or(300);
     }
   }
 }
