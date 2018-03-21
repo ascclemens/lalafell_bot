@@ -1,8 +1,9 @@
 use bot::BotEnv;
 
 use lalafell::commands::prelude::*;
-
 use lalafell::error::*;
+
+use unicase::UniCase;
 
 #[derive(BotCommand)]
 pub struct RaceCommand {
@@ -36,7 +37,8 @@ impl<'a> Command<'a> for RaceCommand {
     ];
     let res = self.env.xivdb.search(&name, params).chain_err(|| "could not search XIVDB")?;
     let search_chars = res.characters.chain_err(|| "no characters field in search result")?.results;
-    let character = match search_chars.into_iter().find(|c| c["name"].as_str().map(|z| z.to_lowercase()) == Some(name.to_lowercase())) {
+    let uni_name = UniCase::new(name.as_str());
+    let character = match search_chars.into_iter().find(|c| c["name"].as_str().map(UniCase::new) == Some(uni_name)) {
       Some(c) => c,
       None => return Err(format!("Could not find any character by the name {}.", name).into())
     };

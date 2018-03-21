@@ -13,6 +13,8 @@ pub use self::update_tags::UpdateTagsCommand;
 use bot::BotEnv;
 use database::models::{ToU64, Tag, NewTag, Verification, Role as DbRole};
 
+use diesel::prelude::*;
+
 use lalafell::error::*;
 use lalafell::commands::prelude::*;
 
@@ -24,11 +26,11 @@ use serenity::prelude::Mentionable;
 use serenity::model::id::{RoleId, UserId};
 use serenity::http::{HttpError, StatusCode};
 
-use diesel::prelude::*;
+use reqwest::Client;
+
+use unicase::UniCase;
 
 use url::Url;
-
-use reqwest::Client;
 
 use std::thread;
 use std::sync::Mutex;
@@ -66,12 +68,13 @@ impl Tagger {
 
     let search_chars = res.characters.chain_err(|| "no characters field in result")?.results;
 
+    let uni_char_name = UniCase::new(character_name);
     let character = match search_chars
       .into_iter()
       .find(|x|
         x["name"]
           .as_str()
-          .map(|z| z.to_lowercase()) == Some(character_name.to_lowercase())
+          .map(UniCase::new) == Some(uni_char_name)
       )
     {
       Some(c) => c,
@@ -91,7 +94,7 @@ impl Tagger {
       None => bail!("character name was not a string")
     };
 
-    if name.to_lowercase() != character_name.to_lowercase() {
+    if UniCase::new(name) != UniCase::new(character_name) {
       return Ok(Some(format!("Could not find any character by the name {} on {}.", character_name, server)));
     }
 
@@ -105,12 +108,12 @@ impl Tagger {
   fn find_or_create_role_and<F>(guild: GuildId, name: &str, add_roles: &mut Vec<Role>, created_roles: &mut Vec<Role>, f: F) -> Result<()>
     where F: FnOnce(EditRole) -> EditRole
   {
-    let lower_name = name.to_lowercase();
+    let uni_name = UniCase::new(name);
     let guild = guild.get().chain_err(|| "could not get guild")?;
-    match guild.roles.values().find(|x| x.name.to_lowercase() == lower_name) {
+    match guild.roles.values().find(|x| UniCase::new(&x.name) == uni_name) {
       Some(r) => add_roles.push(r.clone()),
       None => {
-        let role = guild.create_role(|r| f(r.permissions(Permissions::empty())).name(&lower_name)).chain_err(|| "could not create role")?;
+        let role = guild.create_role(|r| f(r.permissions(Permissions::empty())).name(&name.to_lowercase())).chain_err(|| "could not create role")?;
         created_roles.push(role);
       }
     }

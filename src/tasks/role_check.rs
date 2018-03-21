@@ -14,6 +14,8 @@ use serenity::model::id::{GuildId, ChannelId, RoleId, UserId};
 
 use serde_json;
 
+use unicase::UniCase;
+
 use std::thread;
 use std::sync::Arc;
 use std::collections::HashMap;
@@ -172,7 +174,7 @@ enum NeededRole {
 impl NeededRole {
   fn matches(&self, member: &Member, roles: &HashMap<RoleId, Role>) -> bool {
     match *self {
-      NeededRole::Simple(ref role) => roles.iter().find(|x| x.1.name.to_lowercase() == role.to_lowercase()).map(|r| member.roles.contains(r.0)).unwrap_or_default(),
+      NeededRole::Simple(ref role) => roles.iter().find(|x| UniCase::new(&x.1.name) == UniCase::new(role)).map(|r| member.roles.contains(r.0)).unwrap_or_default(),
       NeededRole::Logical(NeededRoleLogical::And(ref b)) => b.iter().all(|x| x.matches(member, roles)),
       NeededRole::Logical(NeededRoleLogical::Or(ref b)) => b.iter().any(|x| x.matches(member, roles)),
       NeededRole::Logical(NeededRoleLogical::Not(ref x)) => !x.matches(member, roles)

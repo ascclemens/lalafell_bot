@@ -2,6 +2,8 @@ use lalafell::commands::MentionOrId;
 
 use serenity::model::guild::{Member, Role};
 
+use unicase::UniCase;
+
 use std::borrow::Borrow;
 use std::str::FromStr;
 
@@ -98,8 +100,8 @@ impl Filter {
     let roles: Vec<&Role> = roles.iter().map(|x| x.borrow()).collect();
     match *fk {
       FilterKind::Role(ref role_name) => {
-        let role_name = role_name.to_lowercase();
-        let role = match roles.iter().find(|r| r.name.to_lowercase() == role_name) {
+        let role_name = UniCase::new(role_name);
+        let role = match roles.iter().find(|r| UniCase::new(&r.name) == role_name) {
           Some(r) => r,
           None => return !include
         };

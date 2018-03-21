@@ -5,6 +5,8 @@ use lalafell::error::*;
 use fflogs::{self, FfLogs};
 use fflogs::net::{Server, Metric, Job};
 
+use unicase::UniCase;
+
 use std::cmp::Ordering;
 use std::str::FromStr;
 
@@ -79,7 +81,7 @@ impl<'a> Command<'a> for FfLogsCommand {
     };
 
     let job = params.job.or_else(|| Job::from_str(&first_spec.spec).ok()).unwrap().to_string();
-    let lower_job = job.to_lowercase().replace(" ", "");
+    let uni_job = UniCase::new(job.replace(" ", ""));
     let name = &first_data.character_name;
     let id = first_data.character_id;
 
@@ -94,7 +96,7 @@ impl<'a> Command<'a> for FfLogsCommand {
     let mut count = 0;
 
     for parse in &parses {
-      let spec = match parse.specs.iter().find(|s| s.spec.to_lowercase() == lower_job) {
+      let spec = match parse.specs.iter().find(|s| UniCase::new(&s.spec) == uni_job) {
         Some(s) => s,
         None => continue
       };

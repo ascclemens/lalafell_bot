@@ -3,6 +3,8 @@ use lalafell::commands::prelude::*;
 
 use serenity::prelude::Mentionable;
 
+use unicase::UniCase;
+
 use std::sync::Arc;
 
 #[derive(BotCommand)]
@@ -33,8 +35,8 @@ impl<'a> PublicChannelCommand<'a> for MentionCommand {
     }
     let params = self.params_then("mention", params, |a| a.setting(::structopt::clap::AppSettings::ArgRequiredElseHelp))?;
     let guild = guild_id.find().chain_err(|| "could not find guild")?;
-    let lower_name = params.role_name.to_lowercase();
-    let role = match guild.read().roles.values().find(|r| r.name.to_lowercase() == lower_name) {
+    let uni_name = UniCase::new(&params.role_name);
+    let role = match guild.read().roles.values().find(|r| UniCase::new(&r.name) == uni_name) {
       Some(r) => r.clone(),
       None => return Err("Could not find that role.".into())
     };

@@ -8,6 +8,8 @@ use serenity::model::guild::Guild;
 use serenity::model::permissions::Permissions;
 use serenity::model::channel::{PermissionOverwrite, PermissionOverwriteType};
 
+use unicase::UniCase;
+
 pub mod timeout_command;
 pub mod untimeout;
 
@@ -43,9 +45,9 @@ pub fn set_up_timeouts(guild: &Guild) -> Result<RoleId> {
     Some(ref r) => r.to_string(),
     None => return Err("no timed-out role name".into())
   };
-  let lower = role_name.to_lowercase();
+  let uni = UniCase::new(&role_name);
 
-  let role_id = match guild.roles.values().find(|r| r.name.to_lowercase() == lower) {
+  let role_id = match guild.roles.values().find(|r| UniCase::new(&r.name) == uni) {
     Some(r) => r.id,
     None =>  guild.create_role(|e| e
       .name(&role_name)

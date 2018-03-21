@@ -9,6 +9,8 @@ use diesel::prelude::*;
 use lalafell::error::*;
 use lalafell::commands::prelude::*;
 
+use unicase::UniCase;
+
 pub struct TimeoutRoleCommand;
 
 #[derive(Debug, StructOpt)]
@@ -37,8 +39,8 @@ impl<'a> TimeoutRoleCommand {
     }).chain_err(|| "could not load channel configs")?;
     match params.role {
       Some(given) => {
-        let role_name = given.to_lowercase();
-        let role = match guild.read().roles.values().find(|r| r.name.to_lowercase() == role_name) {
+        let role_name = UniCase::new(&given);
+        let role = match guild.read().roles.values().find(|r| UniCase::new(&r.name) == role_name) {
           Some(r) => r.clone(),
           None => return Err(format!("No role by the name `{}`.", given).into())
         };

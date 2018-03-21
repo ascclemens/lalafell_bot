@@ -9,6 +9,8 @@ use lalafell::error::*;
 
 use serenity::model::id::GuildId;
 
+use unicase::UniCase;
+
 pub struct AddCommand;
 
 #[derive(Debug, StructOpt)]
@@ -29,8 +31,8 @@ impl<'a> AddCommand {
   #[cfg_attr(feature = "cargo-clippy", allow(needless_pass_by_value))]
   pub fn run(&self, guild_id: GuildId, params: Params) -> CommandResult<'a> {
     let guild = guild_id.find().chain_err(|| "could not find guild")?;
-    let role = params.role.to_lowercase();
-    let role_id = match guild.read().roles.values().find(|r| r.name.to_lowercase() == role) {
+    let role = UniCase::new(params.role);
+    let role_id = match guild.read().roles.values().find(|r| UniCase::new(&r.name) == role) {
       Some(r) => r.id,
       None => return Err("No such role.".into())
     };
