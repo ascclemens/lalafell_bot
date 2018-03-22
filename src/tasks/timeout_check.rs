@@ -13,7 +13,7 @@ use std::thread;
 
 #[derive(Default)]
 pub struct TimeoutCheckTask {
-  next_sleep: i64
+  ran_once: bool
 }
 
 pub fn remove_timeout(timeout: &Timeout) {
@@ -35,10 +35,13 @@ pub fn remove_timeout(timeout: &Timeout) {
 impl RunsTask for TimeoutCheckTask {
   fn start(mut self, env: Arc<BotEnv>) {
     loop {
-      thread::sleep(Duration::seconds(self.next_sleep).to_std().unwrap());
-      if self.next_sleep == 0 {
-        self.next_sleep = env.config.read().timeouts.role_check_interval.unwrap_or(300);
-      }
+      let sleep = if self.ran_once {
+        env.config.read().timeouts.role_check_interval.unwrap_or(300)
+      } else {
+        self.ran_once = true;
+        0
+      };
+      thread::sleep(Duration::seconds(sleep).to_std().unwrap());
       let now = Utc::now();
       let next_five_minutes = (now + Duration::minutes(5)).timestamp();
       let mut timeouts: Vec<Timeout> = match ::bot::with_connection(|c| ::database::schema::timeouts::dsl::timeouts.load(c)) {
