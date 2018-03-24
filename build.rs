@@ -1,6 +1,6 @@
 extern crate git2;
 
-use git2::{Repository, StatusOptions};
+use git2::{Repository, DiffOptions};
 use std::fs::File;
 use std::path::Path;
 use std::io::Write;
@@ -14,7 +14,13 @@ fn main() {
     _ => ""
   };
   let version = std::env::var("CARGO_PKG_VERSION").unwrap();
-  let version_string = format!("{}{}{}{}", version, git, branch, clean);
+  let version_string = format!(
+    "{version}{git}{branch}{clean}",
+    version = version,
+    git = git,
+    branch = branch,
+    clean = clean
+  );
   let out_dir = std::env::var("OUT_DIR").unwrap();
   let p = Path::new(&out_dir);
   let mut f = File::create(p.join("version")).unwrap();
@@ -32,25 +38,15 @@ impl Repo {
 
   fn clean(&self) -> Option<bool> {
     let repo = self.0.as_ref()?;
-    let mut options = StatusOptions::new();
-    options
-      .include_ignored(false)
-      .include_untracked(false);
-    let statuses = repo.statuses(Some(&mut options)).ok()?;
-    Some(statuses.is_empty())
+    let mut options = DiffOptions::new();
+    options.ignore_submodules(true);
+    let diff = repo.diff_index_to_workdir(None, Some(&mut options)).ok()?;
+    Some(diff.stats().ok()?.files_changed() == 0)
   }
 
   fn branch(&self) -> Option<String> {
     let repo = self.0.as_ref()?;
     let head = repo.head().ok()?;
-    head.name().and_then(|x| {
-      if x.starts_with("refs/heads/") {
-        Some(x[11..].to_string())
-      } else if x.len() >= 7 {
-        Some(x[..7].to_string())
-      } else {
-        None
-      }
-    })
+    head.shorthand().map(ToString::to_string)
   }
 }
