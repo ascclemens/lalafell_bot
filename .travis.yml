@@ -1,18 +1,24 @@
 language: rust
 rust:
-  - nightly
+- nightly
 os: linux
 cache:
   directories:
     # Default directories for cargo cache
     - $HOME/.cargo
-    - $TRAVIS_BUILD_DIR/target
+    - $TRAVIS_BUILD_DIR/target/debug
     # Our copy of libsodium
     - $HOME/libsodium
 addons:
   apt:
     packages:
-      - libopus-dev
+    - libopus-dev
+dist: trusty
+before_script:
+  - .travis/cache_check.sh
+  - . .travis/libsodium.sh
+script:
+  - .travis/build.sh
 # Remove the local crate's build files, as they only add bloat to the cache.
 # TODO: Remove unused dependency build files
 before_cache:
@@ -23,12 +29,14 @@ before_cache:
   - rm -rfv target/debug/deps/{lalafell_bot,liblalafell_bot,bot_command_derive,libbot_command_derive}-*
   - rm -rfv target/debug/deps/liblalafell_bot-*
   - cargo clean -p lalafell_bot
-dist: trusty
-before_script:
-  - .travis/cache_check.sh
-  - . .travis/libsodium.sh
-script:
-  - cargo build --verbose --bin lalafell_bot
-  - cargo build --verbose --features source --bin generate_handlers
+before_deploy:
+  - .travis/before_deploy.sh
+deploy:
+  provider: script
+  script:
+    secure: "fy9AmZlq78qqTLlb2496bI9DOyNi3Rfk+L48yecx0RpvDM1tPDC6n8A+sGZJrVxVTaeqBy9fJllWUi/cXrFdXrJ77eluTg3/y1WL/4Stb8ik0zQs5ibQCJAV7FXEz3I73IKsSGbyiAXaXXfPAq3We5g/7mDLDXkNy9JL6N7ZWwf611P8vrZ7rEHQsto6DbLJylXlRr7qJOwMI3qXdnwaRScDon460zJfniE332HkT8YzkVyXnmHe5WFCs8+avDH01PUx7sk+X5aGAJTxoBiQ8OCij9C1e4/zBONlWyhCHoTWIj0AZapPcKeaf7VA9/NtbdKtqi8uhzaoOq1Rcy/R4sgYqgCiyxyHdzgRKyQJyLy0689wu+h7VSfJkm59t60/SOk96Jxknv9qq2JQ3hE+j5VHHpjY9FdWqNBQO0/CjATnDm7LEZC9YZ8NTUr1BYvMhHWJzjt54sjzHZd4wcnuMRRF1wOlgEblK2/jOB1tLGo1cDP9XQO5gzCLOTlNkRcc5+HjbBXUCpTL1+kp3qxkXurW9W7zrCT0pR4/NsKF8ceYIUuXhFk3HCNiWvgT2WhgDsjf/wJuE+NrXDv8H2aSYPPFU5x24XIDTLneYQ2U0lX8E22s3KteWHSwMt8GMVKCIwjHg+DzRpk2MxVYZPoaZ4+P6HrlQ0mkwd0MNxSCAec="
+  skip_cleanup: true
+  on:
+    branch: release
 notifications:
   email: false

@@ -25,6 +25,9 @@ if [ ! -d "$SODIUM_PATH/lib" ]; then
   # Make and install it
   make install
 
+  # Go back up
+  cd ..
+
 else
 
   echo "libsodium found."
