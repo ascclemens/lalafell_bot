@@ -2,6 +2,8 @@ use bot::BotEnv;
 use commands::*;
 use commands::tag::Tagger;
 
+use ffxiv::World;
+
 use lalafell::error::*;
 use lalafell::commands::prelude::*;
 
@@ -18,7 +20,7 @@ pub struct Params {
   #[structopt(help = "Who to tag")]
   who: MentionOrId,
   #[structopt(help = "The server the character is on, e.g. \"Adamantoise\"")]
-  server: String,
+  server: World,
   #[structopt(help = "The first name of the character")]
   first_name: String,
   #[structopt(help = "The last name of the character")]
@@ -45,7 +47,7 @@ impl<'a> PublicChannelCommand<'a> for TagCommand {
     let ff_server = params.server;
     let name = format!("{} {}", params.first_name, params.last_name);
 
-    match Tagger::search_tag(self.env.as_ref(), *who, guild, &ff_server, &name, true) {
+    match Tagger::search_tag(self.env.as_ref(), *who, guild, ff_server.as_str(), &name, true) {
       Ok(Some(error)) => Err(ExternalCommandFailure::default()
         .message(move |e: CreateEmbed| e.description(&error))
         .wrap()),
