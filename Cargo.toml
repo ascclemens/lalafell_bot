@@ -42,7 +42,7 @@ default-features = false
 features = ["builder", "cache", "client", "gateway", "model", "utils", "voice"]
 
 [dependencies.ffxiv_types]
-version = "0.1"
+version = "0.2"
 default-features = false
 features = ["data_centers", "worlds", "roles", "combat_jobs"]
 
