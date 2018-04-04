@@ -47,7 +47,7 @@ pub fn init_logger() -> Result<()> {
                               message))
     })
     .level(if debug { LevelFilter::Debug } else { LevelFilter::Info })
-    .filter(|f| debug || f.level() < Level::Info || f.target().starts_with("lalafell"))
+    .filter(move |f| debug || f.level() < Level::Info || f.target().starts_with("lalafell"))
     .chain(io::stdout())
     .apply()
     .chain_err(|| "could not set up logger")
