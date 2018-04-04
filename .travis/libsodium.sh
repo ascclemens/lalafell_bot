@@ -3,7 +3,7 @@
 # The path to install libsodium at
 SODIUM_PATH=$HOME/libsodium
 
-printf "Checking for libsodium at $SODIUM_PATH... "
+printf "Checking for libsodium at %s... " "$SODIUM_PATH"
 
 # If the cache didn't restore libsodium, build it
 if [ ! -d "$SODIUM_PATH/lib" ]; then
