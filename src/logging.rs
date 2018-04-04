@@ -37,6 +37,7 @@ fn colored_target(target: &str) -> String {
 }
 
 pub fn init_logger() -> Result<()> {
+  let debug = var("LB_DEBUG").is_ok();
   fern::Dispatch::new()
     .format(|out, message, record| {
       out.finish(format_args!("[{}] [{}] {} – {}",
@@ -45,8 +46,8 @@ pub fn init_logger() -> Result<()> {
                               colored_target(record.target()),
                               message))
     })
-    .level(if var("LB_DEBUG").is_ok() { LevelFilter::Debug } else { LevelFilter::Info })
-    .filter(|f| f.level() < Level::Info || f.target().starts_with("lalafell"))
+    .level(if debug { LevelFilter::Debug } else { LevelFilter::Info })
+    .filter(|f| debug || f.level() < Level::Info || f.target().starts_with("lalafell"))
     .chain(io::stdout())
     .apply()
     .chain_err(|| "could not set up logger")
