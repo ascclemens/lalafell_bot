@@ -20,7 +20,7 @@ if [ ! -d "$SODIUM_PATH/lib" ]; then
   ./autogen.sh
 
   # Configure libsodium to be built into $HOME/libsodium
-  ./configure --prefix=$SODIUM_PATH
+  ./configure --prefix="$SODIUM_PATH"
 
   # Make and install it
   make install
