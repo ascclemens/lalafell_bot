@@ -116,7 +116,7 @@ fn command_listener<'a>(env: &Arc<BotEnv>) -> CommandListener<'a> {
     "imagedump", "dump" => ImageDumpCommand,
     "mention" => MentionCommand,
     "music" => MusicCommand,
-    "partyfinder", "pf" => PartyFinderCommand,
+    // "partyfinder", "pf" => PartyFinderCommand,
     "ping" => PingCommand,
     "poll" => PollCommand,
     "pollresults" => PollResultsCommand,
