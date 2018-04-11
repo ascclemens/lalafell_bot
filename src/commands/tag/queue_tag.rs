@@ -3,6 +3,8 @@ use database::models::NewTagQueue;
 
 use diesel::prelude::*;
 
+use ffxiv::World;
+
 use lalafell::error::*;
 use lalafell::commands::prelude::*;
 
@@ -17,7 +19,7 @@ pub struct Params {
   #[structopt(help = "Who to queue the tag for")]
   who: MentionOrId,
   #[structopt(help = "The server the character is on, e.g. \"Adamantoise\"")]
-  server: String,
+  server: World,
   #[structopt(help = "The first name of the character")]
   first_name: String,
   #[structopt(help = "The last name of the character")]
@@ -44,7 +46,7 @@ impl<'a> PublicChannelCommand<'a> for QueueTagCommand {
     let ff_server = params.server;
     let name = format!("{} {}", params.first_name, params.last_name);
 
-    let item = NewTagQueue::new(who.0, guild.0, &ff_server, &name);
+    let item = NewTagQueue::new(who.0, guild.0, ff_server.as_str(), &name);
 
     ::bot::with_connection(|c| {
       use database::schema::tag_queue::dsl;

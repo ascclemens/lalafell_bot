@@ -30,6 +30,7 @@ impl Handler {
       box TemporaryRolesListener,
       box PartyFinder::default(),
       box Music,
+      box RandomPresenceListener,
       box Log::default()
     ];
     Handler { listeners }
@@ -81,6 +82,7 @@ impl EventHandler for Handler {
   handler!(reaction_add, param1: Context, param2: Reaction);
   handler!(reaction_remove_all, param1: Context, param2: ChannelId, param3: MessageId);
   handler!(reaction_remove, param1: Context, param2: Reaction);
+  handler!(ready, param1: Context, param2: Ready);
   handler!(resume, param1: Context, param2: ResumedEvent);
   handler!(shard_stage_update, param1: Context, param2: ShardStageUpdateEvent);
   handler!(typing_start, param1: Context, param2: TypingStartEvent);
@@ -89,16 +91,6 @@ impl EventHandler for Handler {
   handler!(voice_server_update, param1: Context, param2: VoiceServerUpdateEvent);
   handler!(voice_state_update, param1: Context, param2: Option < GuildId >, param3: VoiceState);
   handler!(webhook_update, param1: Context, param2: GuildId, param3: ChannelId);
-
-  fn ready(&self, ctx: Context, ready: Ready) {
-    // TODO: move this to a random presence listener
-    if let Some(g) = ::tasks::random_presence::random_game() {
-      ctx.shard.set_game(Some(g));
-    }
-    for listener in &self.listeners {
-      listener.ready(ctx.clone(), ready.clone());
-    }
-  }
 }
 
 macro_rules! command_listener {
@@ -124,6 +116,7 @@ fn command_listener<'a>(env: &Arc<BotEnv>) -> CommandListener<'a> {
     "imagedump", "dump" => ImageDumpCommand,
     "mention" => MentionCommand,
     "music" => MusicCommand,
+    // "partyfinder", "pf" => PartyFinderCommand,
     "ping" => PingCommand,
     "poll" => PollCommand,
     "pollresults" => PollResultsCommand,

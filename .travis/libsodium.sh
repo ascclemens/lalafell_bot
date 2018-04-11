@@ -3,7 +3,7 @@
 # The path to install libsodium at
 SODIUM_PATH=$HOME/libsodium
 
-printf "Checking for libsodium at $SODIUM_PATH... "
+printf "Checking for libsodium at %s... " "$SODIUM_PATH"
 
 # If the cache didn't restore libsodium, build it
 if [ ! -d "$SODIUM_PATH/lib" ]; then
@@ -20,7 +20,7 @@ if [ ! -d "$SODIUM_PATH/lib" ]; then
   ./autogen.sh
 
   # Configure libsodium to be built into $HOME/libsodium
-  ./configure --prefix=$SODIUM_PATH
+  ./configure --prefix="$SODIUM_PATH"
 
   # Make and install it
   make install

@@ -17,6 +17,7 @@ extern crate envy;
 extern crate error_chain;
 extern crate fern;
 extern crate fflogs;
+extern crate ffxiv_types as ffxiv;
 extern crate itertools;
 extern crate lalafell;
 #[macro_use]
