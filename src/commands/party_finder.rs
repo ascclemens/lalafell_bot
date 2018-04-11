@@ -151,6 +151,7 @@ impl PartyFinderDuty {
       PartyFinderDuty::DeltascapeV20(_) => "Deltascape V2.0",
       PartyFinderDuty::DeltascapeV30(_) => "Deltascape V3.0",
       PartyFinderDuty::DeltascapeV40(_) => "Deltascape V4.0",
+
       PartyFinderDuty::SigmascapeV10(_) => "Sigmascape V1.0",
       PartyFinderDuty::SigmascapeV20(_) => "Sigmascape V2.0",
       PartyFinderDuty::SigmascapeV30(_) => "Sigmascape V3.0",
@@ -164,6 +165,7 @@ impl PartyFinderDuty {
       PartyFinderDuty::DeltascapeV20(ref d) => d,
       PartyFinderDuty::DeltascapeV30(ref d) => d,
       PartyFinderDuty::DeltascapeV40(ref d) => d,
+
       PartyFinderDuty::SigmascapeV10(ref d) => d,
       PartyFinderDuty::SigmascapeV20(ref d) => d,
       PartyFinderDuty::SigmascapeV30(ref d) => d,
@@ -182,6 +184,7 @@ impl FromStr for PartyFinderDuty {
       "o2" => PartyFinderDuty::DeltascapeV20(Difficulty::Normal),
       "o3" => PartyFinderDuty::DeltascapeV30(Difficulty::Normal),
       "o4" => PartyFinderDuty::DeltascapeV40(Difficulty::Normal),
+
       "o5" => PartyFinderDuty::SigmascapeV10(Difficulty::Normal),
       "o6" => PartyFinderDuty::SigmascapeV20(Difficulty::Normal),
       "o7" => PartyFinderDuty::SigmascapeV30(Difficulty::Normal),
@@ -191,6 +194,7 @@ impl FromStr for PartyFinderDuty {
       "o2s" => PartyFinderDuty::DeltascapeV20(Difficulty::Savage),
       "o3s" => PartyFinderDuty::DeltascapeV30(Difficulty::Savage),
       "o4s" => PartyFinderDuty::DeltascapeV40(Difficulty::Savage),
+
       "o5s" => PartyFinderDuty::SigmascapeV10(Difficulty::Savage),
       "o6s" => PartyFinderDuty::SigmascapeV20(Difficulty::Savage),
       "o7s" => PartyFinderDuty::SigmascapeV30(Difficulty::Savage),
