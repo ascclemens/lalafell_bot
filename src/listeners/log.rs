@@ -8,13 +8,12 @@ use serenity::prelude::{Mutex, Mentionable};
 use serenity::client::{Context, EventHandler};
 use serenity::model::channel::Message;
 use serenity::model::event::MessageUpdateEvent;
-use serenity::model::guild::{Member, Action};
+use serenity::model::guild::Member;
 use serenity::model::id::{GuildId, ChannelId, UserId, MessageId};
 use serenity::model::user::User;
 
 use std::collections::HashMap;
 use std::sync::atomic::{Ordering, AtomicUsize};
-use std::thread;
 
 macro_rules! update_message {
   ($message:expr, $update:expr, $($field:ident),+) => {{
