@@ -22,15 +22,17 @@ fn main() {
     if t.ident != Ident::from("EventHandler") {
       continue;
     }
-    for item in t.items {
+    'item: for item in t.items {
       let mut m = match item {
         TraitItem::Method(m) => m,
         _ => continue
       };
-      if m.attrs.len() == 1 {
+      if !m.attrs.is_empty() {
         // I'm sorry
-        if m.attrs.remove(0).into_tokens().to_string() != "# [ cfg ( feature = \"cache\" ) ]" {
-          continue;
+        for attr in m.attrs {
+          if attr.into_tokens().to_string() == r#"# [ cfg ( not ( feature = "cache" ) ) ]"# {
+            continue 'item;
+          }
         }
       }
       let method_ident = m.sig.ident;

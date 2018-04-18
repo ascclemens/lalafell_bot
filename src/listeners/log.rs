@@ -9,7 +9,7 @@ use serenity::client::{Context, EventHandler};
 use serenity::model::channel::Message;
 use serenity::model::event::MessageUpdateEvent;
 use serenity::model::guild::Member;
-use serenity::model::id::{GuildId, ChannelId, UserId};
+use serenity::model::id::{GuildId, ChannelId, UserId, MessageId};
 use serenity::model::user::User;
 
 use std::collections::HashMap;
@@ -159,6 +159,62 @@ impl EventHandler for Log {
         .field("Channel", channel_mention, true)
         .field("Original message", original_content, false)
         .field("New message", new_content, false)
+        .timestamp(&Utc::now())
+        .footer(|f| f.text(message_id));
+      embed
+    })).ok();
+  }
+
+  fn message_delete(&self, _: Context, channel_id: ChannelId, message_id: MessageId) {
+    let channel = match channel_id.get() {
+      Ok(c) => c,
+      Err(e) => {
+        warn!("could not download channel {} for message history: {}", channel_id, e);
+        return;
+      }
+    };
+
+    let guild_channel = match channel.guild() {
+      Some(g) => g,
+      None => return
+    };
+    let reader = guild_channel.read();
+
+    let log_channel = some_or!(self.get_log_channel(reader.guild_id), return);
+
+    let guild = match reader.guild_id.find() {
+      Some(g) => g,
+      None => return
+    };
+
+    let guild_reader = guild.read();
+
+    let mut messages = self.messages.lock();
+    let message = messages
+      .values_mut()
+      .filter_map(|x| x.get_mut(&reader.guild_id))
+      .next()
+      .and_then(|x| x.iter_mut().find(|m| m.id == message_id));
+    let message = match message {
+      Some(m) => m.clone(),
+      None => return
+    };
+
+    let deletee = some_or!(guild_reader.members.get(&message.author.id).cloned().or_else(|| guild_reader.member(message.author.id).ok()), return);
+
+    let original_content = message.content;
+    let channel_mention = channel_id.mention();
+
+    log_channel.send_message(|m| m.embed(|mut embed| {
+      embed = embed
+        .author(|a| a
+          .name(&deletee.user.read().tag())
+          .icon_url(&deletee.user.read().face()));
+      embed = embed
+        .field("Mention", deletee.mention(), true)
+        .field("Action", "Had message deleted", true)
+        .field("Channel", channel_mention, true)
+        .field("Content", original_content, false)
         .timestamp(&Utc::now())
         .footer(|f| f.text(message_id));
       embed

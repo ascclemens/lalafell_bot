@@ -125,6 +125,7 @@ fn command_listener<'a>(env: &Arc<BotEnv>) -> CommandListener<'a> {
     "randomreaction", "reaction" => RandomReactionCommand,
     "referencecount" => ReferenceCountCommand,
     "reload", "reloadconfig" => ReloadConfigCommand,
+    "report" => ReportCommand,
     "search" => SearchCommand,
     "tag" => TagCommand,
     "temporaryrole", "temprole" => TemporaryRoleCommand,
