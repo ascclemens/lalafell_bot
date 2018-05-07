@@ -61,7 +61,7 @@ impl<'a> PublicChannelCommand<'a> for ReportCommand {
 
     let deny_everyone = PermissionOverwrite {
       allow: Permissions::empty(),
-      deny: Permissions::READ_MESSAGES | Permissions::READ_MESSAGE_HISTORY,
+      deny: Permissions::READ_MESSAGES,
       kind: PermissionOverwriteType::Role(everyone),
     };
 
