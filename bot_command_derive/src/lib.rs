@@ -12,13 +12,10 @@ pub fn bot_command(input: TokenStream) -> TokenStream {
   let ast = syn::parse(input).unwrap();
 
   // Build the impl
-  let gen = impl_bot_command(&ast);
-
-  // Return the generated impl
-  gen.into()
+  impl_bot_command(&ast)
 }
 
-fn impl_bot_command(ast: &syn::DeriveInput) -> quote::Tokens {
+fn impl_bot_command(ast: &syn::DeriveInput) -> TokenStream {
   let struct_data = match ast.data {
     syn::Data::Struct(ref s) => s,
     _ => panic!("cannot derive BotCommand on anything but a struct")
@@ -30,8 +27,8 @@ fn impl_bot_command(ast: &syn::DeriveInput) -> quote::Tokens {
       syn::Type::Path(ref p) => p,
       _ => continue
     };
-    if path.path.clone().into_tokens().to_string() == "Arc < BotEnv >" {
-      field_name = Some(field.ident.expect("cannot derive for tuple structs"));
+    if path.path.clone().into_token_stream().to_string() == "Arc < BotEnv >" {
+      field_name = Some(field.ident.clone().expect("cannot derive for tuple structs"));
       break;
     }
   }
@@ -43,13 +40,13 @@ fn impl_bot_command(ast: &syn::DeriveInput) -> quote::Tokens {
           #name { #ident: env }
         }
       }
-    },
+    }.into(),
     None => quote! {
       impl ::commands::BotCommand for #name {
         fn new(_: Arc<::bot::BotEnv>) -> Self {
           #name
         }
       }
-    }
+    }.into(),
   }
 }

@@ -7,5 +7,5 @@ authors = ["Kyle Clemens <me@kyleclemens.com>"]
 proc-macro = true
 
 [dependencies]
-quote = "0.5"
-syn = "0.13"
+quote = "0.6"
+syn = "0.14"
