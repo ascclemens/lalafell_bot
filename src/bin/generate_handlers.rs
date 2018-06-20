@@ -1,7 +1,8 @@
 extern crate syn;
 extern crate quote;
 
-use syn::{File as SynFile, Item, Ident, TraitItem, FnArg};
+use syn::{File as SynFile, Item, TraitItem, FnArg};
+
 use quote::ToTokens;
 
 use std::fs::File;
@@ -19,7 +20,7 @@ fn main() {
       Item::Trait(t) => t,
       _ => continue
     };
-    if t.ident != Ident::from("EventHandler") {
+    if t.ident.to_string() != "EventHandler" {
       continue;
     }
     'item: for item in t.items {
@@ -30,7 +31,7 @@ fn main() {
       if !m.attrs.is_empty() {
         // I'm sorry
         for attr in m.attrs {
-          if attr.into_tokens().to_string() == r#"# [ cfg ( not ( feature = "cache" ) ) ]"# {
+          if attr.into_token_stream().to_string() == r#"# [ cfg ( not ( feature = "cache" ) ) ]"# {
             continue 'item;
           }
         }
@@ -41,7 +42,7 @@ fn main() {
       let num_args = method_args.len();
       for (i, arg) in method_args.into_iter().enumerate() {
         match arg {
-          FnArg::Captured(captured) => print!("param{}: {}", i, captured.ty.into_tokens()),
+          FnArg::Captured(captured) => print!("param{}: {}", i, captured.ty.into_token_stream()),
           _ => continue
         }
         if i != num_args - 1 {
