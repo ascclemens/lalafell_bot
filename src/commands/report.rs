@@ -3,6 +3,7 @@ use lalafell::commands::prelude::*;
 use lalafell::commands::MentionOrId;
 
 use rand::{Rng, thread_rng};
+use rand::distributions::Alphanumeric;
 
 use serenity::model::channel::{ChannelType, PermissionOverwrite, PermissionOverwriteType};
 use serenity::model::permissions::Permissions;
@@ -77,7 +78,7 @@ impl<'a> PublicChannelCommand<'a> for ReportCommand {
       kind: PermissionOverwriteType::Member(*params.who),
     };
 
-    let chars: String = thread_rng().gen_ascii_chars().take(7).collect();
+    let chars: String = thread_rng().sample_iter(&Alphanumeric).take(7).collect();
     let channel_name = format!("report_{}", chars);
     let channel = guild_id
       .create_channel(&channel_name, ChannelType::Text, category)

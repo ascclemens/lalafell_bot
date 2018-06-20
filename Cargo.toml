@@ -10,7 +10,7 @@ byteorder = "1.2"
 chrono = { version = "0.4", features = ["serde"] }
 ctrlc = { version = "3.0", features = ["termination"] }
 diesel = { version = "1.0", features = ["postgres"] }
-dotenv = "0.11"
+dotenv = "0.13"
 envy = "0.3"
 error-chain = "0.11"
 fern = "0.5"
@@ -20,8 +20,8 @@ itertools = "0.7"
 lalafell = { version = "*", git = "https://github.com/jkcclemens/lalafell" }
 lazy_static = "1.0"
 log = "0.4"
-rand = "0.4"
-scraper = "0.6"
+rand = "0.5"
+scraper = "0.7"
 serde = "1.0"
 serde_derive = "1.0"
 serde_json = "1.0"
@@ -31,8 +31,8 @@ unicase = "2"
 url = "1.6"
 uuid = { version = "0.6", features = ["v4"] }
 xivdb = { version = "*", git = "https://github.com/jkcclemens/xivdb-rs" }
-quote = { version = "0.5", optional = true }
-syn = { version = "0.13", optional = true, features = ["full", "derive", "parsing", "printing", "visit", "visit-mut", "fold", "clone-impls", "extra-traits"] }
+quote = { version = "0.6", optional = true }
+syn = { version = "0.14", optional = true, features = ["full", "derive", "parsing", "printing", "visit", "visit-mut", "fold", "clone-impls", "extra-traits"] }
 
 [dependencies.serenity]
 version = "0.5"
