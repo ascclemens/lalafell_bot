@@ -48,9 +48,16 @@ impl AutoTagTask {
     };
     info!("{} tag{} to update", users.len(), if users.len() == 1 { "" } else { "s" });
     for mut tag in users {
-      if let Err(e) = AutoTagTask::update_tag(env, UserId(*tag.user_id), GuildId(*tag.server_id), *tag.character_id) {
-        warn!("Couldn't update tag for user ID {}: {}", *tag.user_id, e);
-        continue;
+      match AutoTagTask::update_tag(env, UserId(*tag.user_id), GuildId(*tag.server_id), *tag.character_id) {
+        Err(e) => {
+          warn!("Couldn't update tag for user ID {}: {}", *tag.user_id, e);
+          continue;
+        },
+        Ok(Some(s)) => {
+          warn!("Couldn't update tag for user ID {}: {}", *tag.user_id, s);
+          continue;
+        },
+        _ => {},
       }
       tag.last_updated = Utc::now().timestamp();
       let res: ::std::result::Result<Tag, _> = ::bot::with_connection(|c| tag.save_changes(c));

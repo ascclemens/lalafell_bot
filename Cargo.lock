@@ -2001,7 +2001,7 @@ dependencies = [
 [[package]]
 name = "xivapi"
 version = "0.1.0"
-source = "git+https://github.com/jkcclemens/xivapi-rs#b84e82b289ea3cc343de2caf655606b621f13048"
+source = "git+https://github.com/jkcclemens/xivapi-rs#e61f026f133f819b95959e49b62e9b7304ef243a"
 dependencies = [
  "failure 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "ffxiv_types 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
