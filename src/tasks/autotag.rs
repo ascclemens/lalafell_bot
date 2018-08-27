@@ -33,7 +33,7 @@ impl AutoTagTask {
     thread::sleep(Duration::seconds(self.next_sleep).to_std().unwrap());
     self.next_sleep = Duration::minutes(10).num_seconds();
     info!("Autotag task running");
-    let users: Vec<Tag> = match ::bot::with_connection(|c| {
+    let mut users: Vec<Tag> = match ::bot::with_connection(|c| {
       use database::schema::tags::dsl;
       let twelve_hours_ago = Utc::now().timestamp() - Duration::hours(12).num_seconds();
       dsl::tags
@@ -47,23 +47,26 @@ impl AutoTagTask {
       }
     };
     info!("{} tag{} to update", users.len(), if users.len() == 1 { "" } else { "s" });
-    for mut tag in users {
-      match AutoTagTask::update_tag(env, UserId(*tag.user_id), GuildId(*tag.server_id), *tag.character_id) {
-        Err(e) => {
-          warn!("Couldn't update tag for user ID {}: {}", *tag.user_id, e);
-          continue;
-        },
-        Ok(Some(s)) => {
-          warn!("Couldn't update tag for user ID {}: {}", *tag.user_id, s);
-          continue;
-        },
-        _ => {},
+    for mut tags in users.chunks_mut(20) {
+      for mut tag in tags {
+        match AutoTagTask::update_tag(env, UserId(*tag.user_id), GuildId(*tag.server_id), *tag.character_id) {
+          Err(e) => {
+            warn!("Couldn't update tag for user ID {}: {}", *tag.user_id, e);
+            continue;
+          },
+          Ok(Some(s)) => {
+            warn!("Couldn't update tag for user ID {}: {}", *tag.user_id, s);
+            continue;
+          },
+          _ => {},
+        }
+        tag.last_updated = Utc::now().timestamp();
+        let res: ::std::result::Result<Tag, _> = ::bot::with_connection(|c| tag.save_changes(c));
+        if let Err(e) = res {
+          warn!("could not update tag last_updated: {}", e);
+        }
       }
-      tag.last_updated = Utc::now().timestamp();
-      let res: ::std::result::Result<Tag, _> = ::bot::with_connection(|c| tag.save_changes(c));
-      if let Err(e) = res {
-        warn!("could not update tag last_updated: {}", e);
-      }
+      thread::sleep(Duration::seconds(1).to_std().unwrap());
     }
     info!("Done updating autotags");
   }
