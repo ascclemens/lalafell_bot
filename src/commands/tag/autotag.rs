@@ -33,7 +33,7 @@ impl<'a> PublicChannelCommand<'a> for AutoTagCommand {
     let ff_server = params.server;
     let name = format!("{} {}", params.first_name, params.last_name);
 
-    match Tagger::search_tag(self.env.as_ref(), message.author.id, guild, ff_server.as_str(), &name, false)? {
+    match Tagger::search_tag(self.env.as_ref(), message.author.id, guild, ff_server, &name, false)? {
       Some(error) => Err(ExternalCommandFailure::default()
         .message(move |e: CreateEmbed| e.description(&error))
         .wrap()),

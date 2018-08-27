@@ -53,7 +53,7 @@ impl EventHandler for AutoReplyListener {
           .load(c)
       }).chain_err(|| "could not load auto_replies")?;
       let user = UserIdOrMember::UserId(m.author.id);
-      let guild = match m.channel_id.get() {
+      let guild = match m.channel_id.to_channel() {
         Ok(Channel::Guild(c)) => c.read().guild_id,
         Ok(_) => bail!("wrong type of channel for auto reply"),
         Err(e) => bail!("could not get channel for auto reply: {}", e)
@@ -65,7 +65,7 @@ impl EventHandler for AutoReplyListener {
 
 impl AutoReplyListener {
   fn receive(&self, replies: Vec<AutoReply>, user: UserIdOrMember, guild: GuildId) -> Result<()> {
-    let live_server = match guild.find() {
+    let live_server = match guild.to_guild_cached() {
       Some(g) => g.read().clone(),
       None => bail!("could not find guild")
     };

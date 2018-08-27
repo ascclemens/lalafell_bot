@@ -56,7 +56,7 @@ impl<'a> PublicChannelCommand<'a> for VerifyCommand {
     };
     let profile = Lodestone::new().character_profile(*user.character_id)?;
     if profile.contains(verification_string) {
-      let guild = guild.find().chain_err(|| "could not find guild")?;
+      let guild = guild.to_guild_cached().chain_err(|| "could not find guild")?;
 
       verification.verified = true;
       ::bot::with_connection(|c| verification.save_changes::<Verification>(c)).chain_err(|| "could not update verification")?;

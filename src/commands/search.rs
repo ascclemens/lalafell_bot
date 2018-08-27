@@ -32,7 +32,7 @@ impl<'a> PublicChannelCommand<'a> for SearchCommand {
       Some(f) => f,
       None => return Err("Invalid filters.".into())
     };
-    let guild = guild.find().chain_err(|| "could not find guild")?;
+    let guild = guild.to_guild_cached().chain_err(|| "could not find guild")?;
     let reader = guild.read();
     let roles: Vec<&Role> = reader.roles.values().collect();
     let now = Utc::now();

@@ -38,7 +38,7 @@ impl<'a> Command<'a> for PollCommand {
       return Err("No more than nine poll options can be specified.".into());
     }
     let message = params.join(" ");
-    let channel = match msg.channel_id.get() {
+    let channel = match msg.channel_id.to_channel() {
       Ok(Channel::Guild(c)) => c,
       _ => return Err("This command must be used in a guild channel.".into())
     };

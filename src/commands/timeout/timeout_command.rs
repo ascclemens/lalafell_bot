@@ -50,7 +50,7 @@ impl<'a> PublicChannelCommand<'a> for TimeoutCommand {
 
     let mut timeout_member = guild.member(*who).map_err(|_| into!(CommandFailure, "That user is not in this guild."))?;
 
-    let guild = guild.find().chain_err(|| "could not find guild")?;
+    let guild = guild.to_guild_cached().chain_err(|| "could not find guild")?;
 
     let timeouts = ::bot::with_connection(|c| {
       use database::schema::timeouts::dsl;

@@ -34,7 +34,7 @@ impl<'a> PublicChannelCommand<'a> for MentionCommand {
         .wrap());
     }
     let params = self.params_then("mention", params, |a| a.setting(::structopt::clap::AppSettings::ArgRequiredElseHelp))?;
-    let guild = guild_id.find().chain_err(|| "could not find guild")?;
+    let guild = guild_id.to_guild_cached().chain_err(|| "could not find guild")?;
     let uni_name = UniCase::new(&params.role_name);
     let role = match guild.read().roles.values().find(|r| UniCase::new(&r.name) == uni_name) {
       Some(r) => r.clone(),

@@ -77,7 +77,7 @@ impl<'a> PublicChannelCommand<'a> for TemporaryRoleCommand {
         .multiple(true)
         .required(true)))?;
 
-    let guild = guild_id.find().chain_err(|| "could not find guild in cache")?;
+    let guild = guild_id.to_guild_cached().chain_err(|| "could not find guild in cache")?;
 
     let mut target = match guild_id.member(*params.who) {
       Ok(m) => m,

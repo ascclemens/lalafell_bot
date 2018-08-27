@@ -180,7 +180,7 @@ impl PfStatus {
     statuses.write().remove(&message.author.id);
     let msg = message.content.trim().to_string();
     let chan_name = guild_id
-      .find()
+      .to_guild_cached()
       .and_then(|g| g.read().channels.values()
         .find(|c| c.read().name == *data_center)
         .map(|c| c.read().id.mention().to_string()))

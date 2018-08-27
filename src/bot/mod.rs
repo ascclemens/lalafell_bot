@@ -6,7 +6,7 @@ use database::models::ToU64;
 
 use lalafell::error::Result as LalafellResult;
 
-use xivdb::XivDb;
+use xivapi::XivApi;
 
 use serenity::client::Client;
 use serenity::prelude::RwLock;
@@ -68,15 +68,15 @@ pub struct LalafellBot {
 pub struct BotEnv {
   pub environment: Environment,
   pub config: RwLock<Config>,
-  pub xivdb: XivDb
+  pub xivapi: XivApi,
 }
 
 impl LalafellBot {
   pub fn new(environment: Environment, config: Config) -> BotResult<LalafellBot> {
     let env = Arc::new(BotEnv {
-      environment,
+      xivapi: XivApi::with_key(&environment.xivapi_key),
       config: RwLock::new(config),
-      xivdb: XivDb::default()
+      environment,
     });
     let client = Client::new(&env.environment.discord_bot_token, Handler::new(&env))?;
     Ok(LalafellBot {

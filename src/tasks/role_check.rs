@@ -75,7 +75,7 @@ impl RunsTask for RoleCheckTask {
             continue;
           }
         };
-        let guild = some_or!(GuildId(check.guild).find(), continue);
+        let guild = some_or!(GuildId(check.guild).to_guild_cached(), continue);
         let roles = guild.read().roles.clone();
         let times: Result<Vec<RoleCheckTime>> = ::bot::with_connection(|c| {
           use database::schema::role_check_times::dsl;

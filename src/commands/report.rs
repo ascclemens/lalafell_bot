@@ -39,7 +39,7 @@ impl<'a> PublicChannelCommand<'a> for ReportCommand {
 
     let params = self.params("report", params)?;
 
-    let guild = guild_id.find().chain_err(|| "could not find guild in cache")?;
+    let guild = guild_id.to_guild_cached().chain_err(|| "could not find guild in cache")?;
 
     let reports_name = UniCase::new("Reports");
     let category = guild.read().channels

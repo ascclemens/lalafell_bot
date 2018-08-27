@@ -5,8 +5,11 @@ use database::models::TagQueue;
 
 use chrono::Duration;
 
+use ffxiv::World;
+
 use diesel::prelude::*;
 
+use std::str::FromStr;
 use std::sync::Arc;
 use std::thread;
 
@@ -45,11 +48,15 @@ impl RunsTask for TagQueueTask {
       }
       // TODO: count number of fails and remove from queue after certain point
       queue.retain(|item| {
+        let world = match World::from_str(&item.server) {
+          Ok(w) => w,
+          Err(_) => return false,
+        };
         match Tagger::search_tag(
           env.as_ref(),
           (*item.user_id).into(),
           (*item.server_id).into(),
-          &item.server,
+          world,
           &item.character,
           false
         ) {

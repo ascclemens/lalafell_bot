@@ -30,7 +30,7 @@ pub struct Params {
 impl<'a> AddCommand {
   #[cfg_attr(feature = "cargo-clippy", allow(needless_pass_by_value))]
   pub fn run(&self, guild_id: GuildId, params: Params) -> CommandResult<'a> {
-    let guild = guild_id.find().chain_err(|| "could not find guild")?;
+    let guild = guild_id.to_guild_cached().chain_err(|| "could not find guild")?;
     let role = UniCase::new(params.role);
     let role_id = match guild.read().roles.values().find(|r| UniCase::new(&r.name) == role) {
       Some(r) => r.id,

@@ -31,7 +31,7 @@ impl HasParams for ArchiveCommand {
 impl<'a> PublicChannelCommand<'a> for ArchiveCommand {
   fn run(&self, _: &Context, message: &Message, _: GuildId, _: Arc<RwLock<GuildChannel>>, params: &[&str]) -> CommandResult<'a> {
     let params = self.params_then("archive", params, |a| a.setting(::structopt::clap::AppSettings::ArgRequiredElseHelp))?;
-    let channel = match params.channel.get().chain_err(|| "could not get channel")? {
+    let channel = match params.channel.to_channel().chain_err(|| "could not get channel")? {
       Channel::Guild(g) => g,
       _ => return Err("This channel must be a guild channel.".into())
     };
@@ -48,7 +48,7 @@ impl<'a> PublicChannelCommand<'a> for ArchiveCommand {
         .wrap());
     }
 
-    let guild = channel.guild_id.find().chain_err(|| "could not find guild")?;
+    let guild = channel.guild_id.to_guild_cached().chain_err(|| "could not find guild")?;
 
     let archive_path = Path::new("./archives")
       .join(&guild.read().id.to_string())

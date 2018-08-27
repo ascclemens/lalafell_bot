@@ -22,7 +22,7 @@ pub struct Params {
 
 impl<'a> TimeoutRoleCommand {
   pub fn run(&self, author: UserId, guild: GuildId, params: Params) -> CommandResult<'a> {
-    let guild = guild.find().chain_err(|| "could not find guild")?;
+    let guild = guild.to_guild_cached().chain_err(|| "could not find guild")?;
     if author != guild.read().owner_id {
       return Err(ExternalCommandFailure::default()
         .message(|e: CreateEmbed| e

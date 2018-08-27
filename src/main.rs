@@ -1,6 +1,7 @@
-#![feature(mpsc_select, box_syntax, fnbox, entry_or_default)]
+#![feature(mpsc_select, box_syntax, fnbox, never_type)]
 // areyoufuckingkiddingme.jpg
 #![cfg_attr(feature = "cargo-clippy", allow(unreadable_literal))]
+#![allow(proc_macro_derive_resolution_fallback)]
 #![recursion_limit = "1024"]
 
 extern crate ansi_term;
@@ -15,6 +16,7 @@ extern crate dotenv;
 extern crate envy;
 #[macro_use]
 extern crate error_chain;
+extern crate failure;
 extern crate fern;
 extern crate fflogs;
 extern crate ffxiv_types as ffxiv;
@@ -37,7 +39,7 @@ extern crate typemap;
 extern crate unicase;
 extern crate url;
 extern crate uuid;
-extern crate xivdb;
+extern crate xivapi;
 
 // TODO: Efficiency. Every time a command is called, it creates a new App and calls the methods on
 //       it. Storing just one App per command would be ideal.
@@ -132,5 +134,6 @@ pub struct Environment {
   pub discord_bot_token: String,
   pub database_location: String,
   pub config_location: String,
-  pub fflogs_api_key: String
+  pub fflogs_api_key: String,
+  pub xivapi_key: String,
 }

@@ -11,7 +11,7 @@ pub struct Music;
 
 impl EventHandler for Music {
   fn voice_state_update(&self, ctx: Context, guild: Option<GuildId>, state: VoiceState) {
-    let guild = some_or!(guild.and_then(|x| x.find()), return);
+    let guild = some_or!(guild.and_then(|x| x.to_guild_cached()), return);
     let bot_id = ::serenity::CACHE.read().user.id;
     // if the bot is leaving, stop playing
     if state.user_id == bot_id && state.channel_id.is_none() {

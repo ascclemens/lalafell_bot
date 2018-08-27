@@ -56,7 +56,7 @@ impl<'a> PlayCommand {
 
 impl PlayCommand {
   fn join_author(vm: &mut ClientVoiceManager, author: UserId, guild_id: GuildId) -> Option<&mut Handler> {
-    let guild = guild_id.find()?;
+    let guild = guild_id.to_guild_cached()?;
     let channel_id = guild.read().voice_states.get(&author)?.channel_id?;
     vm.join(guild_id, channel_id)
   }

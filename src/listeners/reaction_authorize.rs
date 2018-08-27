@@ -22,7 +22,7 @@ impl EventHandler for ReactionAuthorize {
 impl ReactionAuthorize {
   result_wrap! {
     fn receive(_ctx: Context, r: &Reaction, added: bool) -> Result<()> {
-      let channel = match r.channel_id.get().chain_err(|| "could not get channel")? {
+      let channel = match r.channel_id.to_channel().chain_err(|| "could not get channel")? {
         Channel::Guild(c) => c.read().clone(),
         _ => return Ok(())
       };
@@ -35,7 +35,7 @@ impl ReactionAuthorize {
             .and(dsl::emoji.eq(r.emoji.to_string())))
           .load(c)
       }).chain_err(|| "could not load reactions")?;
-      let guild = channel.guild_id.get().chain_err(|| "could not get guild")?;
+      let guild = channel.guild_id.to_partial_guild().chain_err(|| "could not get guild")?;
       let mut member = guild.member(r.user_id).chain_err(|| "could not get member")?;
       for reac in reactions {
         if added {

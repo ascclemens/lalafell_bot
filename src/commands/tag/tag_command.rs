@@ -47,7 +47,7 @@ impl<'a> PublicChannelCommand<'a> for TagCommand {
     let ff_server = params.server;
     let name = format!("{} {}", params.first_name, params.last_name);
 
-    match Tagger::search_tag(self.env.as_ref(), *who, guild, ff_server.as_str(), &name, true) {
+    match Tagger::search_tag(self.env.as_ref(), *who, guild, ff_server, &name, true) {
       Ok(Some(error)) => Err(ExternalCommandFailure::default()
         .message(move |e: CreateEmbed| e.description(&error))
         .wrap()),

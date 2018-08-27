@@ -15,6 +15,10 @@ use database::models::{ToU64, Tag, NewTag, Verification, Role as DbRole};
 
 use diesel::prelude::*;
 
+use failure::Fail;
+
+use ffxiv::World;
+
 use lalafell::error::*;
 use lalafell::commands::prelude::*;
 
@@ -26,13 +30,13 @@ use serenity::prelude::Mentionable;
 use serenity::model::id::{RoleId, UserId};
 use serenity::http::{HttpError, StatusCode};
 
-use reqwest::Client;
-
 use unicase::UniCase;
 
-use url::Url;
+use xivapi::{
+  prelude::*,
+  models::character::{Race, Tribe, Gender, State},
+};
 
-use std::thread;
 use std::sync::Mutex;
 use std::collections::HashSet;
 
@@ -41,64 +45,54 @@ lazy_static! {
   static ref LIMBO_ROLES: Mutex<Vec<Role>> = Mutex::default();
 }
 
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "PascalCase")]
+pub struct CharacterData {
+  #[serde(rename = "ID")]
+  pub id: u64,
+  pub name: String,
+  pub race: Race,
+  pub tribe: Tribe,
+  pub gender: Gender,
+  pub server: World,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(untagged)]
+pub enum Payload {
+  Character(CharacterData),
+  Empty(::serde_json::Value),
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "PascalCase")]
+pub struct CharacterResult {
+  pub state: State,
+  pub payload: Payload,
+}
+
 pub struct Tagger;
 
 impl Tagger {
-  fn add_to_xivdb<N: Into<String>, S: Into<String>>(name: N, server: S) {
-    let name: String = name.into();
-    let server: String = server.into();
-    thread::spawn(move || {
-      let mut url = Url::parse("https://xivsync.com/character/search").unwrap();
-      url.query_pairs_mut()
-        .append_pair("name", &name)
-        .append_pair("server", &server);
-      let client = Client::new();
-      client.get(url).send().ok();
-    });
-  }
-
-  pub fn search_tag(env: &BotEnv, who: UserId, on: GuildId, server: &str, character_name: &str, ignore_verified: bool) -> Result<Option<String>> {
-    let params = &[
-      ("one", "characters"),
-      ("strict", "on"),
-      ("server|et", server)
-    ];
-
-    let res = env.xivdb.search(character_name, params).chain_err(|| "could not query XIVDB")?;
-
-    let search_chars = res.characters.chain_err(|| "no characters field in result")?.results;
+  pub fn search_tag(env: &BotEnv, who: UserId, on: GuildId, server: World, character_name: &str, ignore_verified: bool) -> Result<Option<String>> {
+    let res = env.xivapi
+      .character_search()
+      .name(character_name)
+      .server(server)
+      .send()
+      .map_err(|x| x.compat())
+      .chain_err(|| "could not query XIVAPI")?;
 
     let uni_char_name = UniCase::new(character_name);
-    let character = match search_chars
-      .into_iter()
-      .find(|x|
-        x["name"]
-          .as_str()
-          .map(UniCase::new) == Some(uni_char_name)
-      )
-    {
+    let character = match res.characters.into_iter().find(|x| UniCase::new(&x.name) == uni_char_name) {
       Some(c) => c,
-      None => {
-        Tagger::add_to_xivdb(character_name, server);
-        return Ok(Some(format!("Could not find any character by the name {} on {} in the XIVDB database.\nIf you typed everything correctly, please wait five minutes for your character to get added to the database, then try again.", character_name, server)));
-      }
+      None => return Ok(Some(format!("Could not find any character by the name {} on {} on the Lodestone.", character_name, server))),
     };
-
-    let char_id = match character["id"].as_u64() {
-      Some(u) => u,
-      None => bail!("character ID was not a u64")
-    };
-
-    let name = match character["name"].as_str() {
-      Some(s) => s,
-      None => bail!("character name was not a string")
-    };
-
-    if UniCase::new(name) != UniCase::new(character_name) {
+    if UniCase::new(character.name) != UniCase::new(character_name) {
       return Ok(Some(format!("Could not find any character by the name {} on {}.", character_name, server)));
     }
 
-    Tagger::tag(env, who, on, char_id, ignore_verified)
+    Tagger::tag(env, who, on, character.id as u64, ignore_verified)
   }
 
   fn find_or_create_role(guild: GuildId, name: &str, add_roles: &mut Vec<Role>, created_roles: &mut Vec<Role>) -> Result<()> {
@@ -109,7 +103,7 @@ impl Tagger {
     where F: FnOnce(EditRole) -> EditRole
   {
     let uni_name = UniCase::new(name);
-    let guild = guild.get().chain_err(|| "could not get guild")?;
+    let guild = guild.to_partial_guild().chain_err(|| "could not get guild")?;
     match guild.roles.values().find(|x| UniCase::new(&x.name) == uni_name) {
       Some(r) => add_roles.push(r.clone()),
       None => {
@@ -164,7 +158,24 @@ impl Tagger {
       Err(e) => return Err(e).chain_err(|| "could not get member for tagging")
     };
 
-    let character = env.xivdb.character(char_id).chain_err(|| "could not look up character")?;
+    let res: CharacterResult = env.xivapi
+      .character(char_id)
+      .columns(&["ID", "Name", "Race", "Tribe", "Gender", "Server"])
+      .json()
+      .map_err(|x| x.compat())
+      .chain_err(|| "could not look up character")?;
+
+    match res.state {
+      State::Adding => return Ok(Some("That character is not in the database. Try again in two minutes.".into())),
+      State::NotFound => return Ok(Some("No such character.".into())),
+      State::Blacklist => return Ok(Some("That character has removed themselves from the database.".into())),
+      _ => {}
+    }
+
+    let character = match res.payload {
+      Payload::Character(c) => c,
+      Payload::Empty(_) => bail!("empty payload"),
+    };
 
     let tag: Option<Tag> = ::bot::with_connection(|c| {
       use database::schema::tags::dsl;
@@ -175,19 +186,19 @@ impl Tagger {
     }).chain_err(|| "could not load tags")?;
     match tag {
       Some(mut t) => {
-        let (id, name, server) = (character.lodestone_id, character.name.clone(), character.server.clone());
+        let (id, name, server) = (character.id, character.name.clone(), character.server.clone());
         t.character_id = id.into();
         t.character = name;
-        t.server = server;
+        t.server = server.to_string();
         ::bot::with_connection(|c| t.save_changes::<Tag>(c)).chain_err(|| "could not update tag")?;
       },
       None => {
         let new_tag = NewTag::new(
           who.0,
           on.0,
-          character.lodestone_id,
+          character.id,
           &character.name,
-          &character.server
+          character.server.as_str()
         );
         ::bot::with_connection(|c| {
           use database::schema::tags;
@@ -197,9 +208,9 @@ impl Tagger {
     }
 
     // Get a copy of the roles on the server.
-    let mut roles: Vec<Role> = match on.find() {
+    let mut roles: Vec<Role> = match on.to_guild_cached() {
       Some(g) => g.read().roles.values().cloned().collect(),
-      None => on.get().chain_err(|| "could not get guild")?.roles.values().cloned().collect()
+      None => on.to_partial_guild().chain_err(|| "could not get guild")?.roles.values().cloned().collect()
     };
 
     // Check for existing limbo roles.
@@ -220,9 +231,21 @@ impl Tagger {
     // Find or create the necessary roles
     let mut created_roles = Vec::new();
     let mut add_roles = Vec::new();
-    Tagger::find_or_create_role(on, &character.data.race, &mut add_roles, &mut created_roles)?;
-    Tagger::find_or_create_role(on, &character.data.gender, &mut add_roles, &mut created_roles)?;
-    Tagger::find_or_create_role_and(on, &character.server, &mut add_roles, &mut created_roles, |r| r.hoist(true))?;
+    let race = match character.race {
+      Race::Hyur => "hyur",
+      Race::Elezen => "elezen",
+      Race::Lalafell => "lalafell",
+      Race::Miqote => "miqo'te",
+      Race::Roegadyn => "roegadyn",
+      Race::AuRa => "au ra",
+    };
+    let gender = match character.gender {
+      Gender::Male => "male",
+      Gender::Female => "female",
+    };
+    Tagger::find_or_create_role(on, race, &mut add_roles, &mut created_roles)?;
+    Tagger::find_or_create_role(on, gender, &mut add_roles, &mut created_roles)?;
+    Tagger::find_or_create_role_and(on, character.server.as_str(), &mut add_roles, &mut created_roles, |r| r.hoist(true))?;
 
     if is_verified {
       Tagger::find_or_create_role(on, "verified", &mut add_roles, &mut created_roles)?;
