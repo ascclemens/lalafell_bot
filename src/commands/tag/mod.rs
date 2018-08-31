@@ -58,17 +58,23 @@ pub struct CharacterData {
 }
 
 #[derive(Debug, Deserialize)]
-#[serde(untagged)]
-pub enum Payload {
-  Character(CharacterData),
-  Empty(::serde_json::Value),
+#[serde(rename_all = "PascalCase")]
+pub struct CharacterResult {
+  pub info: Info,
+  pub character: Option<CharacterData>,
 }
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "PascalCase")]
-pub struct CharacterResult {
+pub struct Info {
+  pub character: CharacterInfo,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "PascalCase")]
+pub struct CharacterInfo {
   pub state: State,
-  pub payload: Payload,
+  pub updated: Option<i64>,
 }
 
 pub struct Tagger;
@@ -79,6 +85,7 @@ impl Tagger {
       .character_search()
       .name(character_name)
       .server(server)
+      .tags(&["search_tag"])
       .send()
       .map_err(|x| x.compat())
       .chain_err(|| "could not query XIVAPI")?;
@@ -159,22 +166,23 @@ impl Tagger {
     };
 
     let res: CharacterResult = env.xivapi
-      .character(char_id)
-      .columns(&["ID", "Name", "Race", "Tribe", "Gender", "Server"])
+      .character(char_id.into())
+      .columns(&["Info.Character", "Character.ID", "Character.Name", "Character.Race", "Character.Tribe", "Character.Gender", "Character.Server"])
+      .tags(&["tag"])
       .json()
       .map_err(|x| x.compat())
       .chain_err(|| "could not look up character")?;
 
-    match res.state {
+    match res.info.character.state {
       State::Adding => return Ok(Some("That character is not in the database. Try again in two minutes.".into())),
       State::NotFound => return Ok(Some("No such character.".into())),
       State::Blacklist => return Ok(Some("That character has removed themselves from the database.".into())),
       _ => {}
     }
 
-    let character = match res.payload {
-      Payload::Character(c) => c,
-      Payload::Empty(_) => bail!("empty payload"),
+    let character = match res.character {
+      Some(c) => c,
+      None => bail!("missing character"),
     };
 
     let tag: Option<Tag> = ::bot::with_connection(|c| {

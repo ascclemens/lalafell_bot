@@ -1,5 +1,5 @@
 use bot::BotEnv;
-use commands::tag::{CharacterResult, Payload};
+use commands::tag::CharacterResult;
 
 use failure::Fail;
 
@@ -45,6 +45,7 @@ impl<'a> Command<'a> for RaceCommand {
       .character_search()
       .name(&name)
       .server(server)
+      .tags(&["race"])
       .send()
       .map_err(|x| x.compat())
       .chain_err(|| "could not search XIVAPI")?;
@@ -54,22 +55,23 @@ impl<'a> Command<'a> for RaceCommand {
       None => return Err(format!("Could not find any character by the name {}.", name).into())
     };
     let res: CharacterResult = self.env.xivapi
-      .character(character.id)
-      .columns(&["ID", "Name", "Race", "Gender", "Server", "Tribe"])
+      .character(character.id.into())
+      .columns(&["Info.Character", "Character.ID", "Character.Name", "Character.Race", "Character.Gender", "Character.Server", "Character.Tribe"])
+      .tags(&["race"])
       .json()
       .map_err(|x| x.compat())
       .chain_err(|| "could not download character")?;
 
-    match res.state {
+    match res.info.character.state {
       State::Adding => return Err("That character is not in the database. Try again in two minutes.".into()),
       State::NotFound => return Err("No such character.".into()),
       State::Blacklist => return Err("That character has removed themselves from the database.".into()),
-      _ => {}
+      _ => {},
     }
 
-    let character = match res.payload {
-      Payload::Character(c) => c,
-      Payload::Empty(_) => bail!("empty payload"),
+    let character = match res.character {
+      Some(c) => c,
+      None => bail!("missing character"),
     };
 
     let race = match character.race {
