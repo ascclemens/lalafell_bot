@@ -77,7 +77,7 @@ pub struct Info {
 #[serde(rename_all = "PascalCase")]
 pub struct CharacterInfo {
   pub state: State,
-  pub updated: Option<i64>,
+  pub updated: Option<String>,
 }
 
 pub struct Tagger;
