@@ -2022,7 +2022,7 @@ dependencies = [
 [[package]]
 name = "xivapi"
 version = "0.1.0"
-source = "git+https://github.com/jkcclemens/xivapi-rs#9ac5165e8f4155451ce54704695e8aefc6312ced"
+source = "git+https://github.com/jkcclemens/xivapi-rs#f9f8b7d206ab02079b347cded4b35b041eb83823"
 dependencies = [
  "chrono 0.4.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "failure 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
