@@ -131,9 +131,9 @@ fn inner() -> Result<()> {
 
 #[derive(Debug, Deserialize)]
 pub struct Environment {
-  pub discord_bot_token: String,
+  pub config: String,
   pub database_location: String,
-  pub config_location: String,
+  pub discord_bot_token: String,
   pub fflogs_api_key: String,
   pub xivapi_key: String,
 }
