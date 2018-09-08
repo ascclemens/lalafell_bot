@@ -34,7 +34,10 @@ use unicase::UniCase;
 
 use xivapi::{
   prelude::*,
-  models::character::{Race, Tribe, Gender, State},
+  models::{
+    State,
+    character::{Race, Tribe, Gender},
+  },
 };
 
 use std::sync::Mutex;
@@ -91,7 +94,7 @@ impl Tagger {
       .chain_err(|| "could not query XIVAPI")?;
 
     let uni_char_name = UniCase::new(character_name);
-    let character = match res.characters.into_iter().find(|x| UniCase::new(&x.name) == uni_char_name) {
+    let character = match res.results.into_iter().find(|x| UniCase::new(&x.name) == uni_char_name) {
       Some(c) => c,
       None => return Ok(Some(format!("Could not find any character by the name {} on {} on the Lodestone.", character_name, server))),
     };

@@ -12,7 +12,10 @@ use unicase::UniCase;
 
 use xivapi::{
   prelude::*,
-  models::character::{State, Race, Tribe},
+  models::{
+    State,
+    character::{Race, Tribe},
+  },
 };
 
 #[derive(BotCommand)]
@@ -50,7 +53,7 @@ impl<'a> Command<'a> for RaceCommand {
       .map_err(|x| x.compat())
       .chain_err(|| "could not search XIVAPI")?;
     let uni_name = UniCase::new(name.as_str());
-    let character = match res.characters.into_iter().find(|c| UniCase::new(&c.name) == uni_name) {
+    let character = match res.results.into_iter().find(|c| UniCase::new(&c.name) == uni_name) {
       Some(c) => c,
       None => return Err(format!("Could not find any character by the name {}.", name).into())
     };
