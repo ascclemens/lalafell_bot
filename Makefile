@@ -9,8 +9,7 @@ build:
 		-v "$(ROOT_DIR)"/.docker/cargo/git:/root/.cargo/git:cached \
 		-v "$(ROOT_DIR)"/.docker/cargo/target:/root/target:cached \
 		lalabot_build \
-		/bin/bash -l -c 'cargo build --release --target-dir /root/target -Zcompile-progress' \
-  && strip /root/target/release/lalafell_bot
+		/bin/bash -l -c 'cargo build --release --target-dir /root/target -Zcompile-progress && strip /root/target/release/lalafell_bot'
 
 # clean:
 # 	cargo clean
