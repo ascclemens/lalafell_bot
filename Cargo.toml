@@ -16,24 +16,24 @@ error-chain = "0.12"
 failure = "0.1"
 fern = "0.5"
 fflogs = { version = "*", git = "https://github.com/jkcclemens/fflogs_rs" }
-reqwest = "0.8"
 itertools = "0.7"
 lalafell = { version = "*", git = "https://github.com/jkcclemens/lalafell" }
 lazy_static = "1.0"
+lodestone_api_client = { version = "*", git = "https://github.com/jkcclemens/lodestone_api_client" }
 log = "0.4"
+quote = { version = "0.6", optional = true }
 rand = "0.5"
+reqwest = "0.8"
 scraper = "0.7"
 serde = "1.0"
 serde_derive = "1.0"
 serde_json = "1.0"
 structopt = { version = "0.2", default-features = false }
+syn = { version = "0.14", optional = true, features = ["full", "derive", "parsing", "printing", "visit", "visit-mut", "fold", "clone-impls", "extra-traits"] }
 typemap = "0.3"
 unicase = "2"
 url = "1.6"
 uuid = { version = "0.6", features = ["v4"] }
-xivapi = { version = "*", git = "https://github.com/jkcclemens/xivapi-rs" }
-quote = { version = "0.6", optional = true }
-syn = { version = "0.14", optional = true, features = ["full", "derive", "parsing", "printing", "visit", "visit-mut", "fold", "clone-impls", "extra-traits"] }
 
 [dependencies.serenity]
 version = "0.5"
@@ -43,7 +43,7 @@ default-features = false
 features = ["builder", "cache", "client", "gateway", "model", "utils", "voice"]
 
 [dependencies.ffxiv_types]
-version = "0.2"
+version = "1"
 default-features = false
 features = ["data_centers", "worlds", "roles", "combat_jobs"]
 

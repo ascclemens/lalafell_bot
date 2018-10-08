@@ -74,7 +74,7 @@ impl EventHandler for Handler {
   handler!(guild_update, param1: Context, param2: Option < Arc < RwLock < Guild > > >, param3: PartialGuild);
   handler!(message_delete_bulk, param1: Context, param2: ChannelId, param3: Vec < MessageId >);
   handler!(message_delete, param1: Context, param2: ChannelId, param3: MessageId);
-  handler!(message_update, param1: Context, param2: Option < Message >, param3: Message);
+  handler!(message_update, param1: Context, param2: MessageUpdateEvent);
   handler!(message, param1: Context, param2: Message);
   handler!(presence_replace, param1: Context, param2: Vec < Presence >);
   handler!(presence_update, param1: Context, param2: PresenceUpdateEvent);

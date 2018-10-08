@@ -7,12 +7,23 @@ use diesel::prelude::*;
 use serenity::prelude::{Mutex, Mentionable};
 use serenity::client::{Context, EventHandler};
 use serenity::model::channel::Message;
+use serenity::model::event::MessageUpdateEvent;
 use serenity::model::guild::Member;
 use serenity::model::id::{GuildId, ChannelId, UserId, MessageId};
 use serenity::model::user::User;
 
 use std::collections::HashMap;
 use std::sync::atomic::{Ordering, AtomicUsize};
+
+macro_rules! update_message {
+  ($message:expr, $update:expr, $($field:ident),+) => {{
+    $(
+      if let Some(f) = $update.$field {
+        $message.$field = f;
+      }
+    )+
+  }}
+}
 
 #[derive(Default)]
 pub struct Log {
@@ -78,7 +89,16 @@ impl EventHandler for Log {
     })).ok();
   }
 
-  fn message_update(&self, _: Context, _: Option<Message>, update: Message) {
+  fn message_update(&self, _: Context, update: MessageUpdateEvent) {
+    let author = match update.author {
+      Some(ref a) => a,
+      None => return
+    };
+    let new_content = match update.content {
+      Some(ref c) => c,
+      None => return
+    };
+
     let channel = match update.channel_id.to_channel() {
       Ok(c) => c,
       Err(e) => {
@@ -101,14 +121,14 @@ impl EventHandler for Log {
     };
     let guild_reader = guild.read();
 
-    let member = match guild_reader.members.get(&update.author.id).cloned().or_else(|| guild_reader.member(update.author.id).ok()) {
+    let member = match guild_reader.members.get(&author.id).cloned().or_else(|| guild_reader.member(author.id).ok()) {
       Some(m) => m,
       None => return
     };
 
     let mut messages = self.messages.lock();
     let message = messages
-      .get_mut(&update.author.id)
+      .get_mut(&author.id)
       .and_then(|x| x.get_mut(&reader.guild_id))
       .and_then(|x| x.iter_mut().find(|m| m.id == update.id));
     let message = match message {
@@ -120,15 +140,13 @@ impl EventHandler for Log {
     let channel_mention = update.channel_id.mention();
     let message_id = update.id;
 
-    *message = update;
-
-    // update_message!(
-    //   message,
-    //   update,
-    //   kind, content, tts, pinned, timestamp, author, mention_everyone, mentions, mention_roles,
-    //   attachments
-    // );
-    // message.edited_timestamp = update.edited_timestamp;
+    update_message!(
+      message,
+      update,
+      kind, content, tts, pinned, timestamp, author, mention_everyone, mentions, mention_roles,
+      attachments
+    );
+    message.edited_timestamp = update.edited_timestamp;
 
     channel_id.send_message(|m| m.embed(|mut embed| {
       embed = embed
@@ -140,7 +158,7 @@ impl EventHandler for Log {
         .field("Action", "Edited message", true)
         .field("Channel", channel_mention, true)
         .field("Original message", original_content, false)
-        .field("New message", &message.content, false)
+        .field("New message", &new_content, false)
         .timestamp(&Utc::now())
         .footer(|f| f.text(message_id));
       embed

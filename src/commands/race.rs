@@ -1,21 +1,17 @@
 use bot::BotEnv;
-use commands::tag::CharacterResult;
 
 use failure::Fail;
 
-use ffxiv::World;
+use ffxiv::{World, Race, Clan};
 
 use lalafell::commands::prelude::*;
 use lalafell::error::*;
 
 use unicase::UniCase;
 
-use xivapi::{
+use lodestone_api_client::{
   prelude::*,
-  models::{
-    State,
-    character::{Race, Tribe},
-  },
+  models::RouteResult,
 };
 
 #[derive(BotCommand)]
@@ -26,8 +22,8 @@ pub struct RaceCommand {
 #[derive(Debug, StructOpt)]
 #[structopt(about = "Display the race of the specified character")]
 pub struct Params {
-  #[structopt(help = "The server the character is on")]
-  server: World,
+  #[structopt(help = "The world the character is on")]
+  world: World,
   #[structopt(help = "The character's first name")]
   first_name: String,
   #[structopt(help = "The character's last name")]
@@ -41,66 +37,40 @@ impl HasParams for RaceCommand {
 impl<'a> Command<'a> for RaceCommand {
   fn run(&self, _: &Context, _: &Message, params: &[&str]) -> CommandResult<'a> {
     let params = self.params_then("race", params, |a| a.setting(::structopt::clap::AppSettings::ArgRequiredElseHelp))?;
-    let server = params.server;
+    let world = params.world;
     let name = format!("{} {}", params.first_name, params.last_name);
 
-    let res = self.env.xivapi
+    let res = self.env.lodestone
       .character_search()
       .name(&name)
-      .server(server)
-      .tags(&["race"])
+      .world(world)
       .send()
       .map_err(|x| x.compat())
-      .chain_err(|| "could not search XIVAPI")?;
+      .chain_err(|| "could not search Lodestone API")?;
+    let res = match res {
+      RouteResult::Success { result, .. } | RouteResult::Scraped { result } | RouteResult::Cached { result, .. } => result,
+      RouteResult::Error { error } => return Err(format!("An error occurred: `{}`. Try again later.", error).into()),
+      _ => bail!("bad routeresult: {:#?}", res),
+    };
     let uni_name = UniCase::new(name.as_str());
     let character = match res.results.into_iter().find(|c| UniCase::new(&c.name) == uni_name) {
       Some(c) => c,
       None => return Err(format!("Could not find any character by the name {}.", name).into())
     };
-    let res: CharacterResult = self.env.xivapi
+    let res = self.env.lodestone
       .character(character.id.into())
-      .columns(&["Info.Character", "Character.ID", "Character.Name", "Character.Race", "Character.Gender", "Character.Server", "Character.Tribe"])
-      .tags(&["race"])
-      .json()
+      .send()
       .map_err(|x| x.compat())
       .chain_err(|| "could not download character")?;
 
-    match res.info.character.state {
-      State::Adding => return Err("That character is not in the database. Try again in two minutes.".into()),
-      State::NotFound => return Err("No such character.".into()),
-      State::Blacklist => return Err("That character has removed themselves from the database.".into()),
-      _ => {},
-    }
-
-    let character = match res.character {
-      Some(c) => c,
-      None => bail!("missing character"),
+    let character = match res {
+      RouteResult::Cached { result, .. } | RouteResult::Scraped { result } | RouteResult::Success { result, .. } => result,
+      RouteResult::NotFound => return Err("No such character.".into()),
+      RouteResult::Adding { .. } => return Err("That character is not in the database. Try again in one minute.".into()),
+      RouteResult::Error { error } => return Err(format!("An error occurred: `{}`. Try again later.", error).into()),
+      _ => bail!("bad routeresult: {:?}", res),
     };
 
-    let race = match character.race {
-      Race::Hyur => "Hyur",
-      Race::Elezen => "Elezen",
-      Race::Lalafell => "Lalafell",
-      Race::Miqote => "Miqo'te",
-      Race::Roegadyn => "Roegadyn",
-      Race::AuRa => "Au Ra",
-    };
-
-    let tribe = match character.tribe {
-      Tribe::Midlander => "Midlander",
-      Tribe::Highlander => "Highlander",
-      Tribe::Wildwood => "Wildwood",
-      Tribe::Duskwight => "Duskwight",
-      Tribe::Plainsfolk => "Plainsfolk",
-      Tribe::Dunesfolk => "Dunesfolk",
-      Tribe::SeekerOfTheSun => "Seeker of the Sun",
-      Tribe::SeekerOfTheMoon => "Seeker of the Moon",
-      Tribe::SeaWolf => "Sea Wolf",
-      Tribe::Hellsguard => "Hellsguard",
-      Tribe::Raen => "Raen",
-      Tribe::Xaela => "Xaela",
-    };
-
-    Ok(format!("{} ({})", race, tribe).into())
+    Ok(format!("{} ({})", character.race.name(), character.clan.name()).into())
   }
 }

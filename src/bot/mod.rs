@@ -6,7 +6,7 @@ use database::models::ToU64;
 
 use lalafell::error::Result as LalafellResult;
 
-use xivapi::XivApi;
+use lodestone_api_client::LodestoneApi;
 
 use serenity::client::Client;
 use serenity::prelude::RwLock;
@@ -68,13 +68,13 @@ pub struct LalafellBot {
 pub struct BotEnv {
   pub environment: Environment,
   pub config: RwLock<Config>,
-  pub xivapi: XivApi,
+  pub lodestone: LodestoneApi,
 }
 
 impl LalafellBot {
   pub fn new(environment: Environment, config: Config) -> BotResult<LalafellBot> {
     let env = Arc::new(BotEnv {
-      xivapi: XivApi::with_key(&environment.xivapi_key),
+      lodestone: LodestoneApi::default(),
       config: RwLock::new(config),
       environment,
     });

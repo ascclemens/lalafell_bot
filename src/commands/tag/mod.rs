@@ -17,7 +17,7 @@ use diesel::prelude::*;
 
 use failure::Fail;
 
-use ffxiv::World;
+use ffxiv::{World, Race, Clan};
 
 use lalafell::error::*;
 use lalafell::commands::prelude::*;
@@ -32,11 +32,11 @@ use serenity::http::{HttpError, StatusCode};
 
 use unicase::UniCase;
 
-use xivapi::{
+use lodestone_api_client::{
   prelude::*,
   models::{
-    State,
-    character::{Race, Tribe, Gender},
+    RouteResult,
+    character::Gender,
   },
 };
 
@@ -48,58 +48,30 @@ lazy_static! {
   static ref LIMBO_ROLES: Mutex<Vec<Role>> = Mutex::default();
 }
 
-#[derive(Debug, Deserialize)]
-#[serde(rename_all = "PascalCase")]
-pub struct CharacterData {
-  #[serde(rename = "ID")]
-  pub id: u64,
-  pub name: String,
-  pub race: Race,
-  pub tribe: Tribe,
-  pub gender: Gender,
-  pub server: World,
-}
-
-#[derive(Debug, Deserialize)]
-#[serde(rename_all = "PascalCase")]
-pub struct CharacterResult {
-  pub info: Info,
-  pub character: Option<CharacterData>,
-}
-
-#[derive(Debug, Deserialize)]
-#[serde(rename_all = "PascalCase")]
-pub struct Info {
-  pub character: CharacterInfo,
-}
-
-#[derive(Debug, Deserialize)]
-#[serde(rename_all = "PascalCase")]
-pub struct CharacterInfo {
-  pub state: State,
-  pub updated: Option<String>,
-}
-
 pub struct Tagger;
 
 impl Tagger {
-  pub fn search_tag(env: &BotEnv, who: UserId, on: GuildId, server: World, character_name: &str, ignore_verified: bool) -> Result<Option<String>> {
-    let res = env.xivapi
+  pub fn search_tag(env: &BotEnv, who: UserId, on: GuildId, world: World, character_name: &str, ignore_verified: bool) -> Result<Option<String>> {
+    let res = env.lodestone
       .character_search()
       .name(character_name)
-      .server(server)
-      .tags(&["search_tag"])
+      .world(world)
       .send()
       .map_err(|x| x.compat())
-      .chain_err(|| "could not query XIVAPI")?;
+      .chain_err(|| "could not query Lodestone API")?;
+
+    let res = match res {
+      RouteResult::Cached { result, .. } | RouteResult::Success { result, .. } | RouteResult::Scraped { result } => result,
+      _ => return Ok(Some(format!("An error occurred. Try again later."))),
+    };
 
     let uni_char_name = UniCase::new(character_name);
     let character = match res.results.into_iter().find(|x| UniCase::new(&x.name) == uni_char_name) {
       Some(c) => c,
-      None => return Ok(Some(format!("Could not find any character by the name {} on {} on the Lodestone.", character_name, server))),
+      None => return Ok(Some(format!("Could not find any character by the name {} on {} on the Lodestone.", character_name, world))),
     };
     if UniCase::new(character.name) != UniCase::new(character_name) {
-      return Ok(Some(format!("Could not find any character by the name {} on {}.", character_name, server)));
+      return Ok(Some(format!("Could not find any character by the name {} on {}.", character_name, world)));
     }
 
     Tagger::tag(env, who, on, character.id as u64, ignore_verified)
@@ -168,24 +140,17 @@ impl Tagger {
       Err(e) => return Err(e).chain_err(|| "could not get member for tagging")
     };
 
-    let res: CharacterResult = env.xivapi
+    let res = env.lodestone
       .character(char_id.into())
-      .columns(&["Info.Character", "Character.ID", "Character.Name", "Character.Race", "Character.Tribe", "Character.Gender", "Character.Server"])
-      .tags(&["tag"])
-      .json()
+      .send()
       .map_err(|x| x.compat())
       .chain_err(|| "could not look up character")?;
 
-    match res.info.character.state {
-      State::Adding => return Ok(Some("That character is not in the database. Try again in two minutes.".into())),
-      State::NotFound => return Ok(Some("No such character.".into())),
-      State::Blacklist => return Ok(Some("That character has removed themselves from the database.".into())),
-      _ => {}
-    }
-
-    let character = match res.character {
-      Some(c) => c,
-      None => bail!("missing character"),
+    let character = match res {
+      RouteResult::Cached { result, .. } | RouteResult::Success { result, .. } | RouteResult::Scraped { result } => result,
+      RouteResult::Adding { .. } => return Ok(Some("That character is not in the database. Try again in one minute.".into())),
+      RouteResult::NotFound => return Ok(Some("No such character.".into())),
+      RouteResult::Error { error } => return Ok(Some(format!("An error occurred: `{}`. Try again later.", error))),
     };
 
     let tag: Option<Tag> = ::bot::with_connection(|c| {
@@ -197,7 +162,7 @@ impl Tagger {
     }).chain_err(|| "could not load tags")?;
     match tag {
       Some(mut t) => {
-        let (id, name, server) = (character.id, character.name.clone(), character.server.clone());
+        let (id, name, server) = (character.id, character.name.clone(), character.world.clone());
         t.character_id = id.into();
         t.character = name;
         t.server = server.to_string();
@@ -209,7 +174,7 @@ impl Tagger {
           on.0,
           character.id,
           &character.name,
-          character.server.as_str()
+          character.world.as_str()
         );
         ::bot::with_connection(|c| {
           use database::schema::tags;
@@ -256,7 +221,7 @@ impl Tagger {
     };
     Tagger::find_or_create_role(on, race, &mut add_roles, &mut created_roles)?;
     Tagger::find_or_create_role(on, gender, &mut add_roles, &mut created_roles)?;
-    Tagger::find_or_create_role_and(on, character.server.as_str(), &mut add_roles, &mut created_roles, |r| r.hoist(true))?;
+    Tagger::find_or_create_role_and(on, character.world.as_str(), &mut add_roles, &mut created_roles, |r| r.hoist(true))?;
 
     if is_verified {
       Tagger::find_or_create_role(on, "verified", &mut add_roles, &mut created_roles)?;

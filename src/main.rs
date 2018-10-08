@@ -24,6 +24,7 @@ extern crate itertools;
 extern crate lalafell;
 #[macro_use]
 extern crate lazy_static;
+extern crate lodestone_api_client;
 #[macro_use]
 extern crate log;
 extern crate rand;
@@ -39,7 +40,6 @@ extern crate typemap;
 extern crate unicase;
 extern crate url;
 extern crate uuid;
-extern crate xivapi;
 
 // TODO: Efficiency. Every time a command is called, it creates a new App and calls the methods on
 //       it. Storing just one App per command would be ideal.
@@ -135,5 +135,4 @@ pub struct Environment {
   pub database_location: String,
   pub discord_bot_token: String,
   pub fflogs_api_key: String,
-  pub xivapi_key: String,
 }

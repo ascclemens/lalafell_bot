@@ -95,7 +95,7 @@ impl<'a> PublicChannelCommand<'a> for PartyFinderCommand {
         .into_iter()
         .map(|j| match j {
           Slot::All => "All".into(),
-          Slot::Job(js) => js.into_iter().map(|x| ICONS[x.as_code()]).collect::<Vec<_>>().join(""),
+          Slot::Job(js) => js.into_iter().map(|x| ICONS[x.code()]).collect::<Vec<_>>().join(""),
           Slot::Role(rs) => rs.into_iter().map(|x| x.as_str()).collect::<Vec<_>>().join(""),
         })
         .collect::<Vec<_>>()
