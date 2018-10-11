@@ -22,7 +22,7 @@ pub struct Params {
 }
 
 impl<'a> AddCommand {
-  #[cfg_attr(feature = "cargo-clippy", allow(needless_pass_by_value))]
+  #[allow(clippy::needless_pass_by_value)]
   pub fn run(&self, guild: GuildId, params: Params) -> CommandResult<'a> {
     let dams: Vec<DeleteAllMessages> = ::bot::with_connection(|c| {
       use database::schema::delete_all_messages::dsl;

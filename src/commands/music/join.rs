@@ -15,7 +15,7 @@ pub struct Params {
 }
 
 impl<'a> JoinCommand {
-  #[cfg_attr(feature = "cargo-clippy", allow(needless_pass_by_value))]
+  #[allow(clippy::needless_pass_by_value)]
   pub fn run(&self, ctx: &Context, _: &Message, guild: GuildId, _: Arc<RwLock<GuildChannel>>, params: Params) -> CommandResult<'a> {
     let vm = MusicCommand::voice_manager(ctx)?;
     let mut manager = vm.lock();

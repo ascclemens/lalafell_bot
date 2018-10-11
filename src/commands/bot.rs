@@ -47,7 +47,7 @@ impl<'a> Command<'a> for BotCommand {
 
 impl BotCommand {
   fn presence<'a>(&self, ctx: &Context, args: &[String]) -> CommandResult<'a> {
-    if args.len() < 1 {
+    if args.is_empty() {
       return self.list_all_presences();
     }
     let subcommand = &args[0];

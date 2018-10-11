@@ -62,7 +62,7 @@ impl Tagger {
 
     let res = match res {
       RouteResult::Cached { result, .. } | RouteResult::Success { result, .. } | RouteResult::Scraped { result } => result,
-      _ => return Ok(Some(format!("An error occurred. Try again later."))),
+      _ => return Ok(Some("An error occurred. Try again later.".into())),
     };
 
     let uni_char_name = UniCase::new(character_name);
@@ -162,7 +162,7 @@ impl Tagger {
     }).chain_err(|| "could not load tags")?;
     match tag {
       Some(mut t) => {
-        let (id, name, server) = (character.id, character.name.clone(), character.world.clone());
+        let (id, name, server) = (character.id, character.name.clone(), character.world);
         t.character_id = id.into();
         t.character = name;
         t.server = server.to_string();

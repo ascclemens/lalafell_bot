@@ -28,7 +28,7 @@ pub struct Params {
 }
 
 impl<'a> AddCommand {
-  #[cfg_attr(feature = "cargo-clippy", allow(needless_pass_by_value))]
+  #[allow(clippy::needless_pass_by_value)]
   pub fn run(&self, guild_id: GuildId, params: Params) -> CommandResult<'a> {
     let guild = guild_id.to_guild_cached().chain_err(|| "could not find guild")?;
     let role = UniCase::new(params.role);

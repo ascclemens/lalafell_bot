@@ -1,7 +1,6 @@
-#![feature(mpsc_select, box_syntax, fnbox, never_type)]
+#![feature(mpsc_select, box_syntax, fnbox, never_type, tool_lints)]
 // areyoufuckingkiddingme.jpg
-#![cfg_attr(feature = "cargo-clippy", allow(unreadable_literal))]
-#![allow(proc_macro_derive_resolution_fallback)]
+#![allow(proc_macro_derive_resolution_fallback, clippy::unreadable_literal)]
 #![recursion_limit = "1024"]
 
 extern crate ansi_term;
