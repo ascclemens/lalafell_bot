@@ -17,7 +17,7 @@ use diesel::prelude::*;
 
 use failure::Fail;
 
-use ffxiv::{World, Race, Clan};
+use ffxiv::{World, Race};
 
 use lalafell::error::*;
 use lalafell::commands::prelude::*;

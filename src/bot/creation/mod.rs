@@ -5,8 +5,6 @@ use error::*;
 
 use serde_json;
 
-use std::fs::File;
-
 mod listeners;
 mod tasks;
 pub mod data;

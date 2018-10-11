@@ -2,7 +2,7 @@ use bot::BotEnv;
 
 use failure::Fail;
 
-use ffxiv::{World, Race, Clan};
+use ffxiv::World;
 
 use lalafell::commands::prelude::*;
 use lalafell::error::*;
@@ -68,7 +68,6 @@ impl<'a> Command<'a> for RaceCommand {
       RouteResult::NotFound => return Err("No such character.".into()),
       RouteResult::Adding { .. } => return Err("That character is not in the database. Try again in one minute.".into()),
       RouteResult::Error { error } => return Err(format!("An error occurred: `{}`. Try again later.", error).into()),
-      _ => bail!("bad routeresult: {:?}", res),
     };
 
     Ok(format!("{} ({})", character.race.name(), character.clan.name()).into())
