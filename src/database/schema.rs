@@ -53,17 +53,6 @@ table! {
 }
 
 table! {
-    party_finder_configs (server_id, channel_id) {
-        server_id -> Int8,
-        channel_id -> Int8,
-        message_id -> Int8,
-        role_id -> Int8,
-        emoji -> Text,
-        timeout -> Int8,
-    }
-}
-
-table! {
     presences (id) {
         id -> Int4,
         kind -> Int2,
@@ -170,7 +159,6 @@ allow_tables_to_appear_in_same_query!(
     delete_all_messages,
     ephemeral_messages,
     log_channels,
-    party_finder_configs,
     presences,
     reactions,
     role_check_times,

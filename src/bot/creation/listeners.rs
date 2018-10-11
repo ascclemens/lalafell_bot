@@ -28,7 +28,6 @@ impl Handler {
       box PollTagger,
       box AutoReplyListener::default(),
       box TemporaryRolesListener,
-      box PartyFinder::default(),
       box Music,
       box RandomPresenceListener,
       box Log::default()
@@ -116,7 +115,6 @@ fn command_listener<'a>(env: &Arc<BotEnv>) -> CommandListener<'a> {
     "imagedump", "dump" => ImageDumpCommand,
     "mention" => MentionCommand,
     "music" => MusicCommand,
-    // "partyfinder", "pf" => PartyFinderCommand,
     "ping" => PingCommand,
     "poll" => PollCommand,
     "pollresults" => PollResultsCommand,
