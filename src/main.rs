@@ -1,4 +1,4 @@
-#![feature(mpsc_select, box_syntax, fnbox, never_type, tool_lints)]
+#![feature(mpsc_select, box_syntax, fnbox, never_type)]
 // areyoufuckingkiddingme.jpg
 #![allow(proc_macro_derive_resolution_fallback, clippy::unreadable_literal)]
 #![recursion_limit = "1024"]
