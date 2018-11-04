@@ -11,7 +11,7 @@ pub use self::update_tag::UpdateTagCommand;
 pub use self::update_tags::UpdateTagsCommand;
 
 use bot::BotEnv;
-use database::models::{ToU64, Tag, NewTag, Verification, Role as DbRole};
+use database::models::{ToU64, Tag, NewTag, U64, Verification, Role as DbRole};
 
 use diesel::prelude::*;
 
@@ -51,7 +51,7 @@ lazy_static! {
 pub struct Tagger;
 
 impl Tagger {
-  pub fn search_tag(env: &BotEnv, who: UserId, on: GuildId, world: World, character_name: &str, ignore_verified: bool) -> Result<Option<String>> {
+  pub fn search_tag(env: &BotEnv, who: UserId, on: GuildId, world: World, character_name: &str, force: bool) -> Result<Option<String>> {
     let res = env.lodestone
       .character_search()
       .name(character_name)
@@ -74,7 +74,7 @@ impl Tagger {
       return Ok(Some(format!("Could not find any character by the name {} on {}.", character_name, world)));
     }
 
-    Tagger::tag(env, who, on, character.id as u64, ignore_verified)
+    Tagger::tag(env, who, on, character.id as u64, force)
   }
 
   fn find_or_create_role(guild: GuildId, name: &str, add_roles: &mut Vec<Role>, created_roles: &mut Vec<Role>) -> Result<()> {
@@ -104,7 +104,21 @@ impl Tagger {
     Ok(roles.into_iter().map(|x| x.role_name.to_lowercase()).collect())
   }
 
-  pub fn tag(env: &BotEnv, who: UserId, on: GuildId, char_id: u64, ignore_verified: bool) -> Result<Option<String>> {
+  pub fn tag(env: &BotEnv, who: UserId, on: GuildId, char_id: u64, force: bool) -> Result<Option<String>> {
+    // Trolls always make sure we can't have nice things.
+    let existing_tags: i64 = ::bot::with_connection(|c| {
+      use database::schema::tags::dsl;
+      dsl::tags
+        .select(::diesel::dsl::count(dsl::id))
+        .filter(dsl::character_id.eq(U64::from(char_id))
+          .and(dsl::server_id.eq(on.to_u64()))
+          .and(dsl::user_id.ne(who.to_u64())))
+        .first(c)
+    }).chain_err(|| "could not load tags")?;
+    if !force && existing_tags > 0 {
+      return Ok(Some(format!("Someone is already tagged as that character.\n\nIf this is an alternate account, please let the mods know.",)));
+    }
+
     let tag: Option<Tag> = ::bot::with_connection(|c| {
       use database::schema::tags::dsl;
       dsl::tags
@@ -117,7 +131,7 @@ impl Tagger {
         let verification: Verification = ::bot::with_connection(|c| {
           Verification::belonging_to(&t).first(c).optional()
         }).chain_err(|| "could not load verifications")?.unwrap_or_default();
-        if verification.verified && !ignore_verified && char_id != *t.character_id {
+        if verification.verified && !force && char_id != *t.character_id {
           return Ok(Some(format!("{} is verified as {} on {}, so they cannot switch to another account.", who.mention(), t.character, t.server)));
         }
         verification.verified
