@@ -12,7 +12,7 @@ use diesel::prelude::*;
 
 use chrono::Duration;
 
-use rand::{Rng, thread_rng};
+use rand::{thread_rng, seq::SliceRandom};
 
 use std::sync::Arc;
 use std::thread;
@@ -67,7 +67,7 @@ pub fn random_game() -> Option<Game> {
     use database::schema::presences::dsl;
     dsl::presences.load(c)
   }).ok()?;
-  let presence = thread_rng().choose(&presences)?;
+  let presence = presences.choose(&mut thread_rng())?;
   let game_type = PresenceKind::from_i16(presence.kind)?.as_discord();
   Some(Game {
     kind: game_type,

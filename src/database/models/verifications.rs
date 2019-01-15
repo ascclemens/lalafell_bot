@@ -27,7 +27,7 @@ impl Verification {
 
 impl NewVerification {
   pub fn create_verification_string(&mut self) -> &String {
-    let string = Uuid::new_v4().simple().to_string();
+    let string = Uuid::new_v4().to_simple().to_string();
     self.verification_string = Some(string);
     self.verification_string.as_ref().unwrap()
   }

@@ -8,7 +8,7 @@ use lalafell::commands::ChannelOrId;
 use serenity::prelude::Mentionable;
 use serenity::model::guild::{Role, Member};
 
-use rand::{thread_rng, Rng};
+use rand::{thread_rng, seq::SliceRandom};
 
 use std::sync::Arc;
 
@@ -69,7 +69,7 @@ impl<'a> PublicChannelCommand<'a> for RandomReactionCommand {
     if members.len() == 1 {
       return Ok(format!("Only {} matched those criteria!", members[0].mention()).into());
     }
-    let member = match thread_rng().choose(&members) {
+    let member = match members.choose(&mut thread_rng()) {
       Some(u) => u,
       None => return Err("Could not randomly choose a reaction.".into())
     };
