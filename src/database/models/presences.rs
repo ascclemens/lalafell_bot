@@ -1,4 +1,4 @@
-use database::schema::*;
+use crate::database::schema::*;
 
 use serenity::model::gateway::ActivityType;
 

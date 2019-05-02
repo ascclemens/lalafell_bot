@@ -1,4 +1,4 @@
-use database::models::{ToU64, ServerConfig, NewServerConfig};
+use crate::database::models::{ToU64, ServerConfig, NewServerConfig};
 
 use serenity::builder::CreateEmbed;
 use serenity::model::id::UserId;
@@ -30,8 +30,8 @@ impl<'a> TimeoutRoleCommand {
           .description("You don't have enough permissions to use this command."))
         .wrap());
     }
-    let config: Option<ServerConfig> = ::bot::with_connection(|c| {
-      use database::schema::server_configs::dsl;
+    let config: Option<ServerConfig> = crate::bot::with_connection(|c| {
+      use crate::database::schema::server_configs::dsl;
       dsl::server_configs
         .filter(dsl::server_id.eq(guild.read().id.to_u64()))
         .first(c)
@@ -47,15 +47,15 @@ impl<'a> TimeoutRoleCommand {
         match config {
           Some(mut conf) => {
             conf.timeout_role = Some(role.name.clone());
-            ::bot::with_connection(|c| conf.save_changes::<ServerConfig>(c)).chain_err(|| "could not update config")?;
+            crate::bot::with_connection(|c| conf.save_changes::<ServerConfig>(c)).chain_err(|| "could not update config")?;
           },
           None => {
-            ::bot::with_connection(|c| {
+            crate::bot::with_connection(|c| {
               let new = NewServerConfig {
                 server_id: guild.read().id.into(),
                 timeout_role: Some(role.name.clone())
               };
-              diesel::insert_into(::database::schema::server_configs::table)
+              diesel::insert_into(crate::database::schema::server_configs::table)
                 .values(&new)
                 .execute(c)
             }).chain_err(|| "could not add config")?;

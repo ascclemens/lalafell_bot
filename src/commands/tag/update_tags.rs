@@ -1,5 +1,5 @@
-use bot::{BotEnv, is_administrator};
-use tasks::AutoTagTask;
+use crate::bot::{BotEnv, is_administrator};
+use crate::tasks::AutoTagTask;
 
 use lalafell::commands::prelude::*;
 

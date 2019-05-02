@@ -1,4 +1,4 @@
-use database::models::{ToU64, ChannelConfig, NewChannelConfig};
+use crate::database::models::{ToU64, ChannelConfig, NewChannelConfig};
 
 use serenity::prelude::Mentionable;
 use serenity::builder::CreateEmbed;
@@ -29,8 +29,8 @@ impl<'a> ImageDumpCommand {
           .description("You don't have enough permissions to use this command."))
         .wrap());
     }
-    let config: Option<ChannelConfig> = ::bot::with_connection(|c| {
-      use database::schema::channel_configs::dsl;
+    let config: Option<ChannelConfig> = crate::bot::with_connection(|c| {
+      use crate::database::schema::channel_configs::dsl;
       dsl::channel_configs
         .filter(dsl::server_id.eq(guild.to_u64()).and(dsl::channel_id.eq(channel.to_u64())))
         .first(c)
@@ -54,16 +54,16 @@ impl<'a> ImageDumpCommand {
     match config {
       Some(mut conf) => {
         conf.image_dump_allowed = Some(enabled);
-        ::bot::with_connection(|c| conf.save_changes::<ChannelConfig>(c)).chain_err(|| "could not update config")?;
+        crate::bot::with_connection(|c| conf.save_changes::<ChannelConfig>(c)).chain_err(|| "could not update config")?;
       },
       None => {
-        ::bot::with_connection(|c| {
+        crate::bot::with_connection(|c| {
           let new = NewChannelConfig {
             server_id: guild.into(),
             channel_id: channel.into(),
             image_dump_allowed: Some(enabled)
           };
-          diesel::insert_into(::database::schema::channel_configs::table)
+          diesel::insert_into(crate::database::schema::channel_configs::table)
             .values(&new)
             .execute(c)
         }).chain_err(|| "could not add config")?;

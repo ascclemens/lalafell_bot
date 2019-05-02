@@ -1,6 +1,6 @@
-use bot::BotEnv;
-use tasks::RunsTask;
-use database::models::{Presence, PresenceKind};
+use crate::bot::BotEnv;
+use crate::tasks::RunsTask;
+use crate::database::models::{Presence, PresenceKind};
 
 use serenity::prelude::Mutex;
 use serenity::model::gateway::Activity;
@@ -63,8 +63,8 @@ impl RunsTask for RandomPresenceTask {
 }
 
 pub fn random_activity() -> Option<Activity> {
-  let presences: Vec<Presence> = ::bot::with_connection(|c| {
-    use database::schema::presences::dsl;
+  let presences: Vec<Presence> = crate::bot::with_connection(|c| {
+    use crate::database::schema::presences::dsl;
     dsl::presences.load(c)
   }).ok()?;
   let presence = presences.choose(&mut thread_rng())?;

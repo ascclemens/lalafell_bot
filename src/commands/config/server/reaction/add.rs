@@ -1,5 +1,5 @@
-use database::models::NewReaction;
-use util::ParsedEmoji;
+use crate::database::models::NewReaction;
+use crate::util::ParsedEmoji;
 
 use diesel::prelude::*;
 
@@ -43,8 +43,8 @@ impl<'a> AddCommand {
       emoji: params.emoji.to_string(),
       role_id: role_id.into()
     };
-    ::bot::with_connection(|c| {
-      ::diesel::insert_into(::database::schema::reactions::table)
+    crate::bot::with_connection(|c| {
+      ::diesel::insert_into(crate::database::schema::reactions::table)
         .values(&new_reaction)
         .execute(c)
     }).chain_err(|| "could not insert reaction")?;

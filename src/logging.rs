@@ -5,7 +5,7 @@ use std::io;
 use chrono;
 use std::env::var;
 
-use error::*;
+use crate::error::*;
 
 fn colored_level(level: Level) -> String {
   let color = match level {

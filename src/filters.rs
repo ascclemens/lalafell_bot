@@ -97,7 +97,7 @@ impl Filter {
       Filter::Include(ref fk) => (true, fk),
       Filter::Exclude(ref fk) => (false, fk)
     };
-    let roles: Vec<&Role> = roles.iter().map(|x| x.borrow()).collect();
+    let roles: Vec<&Role> = roles.iter().map(Borrow::borrow).collect();
     match *fk {
       FilterKind::Role(ref role_name) => {
         let role_name = UniCase::new(role_name);

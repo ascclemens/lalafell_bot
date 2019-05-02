@@ -1,4 +1,4 @@
-use bot::BotEnv;
+use crate::bot::BotEnv;
 
 use chrono::{Utc, DateTime};
 

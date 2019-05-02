@@ -20,7 +20,7 @@ No custom emoji
 :thumbsdown: No
 */
 
-use commands::*;
+use crate::commands::*;
 
 use lalafell::commands::prelude::*;
 

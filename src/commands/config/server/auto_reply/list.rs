@@ -1,4 +1,4 @@
-use database::models::{ToU64, Reaction};
+use crate::database::models::{ToU64, Reaction};
 
 use diesel::prelude::*;
 
@@ -12,8 +12,8 @@ pub struct ListCommand;
 
 impl<'a> ListCommand {
   pub fn run(&self, guild: GuildId) -> CommandResult<'a> {
-    let reactions: Vec<Reaction> = ::bot::with_connection(|c| {
-      use database::schema::reactions::dsl;
+    let reactions: Vec<Reaction> = crate::bot::with_connection(|c| {
+      use crate::database::schema::reactions::dsl;
       dsl::reactions
         .filter(dsl::server_id.eq(guild.to_u64()))
         .load(c)

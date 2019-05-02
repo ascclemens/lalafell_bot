@@ -1,4 +1,4 @@
-use database::models::{ToU64, DeleteAllMessages};
+use crate::database::models::{ToU64, DeleteAllMessages};
 
 use diesel::prelude::*;
 
@@ -16,8 +16,8 @@ impl<'a> ListCommand {
   }
 
   fn list_all(guild: GuildId) -> Result<String> {
-    let dams: Vec<DeleteAllMessages> = ::bot::with_connection(|c| {
-      use database::schema::delete_all_messages::dsl;
+    let dams: Vec<DeleteAllMessages> = crate::bot::with_connection(|c| {
+      use crate::database::schema::delete_all_messages::dsl;
       dsl::delete_all_messages
         .filter(dsl::server_id.eq(guild.to_u64()))
         .load(c)

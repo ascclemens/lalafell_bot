@@ -1,18 +1,27 @@
-use bot::BotEnv;
-use commands::*;
-use listeners::*;
+use crate::{
+  bot::BotEnv,
+  commands::*,
+  listeners::*,
+};
 
 use lalafell::listeners::CommandListener;
 
-use serenity::prelude::RwLock;
-use serenity::model::prelude::*;
-use serenity::client::{EventHandler, Context};
-use serenity::client::bridge::gateway::event::ShardStageUpdateEvent;
+use serenity::{
+  prelude::RwLock,
+  model::prelude::*,
+  client::{
+    EventHandler,
+    Context,
+    bridge::gateway::event::ShardStageUpdateEvent,
+  },
+};
 
 use serde_json::Value;
 
-use std::sync::Arc;
-use std::collections::HashMap;
+use std::{
+  collections::HashMap,
+  sync::Arc,
+};
 
 pub struct Handler {
   listeners: Vec<Box<EventHandler + Send + Sync>>,

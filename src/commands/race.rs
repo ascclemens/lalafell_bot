@@ -1,4 +1,4 @@
-use bot::BotEnv;
+use crate::bot::BotEnv;
 
 use failure::Fail;
 
@@ -16,7 +16,7 @@ use lodestone_api_client::{
 
 #[derive(BotCommand)]
 pub struct RaceCommand {
-  env: Arc<BotEnv>
+  env: Arc<BotEnv>,
 }
 
 #[derive(Debug, StructOpt)]
@@ -45,7 +45,7 @@ impl<'a> Command<'a> for RaceCommand {
       .name(&name)
       .world(world)
       .send()
-      .map_err(|x| x.compat())
+      .map_err(Fail::compat)
       .chain_err(|| "could not search Lodestone API")?;
     let res = match res {
       RouteResult::Success { result, .. } | RouteResult::Scraped { result } | RouteResult::Cached { result, .. } => result,
@@ -60,7 +60,7 @@ impl<'a> Command<'a> for RaceCommand {
     let res = self.env.lodestone
       .character(character.id.into())
       .send()
-      .map_err(|x| x.compat())
+      .map_err(Fail::compat)
       .chain_err(|| "could not download character")?;
 
     let character = match res {

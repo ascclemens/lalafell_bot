@@ -1,6 +1,6 @@
-use bot::BotEnv;
-use database::models::NewTemporaryRole;
-use util::ParsedDuration;
+use crate::bot::BotEnv;
+use crate::database::models::NewTemporaryRole;
+use crate::util::ParsedDuration;
 
 use chrono::{Utc, Duration};
 
@@ -99,8 +99,8 @@ impl<'a> PublicChannelCommand<'a> for TemporaryRoleCommand {
       .map(|t| Utc::now() + Duration::seconds(**t as i64))
       .map(|t| t.timestamp());
     let ntr = NewTemporaryRole::new(guild_id.0, params.who.0, role.0, msg.id.0, params.channel.map(|x| x.0), messages, time);
-    let temp_role = ::bot::with_connection(|c| {
-      use database::schema::temporary_roles::dsl;
+    let temp_role = crate::bot::with_connection(|c| {
+      use crate::database::schema::temporary_roles::dsl;
 
       diesel::insert_into(dsl::temporary_roles).values(&ntr).get_result(c)
     }).chain_err(|| "could not store new temporary role")?;
@@ -110,7 +110,7 @@ impl<'a> PublicChannelCommand<'a> for TemporaryRoleCommand {
         let env = Arc::clone(&self.env);
         ::std::thread::spawn(move || {
           ::std::thread::sleep(Duration::seconds(*t as i64).to_std().unwrap());
-          ::tasks::temporary_roles::remove_temporary_role(&env, &temp_role);
+          crate::tasks::temporary_roles::remove_temporary_role(&env, &temp_role);
         });
       }
     }

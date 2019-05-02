@@ -1,4 +1,4 @@
-use database::models::{ToU64, ChannelConfig};
+use crate::database::models::{ToU64, ChannelConfig};
 
 use diesel::prelude::*;
 
@@ -32,8 +32,8 @@ impl HasParams for ImageDumpCommand {
 
 impl<'a> PublicChannelCommand<'a> for ImageDumpCommand {
   fn run(&self, ctx: &Context, _: &Message, guild: GuildId, channel: Arc<RwLock<GuildChannel>>, params: &[&str]) -> CommandResult<'a> {
-    let config: Option<ChannelConfig> = ::bot::with_connection(|c| {
-      use database::schema::channel_configs::dsl;
+    let config: Option<ChannelConfig> = crate::bot::with_connection(|c| {
+      use crate::database::schema::channel_configs::dsl;
       dsl::channel_configs
         .filter(dsl::channel_id.eq(channel.read().id.to_u64()).and(dsl::server_id.eq(guild.to_u64())))
         .first(c)
@@ -59,12 +59,12 @@ impl<'a> PublicChannelCommand<'a> for ImageDumpCommand {
               Ok(u) => u,
               Err(_) => return false
             };
-            match url.path_segments().and_then(|s| s.last()).and_then(|s| s.split('.').last()) {
+            match url.path_segments().and_then(Iterator::last).and_then(|s| s.split('.').last()) {
               Some(p) if VALID_EXTENSIONS.contains(&p.to_lowercase().as_ref()) => true,
               _ => false
             }
           })
-          .map(|x| x.to_string())
+          .map(ToString::to_string)
           .collect())
       }
       let lines = match get_lines(&link) {

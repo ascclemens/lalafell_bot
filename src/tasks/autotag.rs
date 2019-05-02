@@ -1,8 +1,8 @@
-use tasks::RunsTask;
-use bot::BotEnv;
-use commands::tag::Tagger;
+use crate::tasks::RunsTask;
+use crate::bot::BotEnv;
+use crate::commands::tag::Tagger;
 use lalafell::error::*;
-use database::models::Tag;
+use crate::database::models::Tag;
 
 use serenity::model::id::{UserId, GuildId};
 
@@ -33,8 +33,8 @@ impl AutoTagTask {
     thread::sleep(Duration::seconds(self.next_sleep).to_std().unwrap());
     self.next_sleep = Duration::minutes(10).num_seconds();
     info!("Autotag task running");
-    let mut users: Vec<Tag> = match ::bot::with_connection(|c| {
-      use database::schema::tags::dsl;
+    let mut users: Vec<Tag> = match crate::bot::with_connection(|c| {
+      use crate::database::schema::tags::dsl;
       let twelve_hours_ago = Utc::now().timestamp() - Duration::hours(12).num_seconds();
       dsl::tags
         .filter(dsl::last_updated.lt(twelve_hours_ago))
@@ -61,7 +61,7 @@ impl AutoTagTask {
           _ => {},
         }
         tag.last_updated = Utc::now().timestamp();
-        let res: ::std::result::Result<Tag, _> = ::bot::with_connection(|c| tag.save_changes(c));
+        let res: ::std::result::Result<Tag, _> = crate::bot::with_connection(|c| tag.save_changes(c));
         if let Err(e) = res {
           warn!("could not update tag last_updated: {}", e);
         }

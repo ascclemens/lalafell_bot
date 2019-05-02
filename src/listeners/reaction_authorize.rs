@@ -1,11 +1,11 @@
-use database::models::{ToU64, Reaction as DbReaction};
+use crate::database::models::{ToU64, Reaction as DbReaction};
 
 use diesel::prelude::*;
 
 use serenity::client::{Context, EventHandler};
 use serenity::model::channel::{Channel, Reaction};
 
-use error::*;
+use crate::error::*;
 
 pub struct ReactionAuthorize;
 
@@ -26,8 +26,8 @@ impl ReactionAuthorize {
         Channel::Guild(c) => c.read().clone(),
         _ => return Ok(())
       };
-      let reactions: Vec<DbReaction> = ::bot::with_connection(|c| {
-        use database::schema::reactions::dsl;
+      let reactions: Vec<DbReaction> = crate::bot::with_connection(|c| {
+        use crate::database::schema::reactions::dsl;
         dsl::reactions
           .filter(dsl::channel_id.eq(r.channel_id.to_u64())
             .and(dsl::server_id.eq(channel.guild_id.to_u64()))

@@ -1,24 +1,32 @@
-use error::*;
-use bot::BotEnv;
-use tasks::RunsTask;
-use util::parse_duration_secs;
-use database::models::{RoleCheckTime, NewRoleCheckTime};
+use crate::{
+  error::*,
+  bot::BotEnv,
+  tasks::RunsTask,
+  util::parse_duration_secs,
+  database::models::{RoleCheckTime, NewRoleCheckTime},
+};
 
 use diesel::prelude::*;
 
 use chrono::{Utc, TimeZone, Duration};
 
-use serenity::prelude::Mentionable;
-use serenity::model::guild::{Member, Role};
-use serenity::model::id::{GuildId, ChannelId, RoleId, UserId};
+use serenity::{
+  prelude::Mentionable,
+  model::{
+    guild::{Member, Role},
+    id::{GuildId, ChannelId, RoleId, UserId},
+  },
+};
 
 use serde_json;
 
 use unicase::UniCase;
 
-use std::thread;
-use std::sync::Arc;
-use std::collections::HashMap;
+use std::{
+  collections::HashMap,
+  thread,
+  sync::Arc,
+};
 
 macro_rules! config {
   ($env:expr) => {{
@@ -77,8 +85,8 @@ impl RunsTask for RoleCheckTask {
         };
         let guild = some_or!(GuildId(check.guild).to_guild_cached(env.cache_lock()), continue);
         let roles = guild.read().roles.clone();
-        let times: Result<Vec<RoleCheckTime>> = ::bot::with_connection(|c| {
-          use database::schema::role_check_times::dsl;
+        let times: Result<Vec<RoleCheckTime>> = crate::bot::with_connection(|c| {
+          use crate::database::schema::role_check_times::dsl;
           dsl::role_check_times
             .filter(dsl::check_id.eq(check.id))
             .load(c)
@@ -97,7 +105,7 @@ impl RunsTask for RoleCheckTask {
         let (remove, times): (Vec<RoleCheckTime>, Vec<RoleCheckTime>) = times.into_iter()
           .partition(|t| members.iter().find(|&&(id, _)| id.0 == *t.user_id).is_none());
         for r in remove {
-          if let Err(e) = ::bot::with_connection(|c| ::diesel::delete(&r).execute(c)) {
+          if let Err(e) = crate::bot::with_connection(|c| ::diesel::delete(&r).execute(c)) {
             warn!("Could not delete old role_check_time {}: {}", r.id, e);
           }
         }
@@ -114,7 +122,7 @@ impl RunsTask for RoleCheckTask {
                   guild.read().id.0,
                   check.id);
                 match guild.read().kick(env.http(), member) {
-                  Ok(_) => if let Err(e) = ::bot::with_connection(|c| ::diesel::delete(time).execute(c)) {
+                  Ok(_) => if let Err(e) = crate::bot::with_connection(|c| ::diesel::delete(time).execute(c)) {
                     warn!("Could not remove database entry for check after kick: {}", e);
                   },
                   Err(e) => warn!("Kick was not successful: {}", e)
@@ -125,8 +133,8 @@ impl RunsTask for RoleCheckTask {
               if now.signed_duration_since(joined.with_timezone(&Utc)) >= Duration::seconds(reminder_secs as i64) {
                 reminders.push(member.mention());
                 let new_time = NewRoleCheckTime::new(check.id, user_id.0, now.timestamp(), kick_secs as i32);
-                ::bot::with_connection(move |c| {
-                  use database::schema::role_check_times::dsl;
+                crate::bot::with_connection(move |c| {
+                  use crate::database::schema::role_check_times::dsl;
                   ::diesel::insert_into(dsl::role_check_times)
                     .values(&new_time)
                     .execute(c)
@@ -168,7 +176,7 @@ struct RoleCheck {
 #[serde(untagged)]
 enum NeededRole {
   Simple(String),
-  Logical(NeededRoleLogical)
+  Logical(NeededRoleLogical),
 }
 
 impl NeededRole {
@@ -185,9 +193,9 @@ impl NeededRole {
 #[derive(Debug, Deserialize)]
 enum NeededRoleLogical {
   #[serde(rename = "and")]
-  And(Vec<Box<NeededRole>>),
+  And(Vec<NeededRole>),
   #[serde(rename = "or")]
-  Or(Vec<Box<NeededRole>>),
+  Or(Vec<NeededRole>),
   #[serde(rename = "not")]
   Not(Box<NeededRole>)
 }

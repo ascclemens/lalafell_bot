@@ -1,5 +1,5 @@
-use commands::*;
-use database::models::{ToU64, Tag};
+use crate::commands::*;
+use crate::database::models::{ToU64, Tag};
 
 use lalafell::commands::prelude::*;
 use lalafell::error::*;
@@ -29,8 +29,8 @@ impl<'a> PublicChannelCommand<'a> for ViewTagCommand {
     let params = self.params_then("viewtag", params, |a| a.setting(::structopt::clap::AppSettings::ArgRequiredElseHelp))?;
     let who = params.who;
 
-    let tag: Option<Tag> = ::bot::with_connection(|c| {
-      use database::schema::tags::dsl;
+    let tag: Option<Tag> = crate::bot::with_connection(|c| {
+      use crate::database::schema::tags::dsl;
       dsl::tags
         .filter(dsl::user_id.eq(who.to_u64()).and(dsl::server_id.eq(guild.to_u64())))
         .first(c)

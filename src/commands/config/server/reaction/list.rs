@@ -1,4 +1,4 @@
-use database::models::{ToU64, AutoReply};
+use crate::database::models::{ToU64, AutoReply};
 
 use diesel::prelude::*;
 
@@ -16,8 +16,8 @@ impl<'a> ListCommand {
   }
 
   fn list_all(guild: GuildId) -> Result<String> {
-    let ars: Vec<AutoReply> = ::bot::with_connection(|c| {
-      use database::schema::auto_replies::dsl;
+    let ars: Vec<AutoReply> = crate::bot::with_connection(|c| {
+      use crate::database::schema::auto_replies::dsl;
       dsl::auto_replies
         .filter(dsl::server_id.eq(guild.to_u64()))
         .load(c)

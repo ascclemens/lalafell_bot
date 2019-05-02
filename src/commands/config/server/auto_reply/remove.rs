@@ -1,4 +1,4 @@
-use database::models::ToU64;
+use crate::database::models::ToU64;
 
 use diesel::prelude::*;
 
@@ -18,8 +18,8 @@ pub struct Params {
 impl<'a> RemoveCommand {
   #[allow(clippy::needless_pass_by_value)]
   pub fn run(&self, guild: GuildId, params: Params) -> CommandResult<'a> {
-    let affected = ::bot::with_connection(|c| {
-      use database::schema::auto_replies::dsl;
+    let affected = crate::bot::with_connection(|c| {
+      use crate::database::schema::auto_replies::dsl;
       ::diesel::delete(
         dsl::auto_replies.filter(dsl::id.eq(params.id).and(dsl::server_id.eq(guild.to_u64())))
       )

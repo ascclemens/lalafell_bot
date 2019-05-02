@@ -1,7 +1,7 @@
-use commands::*;
-use database::models::{ToU64, NewTimeout};
-use database::schema::timeouts;
-use util::parse_duration_secs;
+use crate::commands::*;
+use crate::database::models::{ToU64, NewTimeout};
+use crate::database::schema::timeouts;
+use crate::util::parse_duration_secs;
 
 use lalafell::error::*;
 use lalafell::commands::prelude::*;
@@ -54,8 +54,8 @@ impl<'a> PublicChannelCommand<'a> for TimeoutCommand {
 
     let guild = guild.to_guild_cached(&ctx).chain_err(|| "could not find guild")?;
 
-    let timeouts = ::bot::with_connection(|c| {
-      use database::schema::timeouts::dsl;
+    let timeouts = crate::bot::with_connection(|c| {
+      use crate::database::schema::timeouts::dsl;
       use diesel::expression::dsl::count;
       dsl::timeouts
         .filter(dsl::user_id.eq(who.to_u64()).and(dsl::server_id.eq(server_id.to_u64())))
@@ -86,14 +86,14 @@ impl<'a> PublicChannelCommand<'a> for TimeoutCommand {
     };
 
     let timeout_user = NewTimeout::new(who.0, server_id.0, role_id.0, duration as i32, Utc::now().timestamp());
-    let timeout = ::bot::with_connection(|c| ::diesel::insert_into(timeouts::table).values(&timeout_user).get_result(c)).chain_err(|| "could not insert timeout")?;
+    let timeout = crate::bot::with_connection(|c| ::diesel::insert_into(timeouts::table).values(&timeout_user).get_result(c)).chain_err(|| "could not insert timeout")?;
 
     // spawn a task if the duration is less than the check task period
     if duration < 300 {
       let env = Arc::clone(&self.env);
       ::std::thread::spawn(move || {
         ::std::thread::sleep(Duration::seconds(duration as i64).to_std().unwrap());
-        ::tasks::timeout_check::remove_timeout(&env, &timeout);
+        crate::tasks::timeout_check::remove_timeout(&env, &timeout);
       });
     }
 

@@ -1,5 +1,5 @@
-use error::*;
-use database::models::{ToU64, ServerConfig};
+use crate::error::*;
+use crate::database::models::{ToU64, ServerConfig};
 
 use diesel::prelude::*;
 
@@ -39,8 +39,8 @@ lazy_static! {
 }
 
 pub fn set_up_timeouts(ctx: &Context, guild: &Guild) -> Result<RoleId> {
-  let server_config: Option<ServerConfig> = ::bot::with_connection(|c| {
-    use database::schema::server_configs::dsl;
+  let server_config: Option<ServerConfig> = crate::bot::with_connection(|c| {
+    use crate::database::schema::server_configs::dsl;
     dsl::server_configs
       .filter(dsl::server_id.eq(guild.id.to_u64()))
       .first(c)

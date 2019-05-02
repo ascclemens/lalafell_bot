@@ -1,13 +1,13 @@
-use bot::BotEnv;
-use tasks::RunsTask;
-use database::models::DeleteAllMessages;
+use crate::bot::BotEnv;
+use crate::tasks::RunsTask;
+use crate::database::models::DeleteAllMessages;
 
 use serenity::model::id::ChannelId;
 
 use chrono::prelude::*;
 use chrono::Duration;
 
-use error::*;
+use crate::error::*;
 
 use diesel::prelude::*;
 
@@ -32,8 +32,8 @@ impl RunsTask for DeleteAllMessagesTask {
     loop {
       thread::sleep(Duration::seconds(self.next_sleep).to_std().unwrap());
       info!("Delete messages task running");
-      let dams: Result<Vec<DeleteAllMessages>> = ::bot::with_connection(|c| {
-        use database::schema::delete_all_messages::dsl;
+      let dams: Result<Vec<DeleteAllMessages>> = crate::bot::with_connection(|c| {
+        use crate::database::schema::delete_all_messages::dsl;
         dsl::delete_all_messages.load(c)
       }).chain_err(|| "could not load delete_all_messages");
       let dams = match dams {

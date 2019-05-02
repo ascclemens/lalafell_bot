@@ -14,8 +14,8 @@ pub struct FfLogsCommand {
   fflogs: FfLogs
 }
 
-impl ::commands::BotCommand for FfLogsCommand {
-  fn new(env: Arc<::bot::BotEnv>) -> Self {
+impl crate::commands::BotCommand for FfLogsCommand {
+  fn new(env: Arc<crate::bot::BotEnv>) -> Self {
     FfLogsCommand {
       fflogs: FfLogs::new(&env.environment.fflogs_api_key)
     }

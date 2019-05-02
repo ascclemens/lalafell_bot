@@ -1,4 +1,4 @@
-use database::schema::*;
+use crate::database::schema::*;
 
 #[derive(Debug, Queryable)]
 pub struct Role {

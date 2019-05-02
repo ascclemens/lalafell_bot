@@ -72,8 +72,8 @@ mod logging;
 mod tasks;
 mod util;
 
-use error::*;
-use bot::LalafellBot;
+use crate::error::*;
+use crate::bot::LalafellBot;
 
 use std::sync::{Arc, Mutex};
 

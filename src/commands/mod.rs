@@ -46,10 +46,10 @@ pub use self::verify::VerifyCommand;
 pub use self::version::VersionCommand;
 pub use self::view_tag::ViewTagCommand;
 
-use bot::BotEnv;
+use crate::bot::BotEnv;
 
 use std::sync::Arc;
 
 pub trait BotCommand {
-  fn new(Arc<BotEnv>) -> Self;
+  fn new(_: Arc<BotEnv>) -> Self;
 }

@@ -1,4 +1,4 @@
-use database::models::{ToU64, NewEphemeralMessage};
+use crate::database::models::{ToU64, NewEphemeralMessage};
 
 use chrono::{Utc, Duration, DateTime};
 
@@ -58,8 +58,8 @@ impl<'a> PublicChannelCommand<'a> for EphemeralMessageCommand {
       return Err("Cannot create an ephemeral message with an expiration date in the past.".into());
     }
     let nem = NewEphemeralMessage::new(guild_id.0, params.channel.0, params.message, params.time.timestamp());
-    ::bot::with_connection(|c| {
-      use database::schema::ephemeral_messages::dsl;
+    crate::bot::with_connection(|c| {
+      use crate::database::schema::ephemeral_messages::dsl;
 
       diesel::insert_into(dsl::ephemeral_messages).values(&nem).execute(c)
     }).chain_err(|| "could not insert new ephemeral message")?;
@@ -81,8 +81,8 @@ fn spawn_task(http: Arc<Http>, channel: ChannelId, message: MessageId, after: Du
       warn!("could not delete ephemeral message {} in {}: {}", message, channel, e);
       return;
     }
-    let res = ::bot::with_connection(|c| {
-      use database::schema::ephemeral_messages::dsl;
+    let res = crate::bot::with_connection(|c| {
+      use crate::database::schema::ephemeral_messages::dsl;
 
       diesel::delete(dsl::ephemeral_messages
         .filter(dsl::channel_id.eq(channel.to_u64()).and(dsl::message_id.eq(message.to_u64()))))

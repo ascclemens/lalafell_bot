@@ -1,6 +1,6 @@
-use database::models::NewAutoReply;
-use filters::Filter;
-use util::ParsedDuration;
+use crate::database::models::NewAutoReply;
+use crate::filters::Filter;
+use crate::util::ParsedDuration;
 
 use diesel::prelude::*;
 
@@ -57,8 +57,8 @@ impl<'a> AddCommand {
       delay,
       filters
     };
-    ::bot::with_connection(|c| {
-      use database::schema::auto_replies;
+    crate::bot::with_connection(|c| {
+      use crate::database::schema::auto_replies;
       ::diesel::insert_into(auto_replies::table)
         .values(&nar)
         .execute(c)

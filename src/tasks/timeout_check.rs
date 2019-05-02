@@ -1,8 +1,8 @@
-use bot::BotEnv;
-use tasks::{RunsTask, Wait};
+use crate::bot::BotEnv;
+use crate::tasks::{RunsTask, Wait};
 use chrono::prelude::*;
 use chrono::Duration;
-use database::models::Timeout;
+use crate::database::models::Timeout;
 
 use diesel::prelude::*;
 
@@ -26,7 +26,7 @@ pub fn remove_timeout(env: &BotEnv, timeout: &Timeout) {
   if let Err(e) = member.remove_role(env.http(), *timeout.role_id) {
     warn!("could not remove timeout role from {}: {}", *timeout.user_id, e);
   }
-  if let Err(e) = ::bot::with_connection(|c| ::diesel::delete(timeout).execute(c)) {
+  if let Err(e) = crate::bot::with_connection(|c| ::diesel::delete(timeout).execute(c)) {
     warn!("could not delete timeout {}: {}", timeout.id, e);
   }
 }
@@ -43,7 +43,7 @@ impl RunsTask for TimeoutCheckTask {
       thread::sleep(Duration::seconds(sleep).to_std().unwrap());
       let now = Utc::now();
       let next_five_minutes = (now + Duration::minutes(5)).timestamp();
-      let mut timeouts: Vec<Timeout> = match ::bot::with_connection(|c| ::database::schema::timeouts::dsl::timeouts.load(c)) {
+      let mut timeouts: Vec<Timeout> = match crate::bot::with_connection(|c| crate::database::schema::timeouts::dsl::timeouts.load(c)) {
         Ok(t) => t,
         Err(e) => {
           warn!("could not load timeouts: {}", e);

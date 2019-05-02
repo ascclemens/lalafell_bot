@@ -1,4 +1,4 @@
-use error::*;
+use crate::error::*;
 
 use serenity::client::{Context, EventHandler};
 use serenity::model::channel::Message;

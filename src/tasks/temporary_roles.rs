@@ -1,8 +1,8 @@
-use bot::BotEnv;
-use tasks::{RunsTask, Wait};
+use crate::bot::BotEnv;
+use crate::tasks::{RunsTask, Wait};
 use chrono::prelude::*;
 use chrono::Duration;
-use database::models::TemporaryRole;
+use crate::database::models::TemporaryRole;
 
 use diesel::prelude::*;
 
@@ -25,7 +25,7 @@ pub fn remove_temporary_role(env: &BotEnv, temp: &TemporaryRole) {
   if let Err(e) = member.remove_role(env.http(), *temp.role_id) {
     warn!("could not remove temp role {}: {}", temp.id, e);
   }
-  if let Err(e) = ::bot::with_connection(|c| ::diesel::delete(temp).execute(c)) {
+  if let Err(e) = crate::bot::with_connection(|c| ::diesel::delete(temp).execute(c)) {
     warn!("could not delete temp role {} from database: {}", temp.id, e);
   }
 }
@@ -39,8 +39,8 @@ impl RunsTask for TemporaryRolesTask {
       }
       let now = Utc::now();
       let next_ten_minutes = (now + Duration::minutes(10)).timestamp();
-      let temp_roles: Vec<TemporaryRole> = match ::bot::with_connection(|c| {
-        use database::schema::temporary_roles::dsl;
+      let temp_roles: Vec<TemporaryRole> = match crate::bot::with_connection(|c| {
+        use crate::database::schema::temporary_roles::dsl;
         dsl::temporary_roles.filter(dsl::expires_on.le(next_ten_minutes)).load(c)
       }) {
         Ok(t) => t,

@@ -1,4 +1,4 @@
-use database::models::{ToU64, DeleteAllMessages, NewDeleteAllMessages};
+use crate::database::models::{ToU64, DeleteAllMessages, NewDeleteAllMessages};
 
 use diesel::prelude::*;
 
@@ -24,8 +24,8 @@ pub struct Params {
 impl<'a> AddCommand {
   #[allow(clippy::needless_pass_by_value)]
   pub fn run(&self, guild: GuildId, params: Params) -> CommandResult<'a> {
-    let dams: Vec<DeleteAllMessages> = ::bot::with_connection(|c| {
-      use database::schema::delete_all_messages::dsl;
+    let dams: Vec<DeleteAllMessages> = crate::bot::with_connection(|c| {
+      use crate::database::schema::delete_all_messages::dsl;
       dsl::delete_all_messages
         .filter(dsl::channel_id.eq(params.channel.to_u64())
           .and(dsl::server_id.eq(guild.to_u64())))
@@ -36,8 +36,8 @@ impl<'a> AddCommand {
     }
 
     let ndam = NewDeleteAllMessages::new(guild.0, params.channel.0, i32::from(params.after), &params.except);
-    ::bot::with_connection(|c| {
-      use database::schema::delete_all_messages;
+    crate::bot::with_connection(|c| {
+      use crate::database::schema::delete_all_messages;
       ::diesel::insert_into(delete_all_messages::table)
         .values(&ndam)
         .execute(c)

@@ -1,5 +1,5 @@
-use commands::*;
-use database::models::NewTagQueue;
+use crate::commands::*;
+use crate::database::models::NewTagQueue;
 
 use diesel::prelude::*;
 
@@ -48,8 +48,8 @@ impl<'a> PublicChannelCommand<'a> for QueueTagCommand {
 
     let item = NewTagQueue::new(who.0, guild.0, ff_server.as_str(), &name);
 
-    ::bot::with_connection(|c| {
-      use database::schema::tag_queue::dsl;
+    crate::bot::with_connection(|c| {
+      use crate::database::schema::tag_queue::dsl;
       ::diesel::insert_into(dsl::tag_queue)
         .values(&item)
         .execute(c)

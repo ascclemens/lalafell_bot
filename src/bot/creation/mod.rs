@@ -1,7 +1,7 @@
-use {LalafellBot, Environment};
-use config::Config;
+use crate::{LalafellBot, Environment};
+use crate::config::Config;
 
-use error::*;
+use crate::error::*;
 
 use serde_json;
 

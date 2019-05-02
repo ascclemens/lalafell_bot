@@ -1,4 +1,4 @@
-use database::models::{ToU64, LogChannel};
+use crate::database::models::{ToU64, LogChannel};
 
 use chrono::{Utc, Duration};
 
@@ -34,8 +34,8 @@ pub struct Log {
 impl Log {
   fn get_log_channel<G: Into<GuildId>>(&self, guild: G) -> Option<ChannelId> {
     let guild = guild.into().to_u64();
-    let log_channel: Option<LogChannel> = ::bot::with_connection(|c| {
-      use database::schema::log_channels::dsl;
+    let log_channel: Option<LogChannel> = crate::bot::with_connection(|c| {
+      use crate::database::schema::log_channels::dsl;
       dsl::log_channels.filter(dsl::server_id.eq(guild)).first(c)
     }).ok();
     log_channel.map(|x| ChannelId(*x.channel_id))
@@ -47,7 +47,7 @@ impl Log {
     self.messages
       .lock()
       .values_mut()
-      .flat_map(|x| x.values_mut())
+      .flat_map(HashMap::values_mut)
       .for_each(|x| x.retain(|m| m.timestamp.signed_duration_since(now) < one_day));
   }
 }
@@ -55,7 +55,7 @@ impl Log {
 impl EventHandler for Log {
   fn guild_member_removal(&self, ctx: Context, guild: GuildId, user: User, member: Option<Member>) {
     let channel_id = some_or!(self.get_log_channel(guild), return);
-    let mention = member.as_ref().map(|x| x.mention()).unwrap_or_else(|| user.mention());
+    let mention = member.as_ref().map(Mentionable::mention).unwrap_or_else(|| user.mention());
     channel_id.send_message(&ctx, |m| m.embed(|mut embed| {
       embed = embed
         .author(|a| a

@@ -1,5 +1,5 @@
-use bot::is_administrator;
-use database::models::{Presence, NewPresence, PresenceKind};
+use crate::bot::is_administrator;
+use crate::database::models::{Presence, NewPresence, PresenceKind};
 
 use lalafell::error::*;
 use lalafell::commands::prelude::*;
@@ -62,8 +62,8 @@ impl BotCommand {
   }
 
   fn list_all_presences<'a>(&self) -> CommandResult<'a> {
-    let presences: Vec<Presence> = ::bot::with_connection(|c| {
-      use database::schema::presences::dsl;
+    let presences: Vec<Presence> = crate::bot::with_connection(|c| {
+      use crate::database::schema::presences::dsl;
       dsl::presences.load(c)
     }).chain_err(|| "could not load presences")?;
     let strings = presences.iter()
@@ -87,7 +87,7 @@ impl BotCommand {
   }
 
   fn random_presence<'a>(&self, ctx: &Context) -> CommandResult<'a> {
-    match ::tasks::random_presence::random_activity() {
+    match crate::tasks::random_presence::random_activity() {
       Some(g) => ctx.set_activity(g),
       None => return Err("No presences.".into())
     }
@@ -99,8 +99,8 @@ impl BotCommand {
       return Err("!bot presences remove [id]".into());
     }
     let id: i32 = args[0].parse().map_err(|_| into!(CommandFailure, "Invalid ID."))?;
-    let affected = ::bot::with_connection(|c| {
-      use database::schema::presences::dsl;
+    let affected = crate::bot::with_connection(|c| {
+      use crate::database::schema::presences::dsl;
       ::diesel::delete(dsl::presences.find(id)).execute(c)
     }).chain_err(|| "could not delete presence")?;
     if affected > 0 {
@@ -121,8 +121,8 @@ impl BotCommand {
     };
     let kind = kind as i16;
     let content = args[1..].join(" ");
-    ::bot::with_connection(|c| {
-      use database::schema::presences::dsl;
+    crate::bot::with_connection(|c| {
+      use crate::database::schema::presences::dsl;
       ::diesel::insert_into(dsl::presences)
         .values(&NewPresence::new(kind, &content))
         .execute(c)

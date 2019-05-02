@@ -1,8 +1,7 @@
-use Environment;
-
-use error::Result as BotResult;
-use config::Config;
-use database::models::ToU64;
+use crate::Environment;
+use crate::error::Result as BotResult;
+use crate::config::Config;
+use crate::database::models::ToU64;
 
 use lalafell::error::Result as LalafellResult;
 
@@ -122,8 +121,8 @@ impl LalafellBot {
 pub fn is_administrator<U: Into<UserId>>(user: U) -> LalafellResult<bool> {
   use lalafell::error::ResultExt;
   let user_id = user.into();
-  let number_matching: i64 = ::bot::with_connection(|c| {
-    use database::schema::administrators::dsl;
+  let number_matching: i64 = crate::bot::with_connection(|c| {
+    use crate::database::schema::administrators::dsl;
     dsl::administrators
       .find(user_id.to_u64())
       .count()

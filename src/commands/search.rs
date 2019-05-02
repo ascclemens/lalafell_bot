@@ -1,4 +1,4 @@
-use filters::Filter;
+use crate::filters::Filter;
 
 use lalafell::error::*;
 use lalafell::commands::prelude::*;
@@ -39,7 +39,6 @@ impl<'a> PublicChannelCommand<'a> for SearchCommand {
     let matches: Vec<String> = guild.read().members.values()
       .filter(|m| filters.iter().all(|f| f.matches(m, &roles)))
       .sorted_by(|a, b| a.display_name().cmp(&b.display_name()))
-      .into_iter()
       .map(|m| format!("{} - {}",
         m.mention(),
         m.joined_at

@@ -1,4 +1,4 @@
-use bot::{self, BotEnv, is_administrator};
+use crate::bot::{self, BotEnv, is_administrator};
 
 use lalafell::commands::prelude::*;
 

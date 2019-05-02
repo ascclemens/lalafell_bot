@@ -1,5 +1,5 @@
-use database::schema::*;
-use database::models::Tag;
+use crate::database::schema::*;
+use crate::database::models::Tag;
 use uuid::Uuid;
 
 insertable! {

@@ -1,5 +1,5 @@
-use database::models::{ToU64, Timeout};
-use commands::*;
+use crate::database::models::{ToU64, Timeout};
+use crate::commands::*;
 
 use lalafell::error::*;
 use lalafell::commands::prelude::*;
@@ -44,8 +44,8 @@ impl<'a> PublicChannelCommand<'a> for UntimeoutCommand {
       Err(_) => return Err("That user is not in this guild.".into())
     };
 
-    let timeouts: Vec<Timeout> = ::bot::with_connection(|c| {
-      use database::schema::timeouts::dsl;
+    let timeouts: Vec<Timeout> = crate::bot::with_connection(|c| {
+      use crate::database::schema::timeouts::dsl;
       dsl::timeouts
         .filter(dsl::user_id.eq(who.to_u64()).and(dsl::server_id.eq(guild_id.to_u64())))
         .load(c)
@@ -55,7 +55,7 @@ impl<'a> PublicChannelCommand<'a> for UntimeoutCommand {
     }
     let timeout = &timeouts[0];
 
-    ::bot::with_connection(|c| ::diesel::delete(timeout).execute(c)).chain_err(|| "could not delete timeout")?;
+    crate::bot::with_connection(|c| ::diesel::delete(timeout).execute(c)).chain_err(|| "could not delete timeout")?;
     timeout_member.remove_role(&ctx, *timeout.role_id).chain_err(|| "could not remove role")?;
 
     Ok(CommandSuccess::default())

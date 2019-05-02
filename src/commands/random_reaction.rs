@@ -1,5 +1,5 @@
-use filters::Filter;
-use util::ParsedEmoji;
+use crate::filters::Filter;
+use crate::util::ParsedEmoji;
 
 use lalafell::error::*;
 use lalafell::commands::prelude::*;

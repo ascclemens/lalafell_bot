@@ -1,6 +1,6 @@
-use tasks::*;
-use error::*;
-use bot::LalafellBot;
+use crate::tasks::*;
+use crate::error::*;
+use crate::bot::LalafellBot;
 
 use std::sync::Arc;
 

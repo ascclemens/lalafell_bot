@@ -1,6 +1,6 @@
-use database::models::{ToU64, AutoReply};
-use filters::Filter;
-use error::*;
+use crate::database::models::{ToU64, AutoReply};
+use crate::filters::Filter;
+use crate::error::*;
 
 use diesel::prelude::*;
 
@@ -28,8 +28,8 @@ enum UserIdOrMember {
 impl EventHandler for AutoReplyListener {
   result_wrap! {
     fn guild_member_addition(&self, ctx: Context, guild: GuildId, member: Member) -> Result<()> {
-      let replies: Vec<AutoReply> = ::bot::with_connection(|c| {
-        use database::schema::auto_replies::dsl;
+      let replies: Vec<AutoReply> = crate::bot::with_connection(|c| {
+        use crate::database::schema::auto_replies::dsl;
         dsl::auto_replies
           .filter(dsl::server_id.eq(guild.to_u64())
             .and(dsl::on_join.eq(true)))
@@ -45,8 +45,8 @@ impl EventHandler for AutoReplyListener {
       if m.author.id == ctx.cache.read().user.id {
         return Ok(());
       }
-      let replies: Vec<AutoReply> = ::bot::with_connection(|c| {
-        use database::schema::auto_replies::dsl;
+      let replies: Vec<AutoReply> = crate::bot::with_connection(|c| {
+        use crate::database::schema::auto_replies::dsl;
         dsl::auto_replies
           .filter(dsl::channel_id.eq(m.channel_id.to_u64())
             .and(dsl::on_join.eq(false)))

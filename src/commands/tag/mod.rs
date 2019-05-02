@@ -10,8 +10,8 @@ pub use self::tag_command::TagCommand;
 pub use self::update_tag::UpdateTagCommand;
 pub use self::update_tags::UpdateTagsCommand;
 
-use bot::BotEnv;
-use database::models::{ToU64, Tag, NewTag, U64, Verification, Role as DbRole};
+use crate::bot::BotEnv;
+use crate::database::models::{ToU64, Tag, NewTag, U64, Verification, Role as DbRole};
 
 use diesel::prelude::*;
 
@@ -59,7 +59,7 @@ impl Tagger {
       .name(character_name)
       .world(world)
       .send()
-      .map_err(|x| x.compat())
+      .map_err(Fail::compat)
       .chain_err(|| "could not query Lodestone API")?;
 
     let res = match res {
@@ -99,8 +99,8 @@ impl Tagger {
   }
 
   fn get_roles() -> Result<Vec<String>> {
-    let roles: Vec<DbRole> = ::bot::with_connection(|c| {
-      use database::schema::roles::dsl;
+    let roles: Vec<DbRole> = crate::bot::with_connection(|c| {
+      use crate::database::schema::roles::dsl;
       dsl::roles.load(c)
     }).chain_err(|| "could not load roles")?;
     Ok(roles.into_iter().map(|x| x.role_name.to_lowercase()).collect())
@@ -108,8 +108,8 @@ impl Tagger {
 
   pub fn tag(env: &BotEnv, who: UserId, on: GuildId, char_id: u64, force: bool) -> Result<Option<String>> {
     // Trolls always make sure we can't have nice things.
-    let existing_tags: i64 = ::bot::with_connection(|c| {
-      use database::schema::tags::dsl;
+    let existing_tags: i64 = crate::bot::with_connection(|c| {
+      use crate::database::schema::tags::dsl;
       dsl::tags
         .select(::diesel::dsl::count(dsl::id))
         .filter(dsl::character_id.eq(U64::from(char_id))
@@ -118,11 +118,11 @@ impl Tagger {
         .first(c)
     }).chain_err(|| "could not load tags")?;
     if !force && existing_tags > 0 {
-      return Ok(Some(format!("Someone is already tagged as that character.\n\nIf this is an alternate account, please let the mods know.",)));
+      return Ok(Some("Someone is already tagged as that character.\n\nIf this is an alternate account, please let the mods know.".into()));
     }
 
-    let tag: Option<Tag> = ::bot::with_connection(|c| {
-      use database::schema::tags::dsl;
+    let tag: Option<Tag> = crate::bot::with_connection(|c| {
+      use crate::database::schema::tags::dsl;
       dsl::tags
         .filter(dsl::user_id.eq(who.to_u64()).and(dsl::server_id.eq(on.to_u64())))
         .first(c)
@@ -130,7 +130,7 @@ impl Tagger {
     }).chain_err(|| "could not load tags")?;
     let is_verified = match tag {
       Some(t) => {
-        let verification: Verification = ::bot::with_connection(|c| {
+        let verification: Verification = crate::bot::with_connection(|c| {
           Verification::belonging_to(&t).first(c).optional()
         }).chain_err(|| "could not load verifications")?.unwrap_or_default();
         if verification.verified && !force && char_id != *t.character_id {
@@ -149,8 +149,8 @@ impl Tagger {
     let member = match member {
       Ok(m) => m,
       Err(SError::Http(box HttpError::UnsuccessfulRequest(ref r))) if r.status_code == StatusCode::NOT_FOUND => {
-        ::bot::with_connection(|c| {
-          use database::schema::tags::dsl;
+        crate::bot::with_connection(|c| {
+          use crate::database::schema::tags::dsl;
           ::diesel::delete(dsl::tags
             .filter(dsl::user_id.eq(who.to_u64()).and(dsl::server_id.eq(on.to_u64()))))
             .execute(c)
@@ -163,7 +163,7 @@ impl Tagger {
     let res = env.lodestone
       .character(char_id.into())
       .send()
-      .map_err(|x| x.compat())
+      .map_err(Fail::compat)
       .chain_err(|| "could not look up character")?;
 
     let character = match res {
@@ -173,8 +173,8 @@ impl Tagger {
       RouteResult::Error { error } => return Ok(Some(format!("An error occurred: `{}`. Try again later.", error))),
     };
 
-    let tag: Option<Tag> = ::bot::with_connection(|c| {
-      use database::schema::tags::dsl;
+    let tag: Option<Tag> = crate::bot::with_connection(|c| {
+      use crate::database::schema::tags::dsl;
       dsl::tags
         .filter(dsl::user_id.eq(who.to_u64()).and(dsl::server_id.eq(on.to_u64())))
         .first(c)
@@ -186,7 +186,7 @@ impl Tagger {
         t.character_id = id.into();
         t.character = name;
         t.server = server.to_string();
-        ::bot::with_connection(|c| t.save_changes::<Tag>(c)).chain_err(|| "could not update tag")?;
+        crate::bot::with_connection(|c| t.save_changes::<Tag>(c)).chain_err(|| "could not update tag")?;
       },
       None => {
         let new_tag = NewTag::new(
@@ -196,8 +196,8 @@ impl Tagger {
           &character.name,
           character.world.as_str()
         );
-        ::bot::with_connection(|c| {
-          use database::schema::tags;
+        crate::bot::with_connection(|c| {
+          use crate::database::schema::tags;
           ::diesel::insert_into(tags::table).values(&new_tag).execute(c)
         }).chain_err(|| "could not insert tag")?;
       }

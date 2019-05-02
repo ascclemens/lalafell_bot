@@ -1,7 +1,7 @@
-use bot::BotEnv;
-use commands::*;
-use tasks::AutoTagTask;
-use database::models::{ToU64, Tag};
+use crate::bot::BotEnv;
+use crate::commands::*;
+use crate::tasks::AutoTagTask;
+use crate::database::models::{ToU64, Tag};
 
 use serenity::{
   builder::CreateEmbed,
@@ -47,8 +47,8 @@ impl<'a> PublicChannelCommand<'a> for UpdateTagCommand {
       },
       None => message.author.id
     };
-    let tag: Option<Tag> = ::bot::with_connection(|c| {
-      use database::schema::tags::dsl;
+    let tag: Option<Tag> = crate::bot::with_connection(|c| {
+      use crate::database::schema::tags::dsl;
       dsl::tags
         .filter(dsl::user_id.eq(id.to_u64()).and(dsl::server_id.eq(guild.to_u64())))
         .first(c)

@@ -28,7 +28,7 @@ mod refresh;
 mod helpers;
 mod discordown;
 
-use error::*;
+use crate::error::*;
 use channel::*;
 use refresh::*;
 

@@ -1,5 +1,5 @@
-use lodestone::Lodestone;
-use database::models::{ToU64, Tag, Verification};
+use crate::lodestone::Lodestone;
+use crate::database::models::{ToU64, Tag, Verification};
 
 use lalafell::error::*;
 use lalafell::commands::prelude::*;
@@ -13,8 +13,8 @@ pub struct VerifyCommand;
 
 impl<'a> PublicChannelCommand<'a> for VerifyCommand {
   fn run(&self, ctx: &Context, message: &Message, guild: GuildId, _: Arc<RwLock<GuildChannel>>, _: &[&str]) -> CommandResult<'a> {
-    let user: Option<Tag> = ::bot::with_connection(|c| {
-      use database::schema::tags::dsl;
+    let user: Option<Tag> = crate::bot::with_connection(|c| {
+      use crate::database::schema::tags::dsl;
       dsl::tags
         .filter(dsl::user_id.eq(message.author.id.to_u64()).and(dsl::server_id.eq(guild.to_u64())))
         .first(c)
@@ -28,7 +28,7 @@ impl<'a> PublicChannelCommand<'a> for VerifyCommand {
           .description("Please tag yourself with an account before verifying it."))
         .wrap())
     };
-    let mut verification: Verification = ::bot::with_connection(|c| {
+    let mut verification: Verification = crate::bot::with_connection(|c| {
       Verification::belonging_to(&user)
         .first(c)
         .optional()
@@ -41,8 +41,8 @@ impl<'a> PublicChannelCommand<'a> for VerifyCommand {
       None => {
         let mut new_verification = verification.into_new(user.id);
         let msg = format!("Edit your Lodestone profile to contain `{}`.\nRerun the `!verify` command afterward.", new_verification.create_verification_string());
-        ::bot::with_connection(move |c| {
-          use database::schema::verifications;
+        crate::bot::with_connection(move |c| {
+          use crate::database::schema::verifications;
           ::diesel::insert_into(verifications::table)
             .values(&new_verification)
             .execute(c)
@@ -59,7 +59,7 @@ impl<'a> PublicChannelCommand<'a> for VerifyCommand {
       let guild = guild.to_guild_cached(&ctx).chain_err(|| "could not find guild")?;
 
       verification.verified = true;
-      ::bot::with_connection(|c| verification.save_changes::<Verification>(c)).chain_err(|| "could not update verification")?;
+      crate::bot::with_connection(|c| verification.save_changes::<Verification>(c)).chain_err(|| "could not update verification")?;
 
       if let Some(r) = guild.read().roles.values().find(|x| x.name.to_lowercase() == "verified") {
         let mut member = guild.read().member(&ctx, &message.author).chain_err(|| "could not get member for tagging")?;

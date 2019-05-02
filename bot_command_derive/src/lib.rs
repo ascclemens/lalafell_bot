@@ -18,14 +18,14 @@ pub fn bot_command(input: TokenStream) -> TokenStream {
 fn impl_bot_command(ast: &syn::DeriveInput) -> TokenStream {
   let struct_data = match ast.data {
     syn::Data::Struct(ref s) => s,
-    _ => panic!("cannot derive BotCommand on anything but a struct")
+    _ => panic!("cannot derive BotCommand on anything but a struct"),
   };
   let name = &ast.ident;
   let mut field_name = None;
   for field in struct_data.fields.iter() {
     let path = match field.ty {
       syn::Type::Path(ref p) => p,
-      _ => continue
+      _ => continue,
     };
     if path.path.clone().into_token_stream().to_string() == "Arc < BotEnv >" {
       field_name = Some(field.ident.clone().expect("cannot derive for tuple structs"));
@@ -34,16 +34,16 @@ fn impl_bot_command(ast: &syn::DeriveInput) -> TokenStream {
   }
   match field_name {
     Some(ident) => quote! {
-      impl ::commands::BotCommand for #name {
+      impl crate::commands::BotCommand for #name {
         #[cfg_attr(feature = "cargo-clippy", allow(redundant_field_names))]
-        fn new(env: Arc<::bot::BotEnv>) -> Self {
+        fn new(env: Arc<crate::bot::BotEnv>) -> Self {
           #name { #ident: env }
         }
       }
     }.into(),
     None => quote! {
-      impl ::commands::BotCommand for #name {
-        fn new(_: Arc<::bot::BotEnv>) -> Self {
+      impl crate::commands::BotCommand for #name {
+        fn new(_: Arc<crate::bot::BotEnv>) -> Self {
           #name
         }
       }

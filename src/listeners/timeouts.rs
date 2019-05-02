@@ -1,4 +1,4 @@
-use database::models::{ToU64, Timeout};
+use crate::database::models::{ToU64, Timeout};
 use lalafell::error::*;
 
 use serenity::prelude::RwLock;
@@ -21,8 +21,8 @@ impl EventHandler for Timeouts {
         Channel::Guild(c) => c,
         _ => return Ok(())
       };
-      let timeout = ::bot::with_connection(|c| {
-        use database::schema::timeouts::dsl;
+      let timeout = crate::bot::with_connection(|c| {
+        use crate::database::schema::timeouts::dsl;
         dsl::timeouts
           .filter(dsl::user_id.eq(message.author.id.to_u64()).and(dsl::server_id.eq(channel.read().guild_id.to_u64())))
           .first(c)
@@ -34,7 +34,7 @@ impl EventHandler for Timeouts {
       };
 
       if timeout.ends() < Utc::now().timestamp() {
-        if let Err(e) = ::bot::with_connection(|c| ::diesel::delete(&timeout).execute(c)) {
+        if let Err(e) = crate::bot::with_connection(|c| ::diesel::delete(&timeout).execute(c)) {
           warn!("could not delete timeout: {}", e);
         }
         return Ok(());
@@ -51,7 +51,7 @@ impl EventHandler for Timeouts {
     fn channel_create(&self, ctx: Context, channel: Arc<RwLock<GuildChannel>>) -> Result<()> {
       let guild_id = channel.read().guild_id;
       let guild = guild_id.to_guild_cached(&ctx).chain_err(|| "could not find guild")?;
-      if let Err(e) = ::commands::timeout::set_up_timeouts(&ctx, &guild.read()) {
+      if let Err(e) = crate::commands::timeout::set_up_timeouts(&ctx, &guild.read()) {
         warn!("could not add timeout overwrite to {}: {}", channel.read().id.0, e);
       }
       Ok(())

@@ -1,4 +1,4 @@
-use bot::LalafellBot;
+use crate::bot::LalafellBot;
 
 use typemap::Key;
 

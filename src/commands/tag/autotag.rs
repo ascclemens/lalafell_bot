@@ -1,5 +1,5 @@
-use bot::BotEnv;
-use commands::tag::Tagger;
+use crate::bot::BotEnv;
+use crate::commands::tag::Tagger;
 
 use ffxiv::World;
 

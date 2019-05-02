@@ -1,5 +1,5 @@
-use database::schema::*;
-use database::models::U64;
+use crate::database::schema::*;
+use crate::database::models::U64;
 
 use byteorder::{ByteOrder, LittleEndian};
 

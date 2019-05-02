@@ -1,4 +1,4 @@
-use bot::data::ShardManagerContainer;
+use crate::bot::data::ShardManagerContainer;
 
 use lalafell::commands::prelude::*;
 

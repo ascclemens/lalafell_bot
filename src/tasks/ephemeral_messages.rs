@@ -1,7 +1,7 @@
-use bot::BotEnv;
-use database::models::EphemeralMessage;
-use error::*;
-use tasks::{RunsTask, Wait};
+use crate::bot::BotEnv;
+use crate::database::models::EphemeralMessage;
+use crate::error::*;
+use crate::tasks::{RunsTask, Wait};
 
 use chrono::{Utc, Duration};
 
@@ -27,8 +27,8 @@ impl RunsTask for EphemeralMessageTask {
       }
       let next_half_hour = (Utc::now() + Duration::minutes(30)).timestamp();
       info!("Checking for ephemeral messages");
-      let res: Result<Vec<EphemeralMessage>> = ::bot::with_connection(|c| {
-        use database::schema::ephemeral_messages::dsl;
+      let res: Result<Vec<EphemeralMessage>> = crate::bot::with_connection(|c| {
+        use crate::database::schema::ephemeral_messages::dsl;
         dsl::ephemeral_messages
           .filter(dsl::expires_on.le(next_half_hour))
           .load(c)
@@ -55,7 +55,7 @@ impl RunsTask for EphemeralMessageTask {
           let channel = ChannelId(*eph.channel_id);
           match channel.delete_message(thread_env.http(), *eph.message_id) {
             Ok(_) => {
-              if let Err(e) = ::bot::with_connection(|c| diesel::delete(&eph).execute(c)) {
+              if let Err(e) = crate::bot::with_connection(|c| diesel::delete(&eph).execute(c)) {
                 warn!("could not delete ephemeral message (id: {}) from database: {}", eph.id, e);
               }
             },
