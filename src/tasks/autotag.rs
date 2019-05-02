@@ -47,7 +47,7 @@ impl AutoTagTask {
       }
     };
     info!("{} tag{} to update", users.len(), if users.len() == 1 { "" } else { "s" });
-    for mut tags in users.chunks_mut(20) {
+    for tags in users.chunks_mut(20) {
       for mut tag in tags {
         match AutoTagTask::update_tag(env, UserId(*tag.user_id), GuildId(*tag.server_id), *tag.character_id) {
           Err(e) => {

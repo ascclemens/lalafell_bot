@@ -95,7 +95,7 @@ impl EventHandler for Log {
       None => return
     };
     let new_content = match update.content {
-      Some(ref c) => c,
+      Some(ref c) => c.to_owned(),
       None => return
     };
 

@@ -233,9 +233,11 @@ impl Tagger {
       Gender::Male => "male",
       Gender::Female => "female",
     };
+    let data_centre = character.world.data_center();
     Tagger::find_or_create_role(on, race, &mut add_roles, &mut created_roles)?;
     Tagger::find_or_create_role(on, gender, &mut add_roles, &mut created_roles)?;
     Tagger::find_or_create_role_and(on, character.world.as_str(), &mut add_roles, &mut created_roles, |r| r.hoist(true))?;
+    Tagger::find_or_create_role(on, data_centre.as_str(), &mut add_roles, &mut created_roles)?;
 
     if is_verified {
       Tagger::find_or_create_role(on, "verified", &mut add_roles, &mut created_roles)?;
