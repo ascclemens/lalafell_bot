@@ -4,14 +4,18 @@ pub mod tag_command;
 pub mod update_tag;
 pub mod update_tags;
 
-pub use self::autotag::AutoTagCommand;
-pub use self::queue_tag::QueueTagCommand;
-pub use self::tag_command::TagCommand;
-pub use self::update_tag::UpdateTagCommand;
-pub use self::update_tags::UpdateTagsCommand;
+pub use self::{
+  autotag::AutoTagCommand,
+  queue_tag::QueueTagCommand,
+  tag_command::TagCommand,
+  update_tag::UpdateTagCommand,
+  update_tags::UpdateTagsCommand,
+};
 
-use crate::bot::BotEnv;
-use crate::database::models::{ToU64, Tag, NewTag, U64, Verification, Role as DbRole};
+use crate::{
+  bot::BotEnv,
+  database::models::{ToU64, Tag, NewTag, U64, Verification, Role as DbRole},
+};
 
 use diesel::prelude::*;
 
@@ -22,13 +26,17 @@ use ffxiv::{World, Race};
 use lalafell::error::*;
 use lalafell::commands::prelude::*;
 
-use serenity::Error as SError;
-use serenity::builder::EditRole;
-use serenity::model::guild::Role;
-use serenity::model::permissions::Permissions;
-use serenity::prelude::Mentionable;
-use serenity::model::id::{RoleId, UserId};
-use serenity::http::{HttpError, StatusCode};
+use serenity::{
+  Error as SError,
+  builder::EditRole,
+  model::{
+    guild::Role,
+    permissions::Permissions,
+  },
+  prelude::Mentionable,
+  model::id::{RoleId, UserId},
+  http::{HttpError, StatusCode},
+};
 
 use unicase::UniCase;
 
