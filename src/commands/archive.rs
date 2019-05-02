@@ -29,26 +29,26 @@ impl HasParams for ArchiveCommand {
 }
 
 impl<'a> PublicChannelCommand<'a> for ArchiveCommand {
-  fn run(&self, _: &Context, message: &Message, _: GuildId, _: Arc<RwLock<GuildChannel>>, params: &[&str]) -> CommandResult<'a> {
+  fn run(&self, ctx: &Context, message: &Message, _: GuildId, _: Arc<RwLock<GuildChannel>>, params: &[&str]) -> CommandResult<'a> {
     let params = self.params_then("archive", params, |a| a.setting(::structopt::clap::AppSettings::ArgRequiredElseHelp))?;
-    let channel = match params.channel.to_channel().chain_err(|| "could not get channel")? {
+    let channel = match params.channel.to_channel(&ctx).chain_err(|| "could not get channel")? {
       Channel::Guild(g) => g,
       _ => return Err("This channel must be a guild channel.".into())
     };
     let channel = channel.read();
-    let member = match channel.guild_id.member(message.author.id) {
+    let member = match channel.guild_id.member(&ctx, message.author.id) {
       Ok(m) => m,
       Err(_) => return Err("You must be a member of the guild to archive its channels.".into())
     };
-    if !member.permissions().chain_err(|| "could not get permissions")?.manage_channels() {
+    if !member.permissions(&ctx).chain_err(|| "could not get permissions")?.manage_channels() {
       return Err(ExternalCommandFailure::default()
-        .message(|e: CreateEmbed| e
+        .message(|e: &mut CreateEmbed| e
           .title("Not enough permissions.")
           .description("You don't have enough permissions to use this command."))
         .wrap());
     }
 
-    let guild = channel.guild_id.to_guild_cached().chain_err(|| "could not find guild")?;
+    let guild = channel.guild_id.to_guild_cached(&ctx).chain_err(|| "could not find guild")?;
 
     let archive_path = Path::new("./archives")
       .join(&guild.read().id.to_string())
@@ -64,11 +64,11 @@ impl<'a> PublicChannelCommand<'a> for ArchiveCommand {
       return Err("This channel is already archived.".into());
     }
 
-    let mut messages = channel.messages(|gm| gm.limit(100)).chain_err(|| "could not download first set of messages")?;
+    let mut messages = channel.messages(&ctx, |gm| gm.limit(100)).chain_err(|| "could not download first set of messages")?;
     if messages.len() >= 100 {
       loop {
         let last_message_id = messages[messages.len() - 1].id;
-        let mut next_batch = channel.messages(|gm| gm.before(last_message_id)).chain_err(|| "could not download more messages")?;
+        let mut next_batch = channel.messages(&ctx, |gm| gm.before(last_message_id)).chain_err(|| "could not download more messages")?;
         if next_batch.is_empty() {
           break;
         }

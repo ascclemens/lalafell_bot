@@ -18,7 +18,9 @@ use chrono::Duration;
 use std::sync::Arc;
 
 #[derive(BotCommand)]
-pub struct TimeoutCommand;
+pub struct TimeoutCommand {
+  env: Arc<BotEnv>,
+}
 
 #[derive(Debug, StructOpt)]
 #[structopt(help = "Put a member in time out, preventing them from doing anything")]
@@ -34,12 +36,12 @@ impl HasParams for TimeoutCommand {
 }
 
 impl<'a> PublicChannelCommand<'a> for TimeoutCommand {
-  fn run(&self, _: &Context, message: &Message, guild: GuildId, channel: Arc<RwLock<GuildChannel>>, params: &[&str]) -> CommandResult<'a> {
+  fn run(&self, ctx: &Context, message: &Message, guild: GuildId, channel: Arc<RwLock<GuildChannel>>, params: &[&str]) -> CommandResult<'a> {
     let params = self.params_then("timeout", params, |a| a.setting(::structopt::clap::AppSettings::ArgRequiredElseHelp))?;
-    let member = guild.member(&message.author).chain_err(|| "could not get member")?;
-    if !member.permissions().chain_err(|| "could not get permissions")?.manage_roles() {
+    let member = guild.member(&ctx, &message.author).chain_err(|| "could not get member")?;
+    if !member.permissions(&ctx).chain_err(|| "could not get permissions")?.manage_roles() {
       return Err(ExternalCommandFailure::default()
-        .message(|e: CreateEmbed| e
+        .message(|e: &mut CreateEmbed| e
           .title("Not enough permissions.")
           .description("You don't have enough permissions to use this command."))
         .wrap());
@@ -48,9 +50,9 @@ impl<'a> PublicChannelCommand<'a> for TimeoutCommand {
     let server_id = channel.read().guild_id;
     let who = params.who;
 
-    let mut timeout_member = guild.member(*who).map_err(|_| into!(CommandFailure, "That user is not in this guild."))?;
+    let mut timeout_member = guild.member(&ctx, *who).map_err(|_| into!(CommandFailure, "That user is not in this guild."))?;
 
-    let guild = guild.to_guild_cached().chain_err(|| "could not find guild")?;
+    let guild = guild.to_guild_cached(&ctx).chain_err(|| "could not find guild")?;
 
     let timeouts = ::bot::with_connection(|c| {
       use database::schema::timeouts::dsl;
@@ -65,9 +67,9 @@ impl<'a> PublicChannelCommand<'a> for TimeoutCommand {
       return Err(format!("{} is already timed out.", who.mention()).into());
     }
 
-    let role_id = match timeout::set_up_timeouts(&guild.read()) {
+    let role_id = match timeout::set_up_timeouts(ctx, &guild.read()) {
       Ok(r) => {
-        if let Err(e) = timeout_member.add_role(r) {
+        if let Err(e) = timeout_member.add_role(&ctx, r) {
           warn!("could not add user {} to timeout role: {}", who.0, e);
         }
         r
@@ -88,9 +90,10 @@ impl<'a> PublicChannelCommand<'a> for TimeoutCommand {
 
     // spawn a task if the duration is less than the check task period
     if duration < 300 {
+      let env = Arc::clone(&self.env);
       ::std::thread::spawn(move || {
         ::std::thread::sleep(Duration::seconds(duration as i64).to_std().unwrap());
-        ::tasks::timeout_check::remove_timeout(&timeout);
+        ::tasks::timeout_check::remove_timeout(&env, &timeout);
       });
     }
 

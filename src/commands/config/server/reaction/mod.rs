@@ -27,7 +27,7 @@ pub enum Params {
 pub struct ReactionCommand;
 
 impl<'a> ReactionCommand {
-  pub fn run(&self, author: UserId, guild: GuildId, params: Params) -> CommandResult<'a> {
+  pub fn run(&self, ctx: &Context, author: UserId, guild: GuildId, params: Params) -> CommandResult<'a> {
     struct SubCommands {
       add: add::AddCommand,
       remove: remove::RemoveCommand,
@@ -40,19 +40,19 @@ impl<'a> ReactionCommand {
       list: list::ListCommand
     };
 
-    let member = guild.member(author).chain_err(|| "could not get member")?;
-    if !member.permissions().chain_err(|| "could not get permissions")?.manage_roles() {
+    let member = guild.member(&ctx, author).chain_err(|| "could not get member")?;
+    if !member.permissions(&ctx).chain_err(|| "could not get permissions")?.manage_roles() {
       return Err(ExternalCommandFailure::default()
-        .message(|e: CreateEmbed| e
+        .message(|e: &mut CreateEmbed| e
           .title("Not enough permissions.")
           .description("You don't have enough permissions to use this command."))
         .wrap());
     }
 
     match params {
-      Params::Add(p) => SUBCOMMANDS.add.run(guild, p),
-      Params::Remove(p) => SUBCOMMANDS.remove.run(guild, p),
-      Params::List => SUBCOMMANDS.list.run(guild)
+      Params::Add(p) => SUBCOMMANDS.add.run(ctx, guild, p),
+      Params::Remove(p) => SUBCOMMANDS.remove.run(ctx, guild, p),
+      Params::List => SUBCOMMANDS.list.run(ctx, guild)
     }
   }
 }

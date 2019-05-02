@@ -1,6 +1,6 @@
 use database::schema::*;
 
-use serenity::model::gateway::GameType;
+use serenity::model::gateway::ActivityType;
 
 use std::mem;
 
@@ -32,10 +32,10 @@ pub enum PresenceKind {
 }
 
 impl PresenceKind {
-  pub fn as_discord(&self) -> GameType {
+  pub fn as_discord(&self) -> ActivityType {
     match *self {
-      PresenceKind::Playing => GameType::Playing,
-      PresenceKind::Listening => GameType::Listening
+      PresenceKind::Playing => ActivityType::Playing,
+      PresenceKind::Listening => ActivityType::Listening
     }
   }
 

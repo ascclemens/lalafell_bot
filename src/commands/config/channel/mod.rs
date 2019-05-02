@@ -9,7 +9,7 @@ use serenity::model::id::{UserId, GuildId};
 pub struct ChannelCommand;
 
 impl<'a> ChannelCommand {
-  pub fn run(&self, author: UserId, guild: GuildId, params: Params) -> CommandResult<'a> {
+  pub fn run(&self, ctx: &Context, author: UserId, guild: GuildId, params: Params) -> CommandResult<'a> {
     struct SubCommands {
       image_dump: image_dump::ImageDumpCommand
     }
@@ -19,7 +19,7 @@ impl<'a> ChannelCommand {
     };
 
     match params.subcommand {
-      SubCommand::ImageDump(p) => SUBCOMMANDS.image_dump.run(author, guild, *params.channel, p)
+      SubCommand::ImageDump(p) => SUBCOMMANDS.image_dump.run(ctx, author, guild, *params.channel, p)
     }
   }
 }

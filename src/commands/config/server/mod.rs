@@ -11,7 +11,7 @@ use serenity::model::id::{UserId, GuildId};
 pub struct ServerCommand;
 
 impl<'a> ServerCommand {
-  pub fn run(&self, author: UserId, guild: GuildId, params: Params) -> CommandResult<'a> {
+  pub fn run(&self, ctx: &Context, author: UserId, guild: GuildId, params: Params) -> CommandResult<'a> {
     struct SubCommands {
       auto_reply: auto_reply::AutoReplyCommand,
       delete_all_messages: delete_all_messages::DeleteAllMessagesCommand,
@@ -27,10 +27,10 @@ impl<'a> ServerCommand {
     };
 
     match params {
-      Params::AutoReply(p) => SUBCOMMANDS.auto_reply.run(author, guild, p),
-      Params::DeleteAllMessages(p) => SUBCOMMANDS.delete_all_messages.run(author, guild, p),
-      Params::Reaction(p) => SUBCOMMANDS.reaction.run(author, guild, p),
-      Params::TimeoutRole(p) => SUBCOMMANDS.timeout_role.run(author, guild, p)
+      Params::AutoReply(p) => SUBCOMMANDS.auto_reply.run(ctx, author, guild, p),
+      Params::DeleteAllMessages(p) => SUBCOMMANDS.delete_all_messages.run(ctx, author, guild, p),
+      Params::Reaction(p) => SUBCOMMANDS.reaction.run(ctx, author, guild, p),
+      Params::TimeoutRole(p) => SUBCOMMANDS.timeout_role.run(ctx, author, guild, p)
     }
   }
 }

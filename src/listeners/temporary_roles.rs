@@ -10,14 +10,14 @@ pub struct TemporaryRolesListener;
 
 impl EventHandler for TemporaryRolesListener {
   result_wrap! {
-    fn message(&self, _ctx: Context, message: Message) -> Result<()> {
-      let guild_channel = match message.channel().and_then(|c| c.guild()) {
+    fn message(&self, ctx: Context, message: Message) -> Result<()> {
+      let guild_channel = match message.channel(&ctx).and_then(|c| c.guild()) {
         Some(g) => g,
         None => return Ok(())
       };
       let channel_id = guild_channel.read().id;
       let guild_id = guild_channel.read().guild_id;
-      let mut member = guild_id.member(&message.author).chain_err(|| "could not get member")?;
+      let mut member = guild_id.member(&ctx, &message.author).chain_err(|| "could not get member")?;
 
       let temps: Vec<TemporaryRole> = ::bot::with_connection(|c| {
         use database::schema::temporary_roles::dsl;
@@ -43,7 +43,7 @@ impl EventHandler for TemporaryRolesListener {
         temp.messages = temp.messages.map(|x| x - 1);
 
         if temp.messages == Some(0) {
-          member.remove_role(*temp.role_id).chain_err(|| "could not remove role")?;
+          member.remove_role(&ctx, *temp.role_id).chain_err(|| "could not remove role")?;
           ::bot::with_connection(|c| {
             ::diesel::delete(&temp).execute(c)
           }).chain_err(|| "could not delete temporary role")?;

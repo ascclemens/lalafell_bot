@@ -2,7 +2,6 @@ use bot::BotEnv;
 use tasks::RunsTask;
 use database::models::DeleteAllMessages;
 
-use serenity::builder::GetMessages;
 use serenity::model::id::ChannelId;
 
 use chrono::prelude::*;
@@ -29,7 +28,7 @@ impl DeleteAllMessagesTask {
 }
 
 impl RunsTask for DeleteAllMessagesTask {
-  fn start(mut self, _: Arc<BotEnv>) {
+  fn start(mut self, env: Arc<BotEnv>) {
     loop {
       thread::sleep(Duration::seconds(self.next_sleep).to_std().unwrap());
       info!("Delete messages task running");
@@ -46,7 +45,7 @@ impl RunsTask for DeleteAllMessagesTask {
       };
       for dam in dams {
         let channel = ChannelId(*dam.channel_id);
-        let messages = match channel.messages(GetMessages::most_recent) {
+        let messages = match channel.messages(env.http(), |m| m) {
           Ok(m) => m,
           Err(e) => {
             warn!("Could not get messages for channel {}: {}", channel, e);
@@ -70,10 +69,10 @@ impl RunsTask for DeleteAllMessagesTask {
         for chunk in to_delete.chunks(100) {
           info!("Deleting chunk of {} message{}", chunk.len(), if chunk.len() == 1 { "" } else { "s" });
           let result = if chunk.len() == 1 {
-            channel.delete_message(chunk[0].id)
+            channel.delete_message(env.http(), chunk[0].id)
           } else {
             let ids: Vec<_> = chunk.iter().map(|m| m.id).collect();
-            channel.delete_messages(ids)
+            channel.delete_messages(env.http(), ids)
           };
           if let Err(e) = result {
             warn!("Could not delete messages: {}", e);

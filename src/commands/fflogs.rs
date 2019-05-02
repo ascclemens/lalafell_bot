@@ -72,40 +72,28 @@ impl<'a> Command<'a> for FfLogsCommand {
     }
 
     let first_spec = match parses[0].specs.get(0) {
-      Some(s) => s,
+      Some(s) => s.spec.to_owned(),
       None => return Err("Somehow there was no first spec.".into())
     };
-    let first_data = match first_spec.data.get(0) {
-      Some(d) => d,
+    let (name, id) = match parses[0].specs.get(0).unwrap().data.get(0) {
+      Some(d) => (d.character_name.to_owned(), d.character_id),
       None => return Err("Somehow there was no first data.".into())
     };
 
-    let job = params.job.or_else(|| Job::from_str(&first_spec.spec).ok()).unwrap().to_string();
+    let job = params.job.or_else(|| Job::from_str(&first_spec).ok()).unwrap().to_string();
     let uni_job = UniCase::new(job.replace(" ", ""));
-    let name = &first_data.character_name;
-    let id = first_data.character_id;
 
-    let mut embed = CreateEmbed::default();
+    let mut fields: Vec<(String, String)> = Vec::with_capacity(parses.len());
 
-    embed = embed
-      .title(&name)
-      .url(format!("https://www.fflogs.com/character/id/{}", id))
-      .field("Job", &job, true)
-      .field("Server", server.as_ref(), true);
-
-    let mut count = 0;
-
-    for parse in &parses {
+    for parse in parses {
       let spec = match parse.specs.iter().find(|s| UniCase::new(&s.spec) == uni_job) {
         Some(s) => s,
-        None => continue
+        None => continue,
       };
       let data = match spec.data.iter().max_by(|a, b| a.historical_percent.partial_cmp(&b.historical_percent).unwrap_or(Ordering::Less)) {
         Some(d) => d,
-        None => continue
+        None => continue,
       };
-
-      count += 1;
 
       let url = format!("https://www.fflogs.com/reports/{}#fight={}", data.report_code, data.report_fight);
 
@@ -113,16 +101,26 @@ impl<'a> Command<'a> for FfLogsCommand {
         url = url,
         dps = data.persecondamount,
         perc = data.historical_percent,
-        total_parses = data.historical_count
+        total_parses = data.historical_count,
       );
 
-      embed = embed.field(&parse.name, string, false);
+      fields.push((parse.name, string));
     }
 
-    if count == 0 {
+    if fields.is_empty() {
       return Ok("No parses for that job.".into());
     }
 
-    Ok(CommandSuccess::default().message(|_| embed))
+    Ok(CommandSuccess::default().message(move |e| {
+      e
+        .title(&name)
+        .url(format!("https://www.fflogs.com/character/id/{}", id))
+        .field("Job", &job, true)
+        .field("Server", server.as_ref(), true);
+      for (name, content) in fields {
+        e.field(name, content, false);
+      }
+      e
+    }))
   }
 }

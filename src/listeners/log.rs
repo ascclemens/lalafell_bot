@@ -53,10 +53,10 @@ impl Log {
 }
 
 impl EventHandler for Log {
-  fn guild_member_removal(&self, _: Context, guild: GuildId, user: User, member: Option<Member>) {
+  fn guild_member_removal(&self, ctx: Context, guild: GuildId, user: User, member: Option<Member>) {
     let channel_id = some_or!(self.get_log_channel(guild), return);
     let mention = member.as_ref().map(|x| x.mention()).unwrap_or_else(|| user.mention());
-    channel_id.send_message(|m| m.embed(|mut embed| {
+    channel_id.send_message(&ctx, |m| m.embed(|mut embed| {
       embed = embed
         .author(|a| a
           .name(&user.tag())
@@ -73,9 +73,9 @@ impl EventHandler for Log {
     })).ok();
   }
 
-  fn guild_member_addition(&self, _: Context, guild: GuildId, member: Member) {
+  fn guild_member_addition(&self, ctx: Context, guild: GuildId, member: Member) {
     let channel_id = some_or!(self.get_log_channel(guild), return);
-    channel_id.send_message(|m| m.embed(|mut embed| {
+    channel_id.send_message(&ctx, |m| m.embed(|mut embed| {
       embed = embed
         .author(|a| a
           .name(&member.user.read().tag())
@@ -89,7 +89,7 @@ impl EventHandler for Log {
     })).ok();
   }
 
-  fn message_update(&self, _: Context, update: MessageUpdateEvent) {
+  fn message_update(&self, ctx: Context, _: Option<Message>, _: Option<Message>, update: MessageUpdateEvent) {
     let author = match update.author {
       Some(ref a) => a,
       None => return
@@ -99,7 +99,7 @@ impl EventHandler for Log {
       None => return
     };
 
-    let channel = match update.channel_id.to_channel() {
+    let channel = match update.channel_id.to_channel(&ctx) {
       Ok(c) => c,
       Err(e) => {
         warn!("could not download channel {} for message history: {}", update.channel_id, e);
@@ -115,13 +115,13 @@ impl EventHandler for Log {
 
     let channel_id = some_or!(self.get_log_channel(reader.guild_id), return);
 
-    let guild = match reader.guild_id.to_guild_cached() {
+    let guild = match reader.guild_id.to_guild_cached(&ctx) {
       Some(g) => g,
       None => return
     };
     let guild_reader = guild.read();
 
-    let member = match guild_reader.members.get(&author.id).cloned().or_else(|| guild_reader.member(author.id).ok()) {
+    let member = match guild_reader.members.get(&author.id).cloned().or_else(|| guild_reader.member(&ctx, author.id).ok()) {
       Some(m) => m,
       None => return
     };
@@ -148,7 +148,7 @@ impl EventHandler for Log {
     );
     message.edited_timestamp = update.edited_timestamp;
 
-    channel_id.send_message(|m| m.embed(|mut embed| {
+    channel_id.send_message(&ctx, |m| m.embed(|mut embed| {
       embed = embed
         .author(|a| a
           .name(&member.user.read().tag())
@@ -165,8 +165,8 @@ impl EventHandler for Log {
     })).ok();
   }
 
-  fn message_delete(&self, _: Context, channel_id: ChannelId, message_id: MessageId) {
-    let channel = match channel_id.to_channel() {
+  fn message_delete(&self, ctx: Context, channel_id: ChannelId, message_id: MessageId) {
+    let channel = match channel_id.to_channel(&ctx) {
       Ok(c) => c,
       Err(e) => {
         warn!("could not download channel {} for message history: {}", channel_id, e);
@@ -182,7 +182,7 @@ impl EventHandler for Log {
 
     let log_channel = some_or!(self.get_log_channel(reader.guild_id), return);
 
-    let guild = match reader.guild_id.to_guild_cached() {
+    let guild = match reader.guild_id.to_guild_cached(&ctx) {
       Some(g) => g,
       None => return
     };
@@ -200,12 +200,12 @@ impl EventHandler for Log {
       None => return
     };
 
-    let deletee = some_or!(guild_reader.members.get(&message.author.id).cloned().or_else(|| guild_reader.member(message.author.id).ok()), return);
+    let deletee = some_or!(guild_reader.members.get(&message.author.id).cloned().or_else(|| guild_reader.member(&ctx, message.author.id).ok()), return);
 
     let original_content = message.content;
     let channel_mention = channel_id.mention();
 
-    log_channel.send_message(|m| m.embed(|mut embed| {
+    log_channel.send_message(&ctx, |m| m.embed(|mut embed| {
       embed = embed
         .author(|a| a
           .name(&deletee.user.read().tag())
@@ -221,14 +221,14 @@ impl EventHandler for Log {
     })).ok();
   }
 
-  fn message(&self, _: Context, message: Message) {
+  fn message(&self, ctx: Context, message: Message) {
     if self.count.load(Ordering::SeqCst) == 100 {
       self.count.store(0, Ordering::SeqCst);
 
       self.prune_messages();
     }
 
-    let channel = match message.channel_id.to_channel() {
+    let channel = match message.channel_id.to_channel(&ctx) {
       Ok(c) => c,
       Err(e) => {
         warn!("could not download channel {} for message history: {}", message.channel_id, e);

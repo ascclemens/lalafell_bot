@@ -32,12 +32,12 @@ impl HasParams for TagCommand {
 }
 
 impl<'a> PublicChannelCommand<'a> for TagCommand {
-  fn run(&self, _: &Context, message: &Message, guild: GuildId, _: Arc<RwLock<GuildChannel>>, params: &[&str]) -> CommandResult<'a> {
+  fn run(&self, ctx: &Context, message: &Message, guild: GuildId, _: Arc<RwLock<GuildChannel>>, params: &[&str]) -> CommandResult<'a> {
     let params = self.params_then("tag", params, |a| a.setting(::structopt::clap::AppSettings::ArgRequiredElseHelp))?;
-    let member = guild.member(&message.author).chain_err(|| "could not get member")?;
-    if !member.permissions().chain_err(|| "could not get permissions")?.manage_roles() {
+    let member = guild.member(&ctx, &message.author).chain_err(|| "could not get member")?;
+    if !member.permissions(&ctx).chain_err(|| "could not get permissions")?.manage_roles() {
       return Err(ExternalCommandFailure::default()
-        .message(|e: CreateEmbed| e
+        .message(|e: &mut CreateEmbed| e
           .title("Not enough permissions.")
           .description("You don't have enough permissions to use this command."))
         .wrap());
@@ -49,11 +49,11 @@ impl<'a> PublicChannelCommand<'a> for TagCommand {
 
     match Tagger::search_tag(self.env.as_ref(), *who, guild, ff_server, &name, true) {
       Ok(Some(error)) => Err(ExternalCommandFailure::default()
-        .message(move |e: CreateEmbed| e.description(&error))
+        .message(move |e: &mut CreateEmbed| e.description(&error))
         .wrap()),
       Ok(None) => Ok(CommandSuccess::default()),
       Err(_) => Err(ExternalCommandFailure::default()
-        .message(move |e: CreateEmbed| e.description("There was an error while tagging. The user most likely does not exist or is not on the server."))
+        .message(move |e: &mut CreateEmbed| e.description("There was an error while tagging. The user most likely does not exist or is not on the server."))
         .wrap())
     }
   }

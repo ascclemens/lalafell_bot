@@ -12,7 +12,7 @@ use serenity::builder::CreateEmbed;
 pub struct VerifyCommand;
 
 impl<'a> PublicChannelCommand<'a> for VerifyCommand {
-  fn run(&self, _: &Context, message: &Message, guild: GuildId, _: Arc<RwLock<GuildChannel>>, _: &[&str]) -> CommandResult<'a> {
+  fn run(&self, ctx: &Context, message: &Message, guild: GuildId, _: Arc<RwLock<GuildChannel>>, _: &[&str]) -> CommandResult<'a> {
     let user: Option<Tag> = ::bot::with_connection(|c| {
       use database::schema::tags::dsl;
       dsl::tags
@@ -23,7 +23,7 @@ impl<'a> PublicChannelCommand<'a> for VerifyCommand {
     let user = match user {
       Some(u) => u,
       None => return Err(ExternalCommandFailure::default()
-        .message(|e: CreateEmbed| e
+        .message(|e: &mut CreateEmbed| e
           .title("Not tagged.")
           .description("Please tag yourself with an account before verifying it."))
         .wrap())
@@ -47,7 +47,7 @@ impl<'a> PublicChannelCommand<'a> for VerifyCommand {
             .values(&new_verification)
             .execute(c)
         }).chain_err(|| "could not insert verification")?;
-        message.author.direct_message(|c| c.embed(|e| e
+        message.author.direct_message(&ctx, |c| c.embed(|e| e
           .title("Verification instructions")
           .description(&msg)
           .url("http://na.finalfantasyxiv.com/lodestone/my/setting/profile/"))).ok();
@@ -56,22 +56,22 @@ impl<'a> PublicChannelCommand<'a> for VerifyCommand {
     };
     let profile = Lodestone::new().character_profile(*user.character_id)?;
     if profile.contains(verification_string) {
-      let guild = guild.to_guild_cached().chain_err(|| "could not find guild")?;
+      let guild = guild.to_guild_cached(&ctx).chain_err(|| "could not find guild")?;
 
       verification.verified = true;
       ::bot::with_connection(|c| verification.save_changes::<Verification>(c)).chain_err(|| "could not update verification")?;
 
       if let Some(r) = guild.read().roles.values().find(|x| x.name.to_lowercase() == "verified") {
-        let mut member = guild.read().member(&message.author).chain_err(|| "could not get member for tagging")?;
+        let mut member = guild.read().member(&ctx, &message.author).chain_err(|| "could not get member for tagging")?;
 
         if !member.roles.contains(&r.id) {
-          member.add_role(r).chain_err(|| "could not add roles")?;
+          member.add_role(&ctx, r).chain_err(|| "could not add roles")?;
         }
       }
       let char_name = user.character.clone();
       let serv_name = user.server.clone();
       Ok(CommandSuccess::default()
-        .message(move |e: CreateEmbed| e
+        .message(move |e: &mut CreateEmbed| e
           .title("Verified!")
           .description(&format!("You have successfully verified yourself as {} on {}.", char_name, serv_name))))
     } else {

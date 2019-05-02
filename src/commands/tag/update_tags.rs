@@ -16,7 +16,7 @@ impl<'a> Command<'a> for UpdateTagsCommand {
   fn run(&self, _: &Context, message: &Message, _: &[&str]) -> CommandResult<'a> {
     if !is_administrator(&message.author)? {
       return Err(ExternalCommandFailure::default()
-        .message(|e: CreateEmbed| e
+        .message(|e: &mut CreateEmbed| e
           .title("Not enough permissions.")
           .description("You don't have enough permissions to use this command."))
         .wrap());

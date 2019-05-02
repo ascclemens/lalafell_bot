@@ -24,7 +24,7 @@ fn main() {
       continue;
     }
     'item: for item in t.items {
-      let mut m = match item {
+      let m = match item {
         TraitItem::Method(m) => m,
         _ => continue
       };

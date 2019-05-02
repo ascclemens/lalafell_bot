@@ -25,12 +25,12 @@ impl HasParams for UntimeoutCommand {
 }
 
 impl<'a> PublicChannelCommand<'a> for UntimeoutCommand {
-  fn run(&self, _: &Context, message: &Message, guild: GuildId, _: Arc<RwLock<GuildChannel>>, params: &[&str]) -> CommandResult<'a> {
+  fn run(&self, ctx: &Context, message: &Message, guild: GuildId, _: Arc<RwLock<GuildChannel>>, params: &[&str]) -> CommandResult<'a> {
     let params = self.params_then("who", params, |a| a.setting(::structopt::clap::AppSettings::ArgRequiredElseHelp))?;
-    let member = guild.member(&message.author).chain_err(|| "could not get member")?;
-    if !member.permissions().chain_err(|| "could not get permissions")?.manage_roles() {
+    let member = guild.member(&ctx, &message.author).chain_err(|| "could not get member")?;
+    if !member.permissions(&ctx).chain_err(|| "could not get permissions")?.manage_roles() {
       return Err(ExternalCommandFailure::default()
-        .message(|e: CreateEmbed| e
+        .message(|e: &mut CreateEmbed| e
           .title("Not enough permissions.")
           .description("You don't have enough permissions to use this command."))
         .wrap());
@@ -39,7 +39,7 @@ impl<'a> PublicChannelCommand<'a> for UntimeoutCommand {
     let guild_id = guild;
     let who = params.who;
 
-    let mut timeout_member = match guild.member(*who) {
+    let mut timeout_member = match guild.member(&ctx, *who) {
       Ok(m) => m,
       Err(_) => return Err("That user is not in this guild.".into())
     };
@@ -56,7 +56,7 @@ impl<'a> PublicChannelCommand<'a> for UntimeoutCommand {
     let timeout = &timeouts[0];
 
     ::bot::with_connection(|c| ::diesel::delete(timeout).execute(c)).chain_err(|| "could not delete timeout")?;
-    timeout_member.remove_role(*timeout.role_id).chain_err(|| "could not remove role")?;
+    timeout_member.remove_role(&ctx, *timeout.role_id).chain_err(|| "could not remove role")?;
 
     Ok(CommandSuccess::default())
   }

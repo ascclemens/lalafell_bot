@@ -75,7 +75,7 @@ impl RunsTask for RoleCheckTask {
             continue;
           }
         };
-        let guild = some_or!(GuildId(check.guild).to_guild_cached(), continue);
+        let guild = some_or!(GuildId(check.guild).to_guild_cached(env.cache_lock()), continue);
         let roles = guild.read().roles.clone();
         let times: Result<Vec<RoleCheckTime>> = ::bot::with_connection(|c| {
           use database::schema::role_check_times::dsl;
@@ -113,7 +113,7 @@ impl RunsTask for RoleCheckTask {
                   guild.read().name,
                   guild.read().id.0,
                   check.id);
-                match member.kick() {
+                match guild.read().kick(env.http(), member) {
                   Ok(_) => if let Err(e) = ::bot::with_connection(|c| ::diesel::delete(time).execute(c)) {
                     warn!("Could not remove database entry for check after kick: {}", e);
                   },
@@ -139,7 +139,7 @@ impl RunsTask for RoleCheckTask {
           continue;
         }
         let mentions = reminders.join(" ");
-        if let Err(e) = ChannelId(check.channel).send_message(|m| m.content(check.reminder.message.replace("{mentions}", &mentions))) {
+        if let Err(e) = ChannelId(check.channel).send_message(env.http(), |m| m.content(check.reminder.message.replace("{mentions}", &mentions))) {
           warn!("Could not send reminder message for check {}: {}", check.id, e);
         }
       }

@@ -28,7 +28,7 @@ pub use self::temporary_roles::TemporaryRolesTask;
 pub use self::timeout_check::TimeoutCheckTask;
 
 pub struct TaskManager {
-  env: Arc<BotEnv>
+  env: Arc<BotEnv>,
 }
 
 impl TaskManager {
@@ -57,7 +57,7 @@ impl<T, R> Wait<T>
     Self {
       inner,
       now: Utc::now(),
-      last: 0
+      last: 0,
     }
   }
 }

@@ -27,7 +27,7 @@ enum UserIdOrMember {
 
 impl EventHandler for AutoReplyListener {
   result_wrap! {
-    fn guild_member_addition(&self, _ctx: Context, guild: GuildId, member: Member) -> Result<()> {
+    fn guild_member_addition(&self, ctx: Context, guild: GuildId, member: Member) -> Result<()> {
       let replies: Vec<AutoReply> = ::bot::with_connection(|c| {
         use database::schema::auto_replies::dsl;
         dsl::auto_replies
@@ -36,13 +36,13 @@ impl EventHandler for AutoReplyListener {
           .load(c)
       }).chain_err(|| "could not load auto_replies")?;
       let user = UserIdOrMember::Member(member.clone());
-      self.receive(replies, user, guild)
+      self.receive(&ctx, replies, user, guild)
     } |e| warn!("{}", e)
   }
 
   result_wrap! {
-    fn message(&self, _ctx: Context, m: Message) -> Result<()> {
-      if m.author.id == ::serenity::CACHE.read().user.id {
+    fn message(&self, ctx: Context, m: Message) -> Result<()> {
+      if m.author.id == ctx.cache.read().user.id {
         return Ok(());
       }
       let replies: Vec<AutoReply> = ::bot::with_connection(|c| {
@@ -53,19 +53,19 @@ impl EventHandler for AutoReplyListener {
           .load(c)
       }).chain_err(|| "could not load auto_replies")?;
       let user = UserIdOrMember::UserId(m.author.id);
-      let guild = match m.channel_id.to_channel() {
+      let guild = match m.channel_id.to_channel(&ctx) {
         Ok(Channel::Guild(c)) => c.read().guild_id,
         Ok(_) => bail!("wrong type of channel for auto reply"),
         Err(e) => bail!("could not get channel for auto reply: {}", e)
       };
-      self.receive(replies, user, guild)
+      self.receive(&ctx, replies, user, guild)
     } |e| warn!("{}", e)
   }
 }
 
 impl AutoReplyListener {
-  fn receive(&self, replies: Vec<AutoReply>, user: UserIdOrMember, guild: GuildId) -> Result<()> {
-    let live_server = match guild.to_guild_cached() {
+  fn receive(&self, ctx: &Context, replies: Vec<AutoReply>, user: UserIdOrMember, guild: GuildId) -> Result<()> {
+    let live_server = match guild.to_guild_cached(&ctx) {
       Some(g) => g.read().clone(),
       None => bail!("could not find guild")
     };
@@ -92,7 +92,7 @@ impl AutoReplyListener {
       if *last_send + i64::from(reply.delay) >= Utc::now().timestamp() {
         continue;
       }
-      ChannelId(*reply.channel_id).send_message(|c| c.embed(|e| e.description(&reply.message.replace("{mention}", &member.mention())))).ok();
+      ChannelId(*reply.channel_id).send_message(&ctx, |c| c.embed(|e| e.description(&reply.message.replace("{mention}", &member.mention())))).ok();
       *last_send = Utc::now().timestamp();
     }
     Ok(())

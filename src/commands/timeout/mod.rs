@@ -3,10 +3,15 @@ use database::models::{ToU64, ServerConfig};
 
 use diesel::prelude::*;
 
-use serenity::model::id::RoleId;
-use serenity::model::guild::Guild;
-use serenity::model::permissions::Permissions;
-use serenity::model::channel::{PermissionOverwrite, PermissionOverwriteType};
+use serenity::{
+  client::Context,
+  model::{
+    channel::{PermissionOverwrite, PermissionOverwriteType},
+    guild::Guild,
+    id::RoleId,
+    permissions::Permissions,
+  },
+};
 
 use unicase::UniCase;
 
@@ -33,7 +38,7 @@ lazy_static! {
   };
 }
 
-pub fn set_up_timeouts(guild: &Guild) -> Result<RoleId> {
+pub fn set_up_timeouts(ctx: &Context, guild: &Guild) -> Result<RoleId> {
   let server_config: Option<ServerConfig> = ::bot::with_connection(|c| {
     use database::schema::server_configs::dsl;
     dsl::server_configs
@@ -49,7 +54,7 @@ pub fn set_up_timeouts(guild: &Guild) -> Result<RoleId> {
 
   let role_id = match guild.roles.values().find(|r| UniCase::new(&r.name) == uni) {
     Some(r) => r.id,
-    None =>  guild.create_role(|e| e
+    None =>  guild.create_role(&ctx, |e| e
       .name(&role_name)
       .permissions(*ROLE_PERMISSIONS))
       .chain_err(|| "could not create role")?
@@ -66,7 +71,7 @@ pub fn set_up_timeouts(guild: &Guild) -> Result<RoleId> {
     if channel.read().permission_overwrites.iter().any(|o| o.kind == target.kind) {
       continue;
     }
-    if let Err(e) = channel.read().create_permission(&target) {
+    if let Err(e) = channel.read().create_permission(&ctx, &target) {
       warn!("could not create permission overwrite for {}: {}", channel.read().id, e);
     }
   }

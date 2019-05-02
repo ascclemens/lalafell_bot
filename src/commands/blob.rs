@@ -17,7 +17,7 @@ impl HasParams for BlobCommand {
 }
 
 impl<'a> Command<'a> for BlobCommand {
-  fn run(&self, _: &Context, msg: &Message, params: &[&str]) -> CommandResult<'a> {
+  fn run(&self, ctx: &Context, msg: &Message, params: &[&str]) -> CommandResult<'a> {
     let params = self.params_then("blob", params, |a| a.setting(::structopt::clap::AppSettings::ArgRequiredElseHelp))?;
 
     if !BLOBS.contains_key(&params.name.as_str()) {
@@ -25,17 +25,17 @@ impl<'a> Command<'a> for BlobCommand {
     }
     let blob = BLOBS[params.name.as_str()];
 
-    let name = msg.guild()
+    let name = msg.guild(&ctx)
       .and_then(|guild| guild.read().members.get(&msg.author.id).map(|a| a.display_name().into_owned()))
       .unwrap_or_else(|| msg.author.name.clone());
     let url = format!("https://cdn.discordapp.com/emojis/{}.{}", blob.0, if blob.1 { "gif" } else { "png" });
 
-    if let Err(e) = msg.delete() {
+    if let Err(e) = msg.delete(&ctx) {
       warn!("could not delete message: {}", e);
     }
 
     Ok(CommandSuccess::default()
-      .message(move |e: CreateEmbed| e
+      .message(move |e: &mut CreateEmbed| e
         .image(&url)
         .author(|a| a.name(&name))))
   }

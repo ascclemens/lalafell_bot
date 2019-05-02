@@ -4,8 +4,6 @@ use chrono::prelude::*;
 use chrono::Duration;
 use database::models::Timeout;
 
-use serenity::model::id::GuildId;
-
 use diesel::prelude::*;
 
 use std::sync::Arc;
@@ -13,18 +11,19 @@ use std::thread;
 
 #[derive(Default)]
 pub struct TimeoutCheckTask {
-  ran_once: bool
+  ran_once: bool,
 }
 
-pub fn remove_timeout(timeout: &Timeout) {
-  let mut member = match GuildId(*timeout.server_id).member(*timeout.user_id) {
-    Ok(m) => m,
-    Err(e) => {
-      warn!("could not get member for timeout check: {}", e);
+pub fn remove_timeout(env: &BotEnv, timeout: &Timeout) {
+  // FIXME: this may not work if the character is not in the cache, but this is needed to compile
+  let mut member = match env.cache().read().member(*timeout.server_id, *timeout.user_id) {
+    Some(m) => m,
+    None => {
+      warn!("could not get member for timeout check: missing in cache");
       return;
-    }
+    },
   };
-  if let Err(e) = member.remove_role(*timeout.role_id) {
+  if let Err(e) = member.remove_role(env.http(), *timeout.role_id) {
     warn!("could not remove timeout role from {}: {}", *timeout.user_id, e);
   }
   if let Err(e) = ::bot::with_connection(|c| ::diesel::delete(timeout).execute(c)) {
@@ -57,10 +56,11 @@ impl RunsTask for TimeoutCheckTask {
         continue;
       }
 
+      let thread_env = Arc::clone(&env);
       ::std::thread::spawn(move || {
         for (wait, timeout) in Wait::new(timeouts.into_iter().map(|t| (t.ends(), t))) {
           ::std::thread::sleep(Duration::seconds(wait).to_std().unwrap());
-          remove_timeout(&timeout);
+          remove_timeout(&thread_env, &timeout);
         }
       });
     }

@@ -25,7 +25,7 @@ impl HasParams for ConfigureCommand {
 }
 
 impl<'a> PublicChannelCommand<'a> for ConfigureCommand {
-  fn run(&self, _: &Context, message: &Message, guild: GuildId, _: Arc<RwLock<GuildChannel>>, params: &[&str]) -> CommandResult<'a> {
+  fn run(&self, ctx: &Context, message: &Message, guild: GuildId, _: Arc<RwLock<GuildChannel>>, params: &[&str]) -> CommandResult<'a> {
     struct SubCommands {
       channel: channel::ChannelCommand,
       server: server::ServerCommand
@@ -39,8 +39,8 @@ impl<'a> PublicChannelCommand<'a> for ConfigureCommand {
     let params = self.params("config", params)?;
 
     match params {
-      Params::Channel(p) => SUBCOMMANDS.channel.run(message.author.id, guild, p),
-      Params::Server(p) => SUBCOMMANDS.server.run(message.author.id, guild, p)
+      Params::Channel(p) => SUBCOMMANDS.channel.run(ctx, message.author.id, guild, p),
+      Params::Server(p) => SUBCOMMANDS.server.run(ctx, message.author.id, guild, p)
     }
   }
 }

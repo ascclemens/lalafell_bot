@@ -24,17 +24,17 @@ impl HasParams for MentionCommand {
 }
 
 impl<'a> PublicChannelCommand<'a> for MentionCommand {
-  fn run(&self, _: &Context, msg: &Message, guild_id: GuildId, channel: Arc<RwLock<GuildChannel>>, params: &[&str]) -> CommandResult<'a> {
-    let member = guild_id.member(&msg.author).chain_err(|| "could not get member")?;
-    if !member.permissions().chain_err(|| "could not get permissions")?.mention_everyone() {
+  fn run(&self, ctx: &Context, msg: &Message, guild_id: GuildId, channel: Arc<RwLock<GuildChannel>>, params: &[&str]) -> CommandResult<'a> {
+    let member = guild_id.member(&ctx, &msg.author).chain_err(|| "could not get member")?;
+    if !member.permissions(&ctx).chain_err(|| "could not get permissions")?.mention_everyone() {
       return Err(ExternalCommandFailure::default()
-        .message(|e: CreateEmbed| e
+        .message(|e: &mut CreateEmbed| e
           .title("Not enough permissions.")
           .description("You don't have enough permissions to use this command."))
         .wrap());
     }
     let params = self.params_then("mention", params, |a| a.setting(::structopt::clap::AppSettings::ArgRequiredElseHelp))?;
-    let guild = guild_id.to_guild_cached().chain_err(|| "could not find guild")?;
+    let guild = guild_id.to_guild_cached(&ctx).chain_err(|| "could not find guild")?;
     let uni_name = UniCase::new(&params.role_name);
     let role = match guild.read().roles.values().find(|r| UniCase::new(&r.name) == uni_name) {
       Some(r) => r.clone(),
@@ -42,20 +42,19 @@ impl<'a> PublicChannelCommand<'a> for MentionCommand {
     };
     let mentionable = role.mentionable;
     if !mentionable {
-      guild_id.edit_role(role.id, |r| r.mentionable(true)).ok();
+      guild_id.edit_role(&ctx, role.id, |r| r.mentionable(true)).ok();
     }
-    msg.delete().ok();
+    msg.delete(&ctx).ok();
     let p_message = if params.message.is_empty() {
       Default::default()
     } else {
       format!(" – {}", params.message.join(" "))
     };
     let message = format!("{}{}", role.mention(), p_message);
-    channel.read().send_message(|m| m.content(&message)).ok();
+    channel.read().send_message(&ctx, |m| m.content(&message)).ok();
     if !mentionable {
-      guild_id.edit_role(role.id, |r| r.mentionable(false)).ok();
+      guild_id.edit_role(&ctx, role.id, |r| r.mentionable(false)).ok();
     }
     Ok(CommandSuccess::default())
   }
 }
-

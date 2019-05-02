@@ -11,7 +11,7 @@ use serenity::model::id::{GuildId, ChannelId};
 pub struct ListCommand;
 
 impl<'a> ListCommand {
-  pub fn run(&self, guild: GuildId) -> CommandResult<'a> {
+  pub fn run(&self, _: &Context, guild: GuildId) -> CommandResult<'a> {
     Ok(ListCommand::list_all(guild)?.into())
   }
 

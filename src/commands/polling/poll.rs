@@ -14,8 +14,8 @@ const USAGE: &str = "!poll <poll text>\n<option>\n<option>...";
 pub struct PollCommand;
 
 impl PollCommand {
-  fn nick_or_name(&self, guild: GuildId, user: UserId) -> Option<String> {
-    match guild.member(user) {
+  fn nick_or_name(&self, ctx: &Context, guild: GuildId, user: UserId) -> Option<String> {
+    match guild.member(&ctx, user) {
       Ok(m) => Some(m.display_name().to_string()),
       Err(_) => None
     }
@@ -23,13 +23,13 @@ impl PollCommand {
 }
 
 impl<'a> Command<'a> for PollCommand {
-  fn run(&self, _: &Context, msg: &Message, _: &[&str]) -> CommandResult<'a> {
+  fn run(&self, ctx: &Context, msg: &Message, _: &[&str]) -> CommandResult<'a> {
     let lines: Vec<&str> = msg.content.split('\n').collect();
     let params: Vec<&str> = lines[0].split_whitespace().skip(1).collect();
     let options = &lines[1..];
     if params.is_empty() || options.len() < 2 {
       return Err(ExternalCommandFailure::default()
-        .message(|e: CreateEmbed| e
+        .message(|e: &mut CreateEmbed| e
           .title("Not enough parameters.")
           .description(USAGE))
         .wrap());
@@ -38,14 +38,14 @@ impl<'a> Command<'a> for PollCommand {
       return Err("No more than nine poll options can be specified.".into());
     }
     let message = params.join(" ");
-    let channel = match msg.channel_id.to_channel() {
+    let channel = match msg.channel_id.to_channel(&ctx) {
       Ok(Channel::Guild(c)) => c,
       _ => return Err("This command must be used in a guild channel.".into())
     };
-    msg.delete().chain_err(|| "could not delete original message")?;
-    let name = self.nick_or_name(channel.read().guild_id, msg.author.id).unwrap_or_else(|| "someone".into());
+    msg.delete(&ctx).chain_err(|| "could not delete original message")?;
+    let name = self.nick_or_name(ctx, channel.read().guild_id, msg.author.id).unwrap_or_else(|| "someone".into());
     let poll = Poll::new(name, &message, options);
-    channel.read().send_message(|c| c
+    channel.read().send_message(&ctx, |c| c
       .embed(poll.create_embed())
       .reactions((0..poll.options.len()).map(|i| format!("{}⃣", i + 1))))
       .chain_err(|| "could not send embed")?;
@@ -68,7 +68,7 @@ impl Poll {
     }
   }
 
-  fn create_embed(&self) -> Box<FnBox(CreateEmbed) -> CreateEmbed> {
+  fn create_embed(&self) -> Box<FnBox(&mut CreateEmbed) -> &mut CreateEmbed> {
     let name = self.author.clone();
     let options = self.options.iter()
       .enumerate()
@@ -76,7 +76,7 @@ impl Poll {
       .collect::<Vec<_>>()
       .join("\n");
     let desc = format!("{}\n{}", self.text, options);
-    box move |e: CreateEmbed| {
+    box move |e: &mut CreateEmbed| {
       e
         .title(&format!("Poll by {}", name))
         .description(&desc)

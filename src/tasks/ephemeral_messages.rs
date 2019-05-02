@@ -19,7 +19,7 @@ pub struct EphemeralMessageTask {
 }
 
 impl RunsTask for EphemeralMessageTask {
-  fn start(mut self, _: Arc<BotEnv>) {
+  fn start(mut self, env: Arc<BotEnv>) {
     loop {
       thread::sleep(Duration::seconds(self.next_sleep).to_std().unwrap());
       if self.next_sleep == 0 {
@@ -47,12 +47,13 @@ impl RunsTask for EphemeralMessageTask {
 
       msgs.sort_by_key(|m| m.expires_on);
 
+      let thread_env = Arc::clone(&env);
       ::std::thread::spawn(move || {
         for (wait, eph) in Wait::new(msgs.into_iter().map(|m| (m.expires_on, m))) {
           ::std::thread::sleep(Duration::seconds(wait).to_std().unwrap());
 
           let channel = ChannelId(*eph.channel_id);
-          match channel.delete_message(*eph.message_id) {
+          match channel.delete_message(thread_env.http(), *eph.message_id) {
             Ok(_) => {
               if let Err(e) = ::bot::with_connection(|c| diesel::delete(&eph).execute(c)) {
                 warn!("could not delete ephemeral message (id: {}) from database: {}", eph.id, e);

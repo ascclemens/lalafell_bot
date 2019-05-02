@@ -31,7 +31,7 @@ impl HasParams for ImageDumpCommand {
 }
 
 impl<'a> PublicChannelCommand<'a> for ImageDumpCommand {
-  fn run(&self, _: &Context, _: &Message, guild: GuildId, channel: Arc<RwLock<GuildChannel>>, params: &[&str]) -> CommandResult<'a> {
+  fn run(&self, ctx: &Context, _: &Message, guild: GuildId, channel: Arc<RwLock<GuildChannel>>, params: &[&str]) -> CommandResult<'a> {
     let config: Option<ChannelConfig> = ::bot::with_connection(|c| {
       use database::schema::channel_configs::dsl;
       dsl::channel_configs
@@ -45,6 +45,7 @@ impl<'a> PublicChannelCommand<'a> for ImageDumpCommand {
 
     let params = self.params_then("imagedump", params, |a| a.setting(::structopt::clap::AppSettings::ArgRequiredElseHelp))?;
     let id = channel.read().id;
+    let http = Arc::clone(&ctx.http);
     ::std::thread::spawn(move || {
       let link = params.link;
       fn get_lines(link: &Url) -> Result<Vec<String>> {
@@ -69,12 +70,12 @@ impl<'a> PublicChannelCommand<'a> for ImageDumpCommand {
       let lines = match get_lines(&link) {
         Ok(l) => l,
         Err(_) => {
-          id.send_message(|c| c.embed(|e| e.description("Could not download/parse that link."))).ok();
+          id.send_message(http, |c| c.embed(|e| e.description("Could not download/parse that link."))).ok();
           return;
         }
       };
       for chunk in lines.chunks(5) {
-        id.send_message(|c| c.content(chunk.join("\n"))).ok();
+        id.send_message(&http, |c| c.content(chunk.join("\n"))).ok();
         ::std::thread::sleep(Duration::seconds(1).to_std().unwrap());
       }
     });

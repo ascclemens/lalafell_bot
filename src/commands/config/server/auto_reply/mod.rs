@@ -27,7 +27,7 @@ pub enum Params {
 pub struct AutoReplyCommand;
 
 impl<'a> AutoReplyCommand {
-  pub fn run(&self, author: UserId, guild: GuildId, params: Params) -> CommandResult<'a> {
+  pub fn run(&self, ctx: &Context, author: UserId, guild: GuildId, params: Params) -> CommandResult<'a> {
     struct SubCommands {
       add: add::AddCommand,
       remove: remove::RemoveCommand,
@@ -40,10 +40,10 @@ impl<'a> AutoReplyCommand {
       list: list::ListCommand
     };
 
-    let member = guild.member(author).chain_err(|| "could not get member")?;
-    if !member.permissions().chain_err(|| "could not get permissions")?.manage_messages() {
+    let member = guild.member(&ctx, author).chain_err(|| "could not get member")?;
+    if !member.permissions(&ctx).chain_err(|| "could not get permissions")?.manage_messages() {
       return Err(ExternalCommandFailure::default()
-        .message(|e: CreateEmbed| e
+        .message(|e: &mut CreateEmbed| e
           .title("Not enough permissions.")
           .description("You don't have enough permissions to use this command."))
         .wrap());

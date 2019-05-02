@@ -27,11 +27,11 @@ impl HasParams for ReportCommand {
 }
 
 impl<'a> PublicChannelCommand<'a> for ReportCommand {
-  fn run(&self, _: &Context, msg: &Message, guild_id: GuildId, _: Arc<RwLock<GuildChannel>>, params: &[&str]) -> CommandResult<'a> {
-    let member = guild_id.member(&msg.author).chain_err(|| "could not get member")?;
-    if !member.permissions().chain_err(|| "could not get permissions")?.manage_roles() {
+  fn run(&self, ctx: &Context, msg: &Message, guild_id: GuildId, _: Arc<RwLock<GuildChannel>>, params: &[&str]) -> CommandResult<'a> {
+    let member = guild_id.member(&ctx, &msg.author).chain_err(|| "could not get member")?;
+    if !member.permissions(&ctx).chain_err(|| "could not get permissions")?.manage_roles() {
       return Err(ExternalCommandFailure::default()
-        .message(|e: CreateEmbed| e
+        .message(|e: &mut CreateEmbed| e
           .title("Not enough permissions.")
           .description("You don't have enough permissions to use this command."))
         .wrap());
@@ -39,7 +39,7 @@ impl<'a> PublicChannelCommand<'a> for ReportCommand {
 
     let params = self.params("report", params)?;
 
-    let guild = guild_id.to_guild_cached().chain_err(|| "could not find guild in cache")?;
+    let guild = guild_id.to_guild_cached(&ctx).chain_err(|| "could not find guild in cache")?;
 
     let reports_name = UniCase::new("Reports");
     let category = guild.read().channels
@@ -81,12 +81,12 @@ impl<'a> PublicChannelCommand<'a> for ReportCommand {
     let chars: String = thread_rng().sample_iter(&Alphanumeric).take(7).collect();
     let channel_name = format!("report_{}", chars);
     let channel = guild_id
-      .create_channel(&channel_name, ChannelType::Text, category)
+      .create_channel(&ctx, &channel_name, ChannelType::Text, category)
       .chain_err(|| "could not create channel")?;
 
-    channel.create_permission(&deny_everyone).chain_err(|| "could not deny @everyone")?;
-    channel.create_permission(&allow_moderators).chain_err(|| "could not allow moderators")?;
-    channel.create_permission(&allow_reporter).chain_err(|| "could not allow reporter")?;
+    channel.create_permission(&ctx, &deny_everyone).chain_err(|| "could not deny @everyone")?;
+    channel.create_permission(&ctx, &allow_moderators).chain_err(|| "could not allow moderators")?;
+    channel.create_permission(&ctx, &allow_reporter).chain_err(|| "could not allow reporter")?;
 
     Ok(CommandSuccess::default())
   }

@@ -4,8 +4,6 @@ use chrono::prelude::*;
 use chrono::Duration;
 use database::models::TemporaryRole;
 
-use serenity::model::id::GuildId;
-
 use diesel::prelude::*;
 
 use std::sync::Arc;
@@ -16,15 +14,15 @@ pub struct TemporaryRolesTask {
   next_sleep: i64
 }
 
-pub fn remove_temporary_role(temp: &TemporaryRole) {
-  let mut member = match GuildId(*temp.guild_id).member(*temp.user_id) {
-    Ok(m) => m,
-    Err(e) => {
-      warn!("could not get member for temp role removal: {}", e);
+pub fn remove_temporary_role(env: &BotEnv, temp: &TemporaryRole) {
+  let mut member = match env.cache().read().member(*temp.guild_id, *temp.user_id) {
+    Some(m) => m,
+    None => {
+      warn!("could not get member for temp role removal: missing in cache");
       return;
-    }
+    },
   };
-  if let Err(e) = member.remove_role(*temp.role_id) {
+  if let Err(e) = member.remove_role(env.http(), *temp.role_id) {
     warn!("could not remove temp role {}: {}", temp.id, e);
   }
   if let Err(e) = ::bot::with_connection(|c| ::diesel::delete(temp).execute(c)) {
@@ -33,7 +31,7 @@ pub fn remove_temporary_role(temp: &TemporaryRole) {
 }
 
 impl RunsTask for TemporaryRolesTask {
-  fn start(mut self, _: Arc<BotEnv>) {
+  fn start(mut self, env: Arc<BotEnv>) {
     loop {
       thread::sleep(Duration::seconds(self.next_sleep).to_std().unwrap());
       if self.next_sleep == 0 {
@@ -56,10 +54,11 @@ impl RunsTask for TemporaryRolesTask {
         continue;
       }
 
+      let thread_env = Arc::clone(&env);
       ::std::thread::spawn(move || {
         for (wait, temp_role) in Wait::new(temp_roles.into_iter().map(|t| (t.expires_on.unwrap(), t))) {
           ::std::thread::sleep(Duration::seconds(wait).to_std().unwrap());
-          remove_temporary_role(&temp_role);
+          remove_temporary_role(&thread_env, &temp_role);
         }
       });
     }

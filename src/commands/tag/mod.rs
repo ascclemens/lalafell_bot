@@ -40,8 +40,10 @@ use lodestone_api_client::{
   },
 };
 
-use std::sync::Mutex;
-use std::collections::HashSet;
+use std::{
+  collections::HashSet,
+  sync::Mutex,
+};
 
 lazy_static! {
   // Limbo roles are roles that may or may not be added to the Discord bot state.
@@ -77,19 +79,19 @@ impl Tagger {
     Tagger::tag(env, who, on, character.id as u64, force)
   }
 
-  fn find_or_create_role(guild: GuildId, name: &str, add_roles: &mut Vec<Role>, created_roles: &mut Vec<Role>) -> Result<()> {
-    Tagger::find_or_create_role_and(guild, name, add_roles, created_roles, |r| r)
+  fn find_or_create_role(env: &BotEnv, guild: GuildId, name: &str, add_roles: &mut Vec<Role>, created_roles: &mut Vec<Role>) -> Result<()> {
+    Tagger::find_or_create_role_and(env, guild, name, add_roles, created_roles, |r| r)
   }
 
-  fn find_or_create_role_and<F>(guild: GuildId, name: &str, add_roles: &mut Vec<Role>, created_roles: &mut Vec<Role>, f: F) -> Result<()>
-    where F: FnOnce(EditRole) -> EditRole
+  fn find_or_create_role_and<F>(env: &BotEnv, guild: GuildId, name: &str, add_roles: &mut Vec<Role>, created_roles: &mut Vec<Role>, f: F) -> Result<()>
+    where F: FnOnce(&mut EditRole) -> &mut EditRole,
   {
     let uni_name = UniCase::new(name);
-    let guild = guild.to_partial_guild().chain_err(|| "could not get guild")?;
+    let guild = guild.to_partial_guild(env.http()).chain_err(|| "could not get guild")?;
     match guild.roles.values().find(|x| UniCase::new(&x.name) == uni_name) {
       Some(r) => add_roles.push(r.clone()),
       None => {
-        let role = guild.create_role(|r| f(r.permissions(Permissions::empty())).name(&name.to_lowercase())).chain_err(|| "could not create role")?;
+        let role = guild.create_role(env.http(), |r| f(r.permissions(Permissions::empty())).name(&name.to_lowercase())).chain_err(|| "could not create role")?;
         created_roles.push(role);
       }
     }
@@ -140,9 +142,13 @@ impl Tagger {
     };
 
     // This is still a disaster, just slightly less so
-    let member = match on.member(who) {
+    let member = match env.cache().read().member(&on, &who) {
+      Some(m) => Ok(m),
+      None => env.http().get_member(on.0, who.0),
+    };
+    let member = match member {
       Ok(m) => m,
-      Err(SError::Http(HttpError::UnsuccessfulRequest(ref r))) if r.status == StatusCode::NotFound => {
+      Err(SError::Http(box HttpError::UnsuccessfulRequest(ref r))) if r.status_code == StatusCode::NOT_FOUND => {
         ::bot::with_connection(|c| {
           use database::schema::tags::dsl;
           ::diesel::delete(dsl::tags
@@ -198,9 +204,9 @@ impl Tagger {
     }
 
     // Get a copy of the roles on the server.
-    let mut roles: Vec<Role> = match on.to_guild_cached() {
+    let mut roles: Vec<Role> = match on.to_guild_cached(env.cache_lock()) {
       Some(g) => g.read().roles.values().cloned().collect(),
-      None => on.to_partial_guild().chain_err(|| "could not get guild")?.roles.values().cloned().collect()
+      None => on.to_partial_guild(env.http()).chain_err(|| "could not get guild")?.roles.values().cloned().collect()
     };
 
     // Check for existing limbo roles.
@@ -234,13 +240,13 @@ impl Tagger {
       Gender::Female => "female",
     };
     let data_centre = character.world.data_center();
-    Tagger::find_or_create_role(on, race, &mut add_roles, &mut created_roles)?;
-    Tagger::find_or_create_role(on, gender, &mut add_roles, &mut created_roles)?;
-    Tagger::find_or_create_role_and(on, character.world.as_str(), &mut add_roles, &mut created_roles, |r| r.hoist(true))?;
-    Tagger::find_or_create_role(on, data_centre.as_str(), &mut add_roles, &mut created_roles)?;
+    Tagger::find_or_create_role(env, on, race, &mut add_roles, &mut created_roles)?;
+    Tagger::find_or_create_role(env, on, gender, &mut add_roles, &mut created_roles)?;
+    Tagger::find_or_create_role_and(env, on, character.world.as_str(), &mut add_roles, &mut created_roles, |r| r.hoist(true))?;
+    Tagger::find_or_create_role(env, on, data_centre.as_str(), &mut add_roles, &mut created_roles)?;
 
     if is_verified {
-      Tagger::find_or_create_role(on, "verified", &mut add_roles, &mut created_roles)?;
+      Tagger::find_or_create_role(env, on, "verified", &mut add_roles, &mut created_roles)?;
     }
 
     // If we created any roles, the server may or may not update with them fast enough, so store a copy in the limbo
@@ -282,12 +288,12 @@ impl Tagger {
       member_roles != actual_role_set
     };
     if different {
-      on.edit_member(who, |m| m.roles(&role_set)).chain_err(|| "could not add roles")?;
+      on.edit_member(env.http(), who, |m| m.roles(&role_set)).chain_err(|| "could not add roles")?;
     }
 
     // cannot edit nickname of those with a higher role
     if member.nick.as_ref() != Some(&character.name) {
-      on.edit_member(who, |m| m.nickname(&character.name)).ok();
+      on.edit_member(env.http(), who, |m| m.nickname(&character.name)).ok();
     }
     Ok(None)
   }

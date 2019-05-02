@@ -34,17 +34,17 @@ impl HasParams for RandomReactionCommand {
 }
 
 impl<'a> PublicChannelCommand<'a> for RandomReactionCommand {
-  fn run(&self, _: &Context, _: &Message, guild: GuildId, _: Arc<RwLock<GuildChannel>>, params: &[&str]) -> CommandResult<'a> {
+  fn run(&self, ctx: &Context, _: &Message, guild: GuildId, _: Arc<RwLock<GuildChannel>>, params: &[&str]) -> CommandResult<'a> {
     let params = self.params_then("randomreaction", params, |a| a.setting(::structopt::clap::AppSettings::ArgRequiredElseHelp))?;
     let emoji = params.emoji;
-    let mut reactions = params.channel.reaction_users(params.message_id, emoji.clone(), Some(100), None)
+    let mut reactions = params.channel.reaction_users(&ctx, params.message_id, emoji.clone(), Some(100), None)
       .map_err(|_| into!(CommandFailure, "Could not get reactions."))?;
     if reactions.is_empty() {
       return Err("No reactions on that message.".into());
     }
     loop {
       let last_reaction = reactions[reactions.len() - 1].id;
-      let next_batch = params.channel.reaction_users(params.message_id, emoji.clone(), Some(100), last_reaction)
+      let next_batch = params.channel.reaction_users(&ctx, params.message_id, emoji.clone(), Some(100), last_reaction)
       .map_err(|_| into!(CommandFailure, "Could not get reactions."))?;
       if next_batch.is_empty() {
         break;
@@ -55,7 +55,7 @@ impl<'a> PublicChannelCommand<'a> for RandomReactionCommand {
       Some(f) => f,
       None => return Err("Invalid filters.".into())
     };
-    let guild = guild.to_guild_cached().chain_err(|| "could not find guild")?;
+    let guild = guild.to_guild_cached(&ctx).chain_err(|| "could not find guild")?;
     let reader = guild.read();
     let roles: Vec<&Role> = reader.roles.values().collect();
     let members: Vec<&Member> = reader.members.values().collect();

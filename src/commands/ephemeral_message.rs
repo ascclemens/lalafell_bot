@@ -9,7 +9,10 @@ use lalafell::error::*;
 use lalafell::commands::prelude::*;
 use lalafell::commands::ChannelOrId;
 
-use serenity::model::id::{ChannelId, MessageId};
+use serenity::{
+  http::Http,
+  model::id::{ChannelId, MessageId},
+};
 
 use std::sync::Arc;
 
@@ -40,11 +43,11 @@ impl HasParams for EphemeralMessageCommand {
 }
 
 impl<'a> PublicChannelCommand<'a> for EphemeralMessageCommand {
-  fn run(&self, _: &Context, msg: &Message, guild_id: GuildId, _: Arc<RwLock<GuildChannel>>, params: &[&str]) -> CommandResult<'a> {
-    let member = guild_id.member(&msg.author).chain_err(|| "could not get member")?;
-    if !member.permissions().chain_err(|| "could not get permissions")?.manage_messages() {
+  fn run(&self, ctx: &Context, msg: &Message, guild_id: GuildId, _: Arc<RwLock<GuildChannel>>, params: &[&str]) -> CommandResult<'a> {
+    let member = guild_id.member(&ctx, &msg.author).chain_err(|| "could not get member")?;
+    if !member.permissions(&ctx).chain_err(|| "could not get permissions")?.manage_messages() {
       return Err(ExternalCommandFailure::default()
-        .message(|e: CreateEmbed| e
+        .message(|e: &mut CreateEmbed| e
           .title("Not enough permissions.")
           .description("You don't have enough permissions to use this command."))
         .wrap());
@@ -64,17 +67,17 @@ impl<'a> PublicChannelCommand<'a> for EphemeralMessageCommand {
     // spawn a task if the message needs to be deleted sooner than 30 minutes from now
     if params.time <= Utc::now() + Duration::minutes(30) {
       let dur = params.time.signed_duration_since(Utc::now());
-      spawn_task(*params.channel, MessageId(params.message), dur);
+      spawn_task(Arc::clone(&ctx.http), *params.channel, MessageId(params.message), dur);
     }
 
     Ok(CommandSuccess::default())
   }
 }
 
-fn spawn_task(channel: ChannelId, message: MessageId, after: Duration) {
+fn spawn_task(http: Arc<Http>, channel: ChannelId, message: MessageId, after: Duration) {
   ::std::thread::spawn(move || {
     ::std::thread::sleep(after.to_std().unwrap());
-    if let Err(e) = channel.delete_message(message) {
+    if let Err(e) = channel.delete_message(http, message) {
       warn!("could not delete ephemeral message {} in {}: {}", message, channel, e);
       return;
     }

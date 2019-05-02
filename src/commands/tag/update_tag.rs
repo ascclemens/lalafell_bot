@@ -3,9 +3,11 @@ use commands::*;
 use tasks::AutoTagTask;
 use database::models::{ToU64, Tag};
 
-use serenity::prelude::Mentionable;
-use serenity::model::id::{GuildId, UserId};
-use serenity::builder::CreateEmbed;
+use serenity::{
+  builder::CreateEmbed,
+  model::id::{GuildId, UserId},
+  prelude::Mentionable,
+};
 
 use lalafell::commands::prelude::*;
 use lalafell::error::*;
@@ -29,14 +31,14 @@ impl HasParams for UpdateTagCommand {
 }
 
 impl<'a> PublicChannelCommand<'a> for UpdateTagCommand {
-  fn run(&self, _: &Context, message: &Message, guild: GuildId, _: Arc<RwLock<GuildChannel>>, params: &[&str]) -> CommandResult<'a> {
+  fn run(&self, ctx: &Context, message: &Message, guild: GuildId, _: Arc<RwLock<GuildChannel>>, params: &[&str]) -> CommandResult<'a> {
     let params = self.params("updatetag", params)?;
     let id = match params.who {
       Some(who) => {
-        let member = guild.member(&message.author).chain_err(|| "could not get member")?;
-        if !member.permissions().chain_err(|| "could not get permissions")?.manage_roles() {
+        let member = guild.member(&ctx, &message.author).chain_err(|| "could not get member")?;
+        if !member.permissions(&ctx).chain_err(|| "could not get permissions")?.manage_roles() {
           return Err(ExternalCommandFailure::default()
-            .message(|e: CreateEmbed| e
+            .message(|e: &mut CreateEmbed| e
               .title("Not enough permissions.")
               .description("You don't have enough permissions to update other people's tags."))
             .wrap());

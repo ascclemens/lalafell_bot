@@ -3,7 +3,7 @@ use tasks::RunsTask;
 use database::models::{Presence, PresenceKind};
 
 use serenity::prelude::Mutex;
-use serenity::model::gateway::Game;
+use serenity::model::gateway::Activity;
 use serenity::client::bridge::gateway::{ShardClientMessage, ShardRunnerMessage};
 use serenity::gateway::InterMessage;
 use serenity::client::bridge::gateway::ShardManager;
@@ -40,7 +40,7 @@ impl RunsTask for RandomPresenceTask {
       }
       thread::sleep(Duration::seconds(self.next_sleep).to_std().unwrap());
       info!("Changing presence");
-      let game = match random_game() {
+      let activity = match random_activity() {
         Some(g) => g,
         None => {
           info!("No presence");
@@ -51,7 +51,7 @@ impl RunsTask for RandomPresenceTask {
       let runners = manager.runners.lock();
       for si in runners.values() {
         let message = InterMessage::Client(
-          ShardClientMessage::Runner(ShardRunnerMessage::SetGame(Some(game.clone())))
+          box ShardClientMessage::Runner(ShardRunnerMessage::SetActivity(Some(activity.clone())))
         );
         if let Err(e) = si.runner_tx.send(message) {
           warn!("Could not tell shard to change presence: {}", e);
@@ -62,16 +62,26 @@ impl RunsTask for RandomPresenceTask {
   }
 }
 
-pub fn random_game() -> Option<Game> {
+pub fn random_activity() -> Option<Activity> {
   let presences: Vec<Presence> = ::bot::with_connection(|c| {
     use database::schema::presences::dsl;
     dsl::presences.load(c)
   }).ok()?;
   let presence = presences.choose(&mut thread_rng())?;
-  let game_type = PresenceKind::from_i16(presence.kind)?.as_discord();
-  Some(Game {
-    kind: game_type,
+  let kind = PresenceKind::from_i16(presence.kind)?.as_discord();
+  Some(Activity {
+    kind,
     name: presence.content.clone(),
-    url: None
+
+    application_id: None,
+    assets: None,
+    details: None,
+    flags: None,
+    instance: None,
+    party: None,
+    secrets: None,
+    state: None,
+    timestamps: None,
+    url: None,
   })
 }

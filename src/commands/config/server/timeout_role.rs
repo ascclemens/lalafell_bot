@@ -21,11 +21,11 @@ pub struct Params {
 }
 
 impl<'a> TimeoutRoleCommand {
-  pub fn run(&self, author: UserId, guild: GuildId, params: Params) -> CommandResult<'a> {
-    let guild = guild.to_guild_cached().chain_err(|| "could not find guild")?;
+  pub fn run(&self, ctx: &Context, author: UserId, guild: GuildId, params: Params) -> CommandResult<'a> {
+    let guild = guild.to_guild_cached(&ctx).chain_err(|| "could not find guild")?;
     if author != guild.read().owner_id {
       return Err(ExternalCommandFailure::default()
-        .message(|e: CreateEmbed| e
+        .message(|e: &mut CreateEmbed| e
           .title("Not enough permissions.")
           .description("You don't have enough permissions to use this command."))
         .wrap());

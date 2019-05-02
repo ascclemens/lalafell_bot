@@ -15,7 +15,7 @@ use std::sync::Arc;
 use std::collections::HashMap;
 
 pub struct Handler {
-  listeners: Vec<Box<EventHandler + Send + Sync>>
+  listeners: Vec<Box<EventHandler + Send + Sync>>,
 }
 
 impl Handler {
@@ -28,9 +28,8 @@ impl Handler {
       box PollTagger,
       box AutoReplyListener::default(),
       box TemporaryRolesListener,
-      box Music,
       box RandomPresenceListener,
-      box Log::default()
+      box Log::default(),
     ];
     Handler { listeners }
   }
@@ -48,9 +47,10 @@ macro_rules! handler {
 
 impl EventHandler for Handler {
   handler!(cached, param1: Context, param2: Vec < GuildId >);
+  handler!(channel_create, param1: Context, param2: Arc < RwLock < GuildChannel > >);
   handler!(category_create, param1: Context, param2: Arc < RwLock < ChannelCategory > >);
   handler!(category_delete, param1: Context, param2: Arc < RwLock < ChannelCategory > >);
-  handler!(channel_create, param1: Context, param2: Arc < RwLock < GuildChannel > >);
+  handler!(private_channel_create, param1: Context, param2: Arc < RwLock < PrivateChannel > >);
   handler!(channel_delete, param1: Context, param2: Arc < RwLock < GuildChannel > >);
   handler!(channel_pins_update, param1: Context, param2: ChannelPinsUpdateEvent);
   handler!(channel_recipient_addition, param1: Context, param2: ChannelId, param3: User);
@@ -71,16 +71,15 @@ impl EventHandler for Handler {
   handler!(guild_role_update, param1: Context, param2: GuildId, param3: Option < Role >, param4: Role);
   handler!(guild_unavailable, param1: Context, param2: GuildId);
   handler!(guild_update, param1: Context, param2: Option < Arc < RwLock < Guild > > >, param3: PartialGuild);
-  handler!(message_delete_bulk, param1: Context, param2: ChannelId, param3: Vec < MessageId >);
-  handler!(message_delete, param1: Context, param2: ChannelId, param3: MessageId);
-  handler!(message_update, param1: Context, param2: MessageUpdateEvent);
   handler!(message, param1: Context, param2: Message);
+  handler!(message_delete, param1: Context, param2: ChannelId, param3: MessageId);
+  handler!(message_delete_bulk, param1: Context, param2: ChannelId, param3: Vec < MessageId >);
+  handler!(message_update, param1: Context, param2: Option < Message >, param3: Option < Message >, param4: MessageUpdateEvent);
+  handler!(reaction_add, param1: Context, param2: Reaction);
+  handler!(reaction_remove, param1: Context, param2: Reaction);
+  handler!(reaction_remove_all, param1: Context, param2: ChannelId, param3: MessageId);
   handler!(presence_replace, param1: Context, param2: Vec < Presence >);
   handler!(presence_update, param1: Context, param2: PresenceUpdateEvent);
-  handler!(private_channel_create, param1: Context, param2: Arc < RwLock < PrivateChannel > >);
-  handler!(reaction_add, param1: Context, param2: Reaction);
-  handler!(reaction_remove_all, param1: Context, param2: ChannelId, param3: MessageId);
-  handler!(reaction_remove, param1: Context, param2: Reaction);
   handler!(ready, param1: Context, param2: Ready);
   handler!(resume, param1: Context, param2: ResumedEvent);
   handler!(shard_stage_update, param1: Context, param2: ShardStageUpdateEvent);
@@ -88,7 +87,7 @@ impl EventHandler for Handler {
   handler!(unknown, param1: Context, param2: String, param3: Value);
   handler!(user_update, param1: Context, param2: CurrentUser, param3: CurrentUser);
   handler!(voice_server_update, param1: Context, param2: VoiceServerUpdateEvent);
-  handler!(voice_state_update, param1: Context, param2: Option < GuildId >, param3: VoiceState);
+  handler!(voice_state_update, param1: Context, param2: Option < GuildId >, param3: Option < VoiceState >, param4: VoiceState);
   handler!(webhook_update, param1: Context, param2: GuildId, param3: ChannelId);
 }
 
@@ -114,7 +113,6 @@ fn command_listener<'a>(env: &Arc<BotEnv>) -> CommandListener<'a> {
     "fflogs" => FfLogsCommand,
     "imagedump", "dump" => ImageDumpCommand,
     "mention" => MentionCommand,
-    "music" => MusicCommand,
     "ping" => PingCommand,
     "poll" => PollCommand,
     "pollresults" => PollResultsCommand,

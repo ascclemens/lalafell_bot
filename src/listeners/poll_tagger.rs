@@ -7,8 +7,8 @@ pub struct PollTagger;
 
 impl EventHandler for PollTagger {
   result_wrap! {
-    fn message(&self, _ctx: Context, mut message: Message) -> Result<()> {
-      let current_user = ::serenity::CACHE.read().user.clone();
+    fn message(&self, ctx: Context, mut message: Message) -> Result<()> {
+      let current_user = ctx.cache.read().user.clone();
       if message.embeds.len() != 1 || message.author.id != current_user.id {
         return Ok(());
       }
@@ -29,7 +29,7 @@ impl EventHandler for PollTagger {
         return Ok(());
       }
       let id = message.id.0;
-      message.edit(|c| c.embed(|e| e
+      message.edit(&ctx, |c| c.embed(|e| e
         .title(title)
         .description(description)
         .footer(|f| f.text(&format!("{}", id)))))

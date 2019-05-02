@@ -8,17 +8,25 @@ use lalafell::error::Result as LalafellResult;
 
 use lodestone_api_client::LodestoneApi;
 
-use serenity::client::Client;
-use serenity::prelude::RwLock;
-use serenity::model::id::UserId;
+use serenity::{
+  CacheAndHttp,
+  cache::{Cache, CacheRwLock},
+  client::Client,
+  http::Http,
+  model::id::UserId,
+  prelude::RwLock,
+};
 
 use diesel::result;
 use diesel::prelude::*;
 use diesel::Connection;
 use diesel::pg::PgConnection;
 
-use std::env;
-use std::sync::Arc;
+use std::{
+  env,
+  mem::MaybeUninit,
+  sync::Arc,
+};
 
 mod creation;
 
@@ -69,6 +77,29 @@ pub struct BotEnv {
   pub environment: Environment,
   pub config: RwLock<Config>,
   pub lodestone: LodestoneApi,
+  cah: RwLock<MaybeUninit<Arc<CacheAndHttp>>>,
+}
+
+impl BotEnv {
+  fn cah(&self) -> Arc<CacheAndHttp> {
+    let cah = self.cah.read();
+    let cah = unsafe { cah.get_ref() };
+    Arc::clone(cah)
+  }
+
+  pub fn http(&self) -> Arc<Http> {
+    let cah = self.cah();
+    Arc::clone(&cah.http)
+  }
+
+  pub fn cache(&self) -> Arc<RwLock<Cache>> {
+    let cah = self.cah();
+    Arc::clone(&cah.cache)
+  }
+
+  pub fn cache_lock(&self) -> CacheRwLock {
+    self.cache().into()
+  }
 }
 
 impl LalafellBot {
@@ -77,11 +108,13 @@ impl LalafellBot {
       lodestone: LodestoneApi::default(),
       config: RwLock::new(config),
       environment,
+      cah: RwLock::new(MaybeUninit::uninit()),
     });
     let client = Client::new(&env.environment.discord_bot_token, Handler::new(&env))?;
+    env.cah.write().write(Arc::clone(&client.cache_and_http));
     Ok(LalafellBot {
       discord: client,
-      env
+      env,
     })
   }
 }

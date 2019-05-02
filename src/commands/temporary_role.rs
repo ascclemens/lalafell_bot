@@ -1,3 +1,4 @@
+use bot::BotEnv;
 use database::models::NewTemporaryRole;
 use util::ParsedDuration;
 
@@ -17,7 +18,9 @@ use unicase::UniCase;
 use std::sync::Arc;
 
 #[derive(BotCommand)]
-pub struct TemporaryRoleCommand;
+pub struct TemporaryRoleCommand {
+  env: Arc<BotEnv>,
+}
 
 #[derive(Debug, StructOpt)]
 #[structopt(about = "Give a role to a member for a given number of messages or time")]
@@ -60,11 +63,11 @@ impl HasParams for TemporaryRoleCommand {
 }
 
 impl<'a> PublicChannelCommand<'a> for TemporaryRoleCommand {
-  fn run(&self, _: &Context, msg: &Message, guild_id: GuildId, _: Arc<RwLock<GuildChannel>>, params: &[&str]) -> CommandResult<'a> {
-    let member = guild_id.member(&msg.author).chain_err(|| "could not get member")?;
-    if !member.permissions().chain_err(|| "could not get permissions")?.manage_roles() {
+  fn run(&self, ctx: &Context, msg: &Message, guild_id: GuildId, _: Arc<RwLock<GuildChannel>>, params: &[&str]) -> CommandResult<'a> {
+    let member = guild_id.member(&ctx, &msg.author).chain_err(|| "could not get member")?;
+    if !member.permissions(&ctx).chain_err(|| "could not get permissions")?.manage_roles() {
       return Err(ExternalCommandFailure::default()
-        .message(|e: CreateEmbed| e
+        .message(|e: &mut CreateEmbed| e
           .title("Not enough permissions.")
           .description("You don't have enough permissions to use this command."))
         .wrap());
@@ -77,9 +80,9 @@ impl<'a> PublicChannelCommand<'a> for TemporaryRoleCommand {
         .multiple(true)
         .required(true)))?;
 
-    let guild = guild_id.to_guild_cached().chain_err(|| "could not find guild in cache")?;
+    let guild = guild_id.to_guild_cached(&ctx).chain_err(|| "could not find guild in cache")?;
 
-    let mut target = match guild_id.member(*params.who) {
+    let mut target = match guild_id.member(&ctx, *params.who) {
       Ok(m) => m,
       Err(_) => return Err("That person is not in this guild.".into())
     };
@@ -104,14 +107,15 @@ impl<'a> PublicChannelCommand<'a> for TemporaryRoleCommand {
 
     if let Some(t) = params.time {
       if *t < 600 {
+        let env = Arc::clone(&self.env);
         ::std::thread::spawn(move || {
           ::std::thread::sleep(Duration::seconds(*t as i64).to_std().unwrap());
-          ::tasks::temporary_roles::remove_temporary_role(&temp_role);
+          ::tasks::temporary_roles::remove_temporary_role(&env, &temp_role);
         });
       }
     }
 
-    target.add_role(role).chain_err(|| "could not add role")?;
+    target.add_role(&ctx, role).chain_err(|| "could not add role")?;
     Ok(CommandSuccess::default())
   }
 }

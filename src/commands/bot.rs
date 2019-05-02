@@ -4,7 +4,7 @@ use database::models::{Presence, NewPresence, PresenceKind};
 use lalafell::error::*;
 use lalafell::commands::prelude::*;
 
-use serenity::model::gateway::{Game, GameType};
+use serenity::model::gateway::Activity;
 
 use diesel::prelude::*;
 
@@ -31,7 +31,7 @@ impl<'a> Command<'a> for BotCommand {
   fn run(&self, ctx: &Context, message: &Message, params: &[&str]) -> CommandResult<'a> {
     if !is_administrator(&message.author)? {
       return Err(ExternalCommandFailure::default()
-        .message(|e: CreateEmbed| e
+        .message(|e: &mut CreateEmbed| e
           .title("Not enough permissions.")
           .description("You don't have enough permissions to use this command."))
         .wrap());
@@ -76,23 +76,19 @@ impl BotCommand {
     if args.is_empty() {
       return Err("!bot presence change [playing/listening] [content]".into());
     }
-    let game_type = match args[0].as_str() {
-      "playing" => GameType::Playing,
-      "listening" => GameType::Listening,
+    let name = args[1..].join(" ");
+    let activity = match args[0].as_str() {
+      "playing" => Activity::playing(&name),
+      "listening" => Activity::listening(&name),
       _ => return Err("Invalid presence type.".into())
     };
-    let game = Game {
-      kind: game_type,
-      name: args[1..].join(" "),
-      url: None
-    };
-    ctx.set_game(game);
+    ctx.set_activity(activity);
     Ok(CommandSuccess::default())
   }
 
   fn random_presence<'a>(&self, ctx: &Context) -> CommandResult<'a> {
-    match ::tasks::random_presence::random_game() {
-      Some(g) => ctx.set_game(g),
+    match ::tasks::random_presence::random_activity() {
+      Some(g) => ctx.set_activity(g),
       None => return Err("No presences.".into())
     }
     Ok(CommandSuccess::default())

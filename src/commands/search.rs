@@ -25,14 +25,14 @@ impl HasParams for SearchCommand {
 }
 
 impl<'a> PublicChannelCommand<'a> for SearchCommand {
-  fn run(&self, _: &Context, _: &Message, guild: GuildId, _: Arc<RwLock<GuildChannel>>, params: &[&str]) -> CommandResult<'a> {
+  fn run(&self, ctx: &Context, _: &Message, guild: GuildId, _: Arc<RwLock<GuildChannel>>, params: &[&str]) -> CommandResult<'a> {
     let params = self.params_then("search", params, |a| a.setting(::structopt::clap::AppSettings::ArgRequiredElseHelp))?;
 
     let filters = match Filter::all_filters(&params.filter_strings.join(" ")) {
       Some(f) => f,
       None => return Err("Invalid filters.".into())
     };
-    let guild = guild.to_guild_cached().chain_err(|| "could not find guild")?;
+    let guild = guild.to_guild_cached(&ctx).chain_err(|| "could not find guild")?;
     let reader = guild.read();
     let roles: Vec<&Role> = reader.roles.values().collect();
     let now = Utc::now();
@@ -71,7 +71,7 @@ impl<'a> PublicChannelCommand<'a> for SearchCommand {
       return Err("Result was too large. Try a smaller filter.".into());
     }
     Ok(CommandSuccess::default()
-      .message(move |e: CreateEmbed| e
+      .message(move |e: &mut CreateEmbed| e
         .description(to_send)
         .footer(|f| f.text(format!("{} member{}", matches.len(), if matches.len() == 1 { "" } else { "s" })))))
   }

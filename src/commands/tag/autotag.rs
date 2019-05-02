@@ -35,7 +35,7 @@ impl<'a> PublicChannelCommand<'a> for AutoTagCommand {
 
     match Tagger::search_tag(self.env.as_ref(), message.author.id, guild, ff_server, &name, false)? {
       Some(error) => Err(ExternalCommandFailure::default()
-        .message(move |e: CreateEmbed| e.description(&error))
+        .message(move |e: &mut CreateEmbed| e.description(&error))
         .wrap()),
       None => Ok(CommandSuccess::default())
     }

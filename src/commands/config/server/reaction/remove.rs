@@ -17,7 +17,7 @@ pub struct Params {
 
 impl<'a> RemoveCommand {
   #[allow(clippy::needless_pass_by_value)]
-  pub fn run(&self, guild: GuildId, params: Params) -> CommandResult<'a> {
+  pub fn run(&self, _: &Context, guild: GuildId, params: Params) -> CommandResult<'a> {
     let affected = ::bot::with_connection(|c| {
       use database::schema::reactions::dsl;
       ::diesel::delete(
