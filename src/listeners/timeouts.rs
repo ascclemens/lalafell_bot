@@ -1,13 +1,16 @@
 use crate::database::models::{ToU64, Timeout};
-use lalafell::error::*;
 
-use serenity::prelude::RwLock;
-use serenity::client::{Context, EventHandler};
-use serenity::model::channel::{Message, Channel, GuildChannel};
+use chrono::prelude::*;
 
 use diesel::prelude::*;
 
-use chrono::prelude::*;
+use lalafell::error::*;
+
+use serenity::{
+  client::{Context, EventHandler},
+  model::channel::{Message, Channel, GuildChannel},
+  prelude::RwLock,
+};
 
 use std::sync::Arc;
 
@@ -19,7 +22,7 @@ impl EventHandler for Timeouts {
     fn message(&self, ctx: Context, message: Message) -> Result<()> {
       let channel = match message.channel_id.to_channel(&ctx).chain_err(|| "could not get channel")? {
         Channel::Guild(c) => c,
-        _ => return Ok(())
+        _ => return Ok(()),
       };
       let timeout = crate::bot::with_connection(|c| {
         use crate::database::schema::timeouts::dsl;
@@ -30,7 +33,7 @@ impl EventHandler for Timeouts {
 
       let timeout: Timeout = match timeout {
         Ok(t) => t,
-        _ => return Ok(())
+        _ => return Ok(()),
       };
 
       if timeout.ends() < Utc::now().timestamp() {

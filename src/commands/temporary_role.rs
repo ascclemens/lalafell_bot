@@ -108,8 +108,8 @@ impl<'a> PublicChannelCommand<'a> for TemporaryRoleCommand {
     if let Some(t) = params.time {
       if *t < 600 {
         let env = Arc::clone(&self.env);
-        ::std::thread::spawn(move || {
-          ::std::thread::sleep(Duration::seconds(*t as i64).to_std().unwrap());
+        std::thread::spawn(move || {
+          std::thread::sleep(Duration::seconds(*t as i64).to_std().unwrap());
           crate::tasks::temporary_roles::remove_temporary_role(&env, &temp_role);
         });
       }

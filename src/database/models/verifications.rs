@@ -1,5 +1,8 @@
-use crate::database::schema::*;
-use crate::database::models::Tag;
+use crate::database::{
+  schema::*,
+  models::Tag,
+};
+
 use uuid::Uuid;
 
 insertable! {
@@ -11,7 +14,7 @@ insertable! {
   pub struct NewVerification {
     pub tag_id: i32,
     pub verified: bool,
-    pub verification_string: Option<String>
+    pub verification_string: Option<String>,
   }
 }
 
@@ -20,13 +23,13 @@ impl Verification {
     NewVerification {
       tag_id,
       verified: self.verified,
-      verification_string: self.verification_string
+      verification_string: self.verification_string,
     }
   }
 }
 
 impl NewVerification {
-  pub fn create_verification_string(&mut self) -> &String {
+  pub fn create_verification_string(&mut self) -> &str {
     let string = Uuid::new_v4().to_simple().to_string();
     self.verification_string = Some(string);
     self.verification_string.as_ref().unwrap()

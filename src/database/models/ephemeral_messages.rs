@@ -1,5 +1,7 @@
-use crate::database::schema::*;
-use crate::database::models::U64;
+use crate::database::{
+  schema::*,
+  models::U64,
+};
 
 insertable! {
   #[derive(Debug, Queryable, Identifiable, AsChangeset)]
@@ -10,7 +12,7 @@ insertable! {
     pub guild_id: U64,
     pub channel_id: U64,
     pub message_id: U64,
-    pub expires_on: i64
+    pub expires_on: i64,
   }
 }
 
@@ -20,7 +22,7 @@ impl NewEphemeralMessage {
       guild_id: guild_id.into(),
       channel_id: channel_id.into(),
       message_id: message_id.into(),
-      expires_on
+      expires_on,
     }
   }
 }

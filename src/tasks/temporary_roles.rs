@@ -1,17 +1,24 @@
-use crate::bot::BotEnv;
-use crate::tasks::{RunsTask, Wait};
-use chrono::prelude::*;
-use chrono::Duration;
-use crate::database::models::TemporaryRole;
+use crate::{
+  bot::BotEnv,
+  tasks::{RunsTask, Wait},
+  database::models::TemporaryRole,
+};
+
+use chrono::{
+  Duration,
+  prelude::*,
+};
 
 use diesel::prelude::*;
 
-use std::sync::Arc;
-use std::thread;
+use std::{
+  sync::Arc,
+  thread,
+};
 
 #[derive(Default)]
 pub struct TemporaryRolesTask {
-  next_sleep: i64
+  next_sleep: i64,
 }
 
 pub fn remove_temporary_role(env: &BotEnv, temp: &TemporaryRole) {
@@ -47,7 +54,7 @@ impl RunsTask for TemporaryRolesTask {
         Err(e) => {
           warn!("could not load temporary roles: {}", e);
           continue;
-        }
+        },
       };
 
       if temp_roles.is_empty() {
@@ -55,9 +62,9 @@ impl RunsTask for TemporaryRolesTask {
       }
 
       let thread_env = Arc::clone(&env);
-      ::std::thread::spawn(move || {
+      std::thread::spawn(move || {
         for (wait, temp_role) in Wait::new(temp_roles.into_iter().map(|t| (t.expires_on.unwrap(), t))) {
-          ::std::thread::sleep(Duration::seconds(wait).to_std().unwrap());
+          std::thread::sleep(Duration::seconds(wait).to_std().unwrap());
           remove_temporary_role(&thread_env, &temp_role);
         }
       });

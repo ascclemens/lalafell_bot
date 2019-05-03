@@ -75,8 +75,8 @@ impl<'a> PublicChannelCommand<'a> for EphemeralMessageCommand {
 }
 
 fn spawn_task(http: Arc<Http>, channel: ChannelId, message: MessageId, after: Duration) {
-  ::std::thread::spawn(move || {
-    ::std::thread::sleep(after.to_std().unwrap());
+  std::thread::spawn(move || {
+    std::thread::sleep(after.to_std().unwrap());
     if let Err(e) = channel.delete_message(http, message) {
       warn!("could not delete ephemeral message {} in {}: {}", message, channel, e);
       return;

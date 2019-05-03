@@ -45,7 +45,7 @@ macro_rules! config {
 }
 
 pub struct RoleCheckTask {
-  first_run: bool
+  first_run: bool,
 }
 
 impl RoleCheckTask {
@@ -74,14 +74,14 @@ impl RunsTask for RoleCheckTask {
           Err(_) => {
             warn!("invalid reminder time: {}", check.reminder.time);
             continue;
-          }
+          },
         };
         let kick_secs = match parse_duration_secs(&check.kick.time) {
           Ok(s) => s,
           Err(_) => {
             warn!("invalid kick time: {}", check.kick.time);
             continue;
-          }
+          },
         };
         let guild = some_or!(GuildId(check.guild).to_guild_cached(env.cache_lock()), continue);
         let roles = guild.read().roles.clone();
@@ -96,7 +96,7 @@ impl RunsTask for RoleCheckTask {
           Err(e) => {
             warn!("{}", e);
             continue;
-          }
+          },
         };
         let members: Vec<(UserId, Member)> = guild.read().members.iter()
           .filter(|&(_, m)| check.necessary_roles.matches(m, &roles))
@@ -125,7 +125,7 @@ impl RunsTask for RoleCheckTask {
                   Ok(_) => if let Err(e) = crate::bot::with_connection(|c| ::diesel::delete(time).execute(c)) {
                     warn!("Could not remove database entry for check after kick: {}", e);
                   },
-                  Err(e) => warn!("Kick was not successful: {}", e)
+                  Err(e) => warn!("Kick was not successful: {}", e),
                 }
               }
             },
@@ -140,7 +140,7 @@ impl RunsTask for RoleCheckTask {
                     .execute(c)
                 }).ok();
               }
-            }
+            },
           }
         }
         if reminders.is_empty() {
@@ -159,7 +159,7 @@ impl RunsTask for RoleCheckTask {
 struct RoleCheckConfig {
   delay: i64,
   period: i64,
-  checks: Vec<RoleCheck>
+  checks: Vec<RoleCheck>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -169,7 +169,7 @@ struct RoleCheck {
   channel: u64,
   necessary_roles: NeededRole,
   reminder: RoleCheckMessage,
-  kick: RoleCheckMessage
+  kick: RoleCheckMessage,
 }
 
 #[derive(Debug, Deserialize)]
@@ -185,7 +185,7 @@ impl NeededRole {
       NeededRole::Simple(ref role) => roles.iter().find(|x| UniCase::new(&x.1.name) == UniCase::new(role)).map(|r| member.roles.contains(r.0)).unwrap_or_default(),
       NeededRole::Logical(NeededRoleLogical::And(ref b)) => b.iter().all(|x| x.matches(member, roles)),
       NeededRole::Logical(NeededRoleLogical::Or(ref b)) => b.iter().any(|x| x.matches(member, roles)),
-      NeededRole::Logical(NeededRoleLogical::Not(ref x)) => !x.matches(member, roles)
+      NeededRole::Logical(NeededRoleLogical::Not(ref x)) => !x.matches(member, roles),
     }
   }
 }
@@ -197,11 +197,11 @@ enum NeededRoleLogical {
   #[serde(rename = "or")]
   Or(Vec<NeededRole>),
   #[serde(rename = "not")]
-  Not(Box<NeededRole>)
+  Not(Box<NeededRole>),
 }
 
 #[derive(Debug, Deserialize)]
 struct RoleCheckMessage {
   time: String,
-  message: String
+  message: String,
 }

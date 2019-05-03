@@ -1,5 +1,7 @@
-use crate::database::schema::*;
-use crate::database::models::U64;
+use crate::database::{
+  schema::*,
+  models::U64,
+};
 
 insertable! {
   #[derive(Debug, Queryable, Identifiable, AsChangeset)]
@@ -13,7 +15,7 @@ insertable! {
     pub message_id: U64,
     pub channel_id: Option<i64>,
     pub messages: Option<i32>,
-    pub expires_on: Option<i64>
+    pub expires_on: Option<i64>,
   }
 }
 
@@ -26,7 +28,7 @@ impl NewTemporaryRole {
       message_id: message_id.into(),
       channel_id: channel_id.map(|x| x as i64),
       messages,
-      expires_on
+      expires_on,
     }
   }
 }

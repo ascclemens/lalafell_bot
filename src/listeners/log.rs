@@ -4,19 +4,25 @@ use chrono::{Utc, Duration};
 
 use diesel::prelude::*;
 
-use serenity::prelude::{Mutex, Mentionable};
-use serenity::client::{Context, EventHandler};
-use serenity::model::channel::Message;
-use serenity::model::event::MessageUpdateEvent;
-use serenity::model::guild::Member;
-use serenity::model::id::{GuildId, ChannelId, UserId, MessageId};
-use serenity::model::user::User;
+use serenity::{
+  client::{Context, EventHandler},
+  model::{
+    channel::Message,
+    event::MessageUpdateEvent,
+    guild::Member,
+    id::{GuildId, ChannelId, UserId, MessageId},
+    user::User,
+  },
+  prelude::{Mutex, Mentionable},
+};
 
-use std::collections::HashMap;
-use std::sync::atomic::{Ordering, AtomicUsize};
+use std::{
+  collections::HashMap,
+  sync::atomic::{Ordering, AtomicUsize},
+};
 
 macro_rules! update_message {
-  ($message:expr, $update:expr, $($field:ident),+) => {{
+  ($message:expr, $update:expr, $($field:ident),+ $(,)?) => {{
     $(
       if let Some(f) = $update.$field {
         $message.$field = f;
@@ -28,7 +34,7 @@ macro_rules! update_message {
 #[derive(Default)]
 pub struct Log {
   messages: Mutex<HashMap<UserId, HashMap<GuildId, Vec<Message>>>>,
-  count: AtomicUsize
+  count: AtomicUsize,
 }
 
 impl Log {
@@ -92,11 +98,11 @@ impl EventHandler for Log {
   fn message_update(&self, ctx: Context, _: Option<Message>, _: Option<Message>, update: MessageUpdateEvent) {
     let author = match update.author {
       Some(ref a) => a,
-      None => return
+      None => return,
     };
     let new_content = match update.content {
       Some(ref c) => c.to_owned(),
-      None => return
+      None => return,
     };
 
     let channel = match update.channel_id.to_channel(&ctx) {
@@ -104,12 +110,12 @@ impl EventHandler for Log {
       Err(e) => {
         warn!("could not download channel {} for message history: {}", update.channel_id, e);
         return;
-      }
+      },
     };
 
     let guild_channel = match channel.guild() {
       Some(g) => g,
-      None => return
+      None => return,
     };
     let reader = guild_channel.read();
 
@@ -117,13 +123,13 @@ impl EventHandler for Log {
 
     let guild = match reader.guild_id.to_guild_cached(&ctx) {
       Some(g) => g,
-      None => return
+      None => return,
     };
     let guild_reader = guild.read();
 
     let member = match guild_reader.members.get(&author.id).cloned().or_else(|| guild_reader.member(&ctx, author.id).ok()) {
       Some(m) => m,
-      None => return
+      None => return,
     };
 
     let mut messages = self.messages.lock();
@@ -133,7 +139,7 @@ impl EventHandler for Log {
       .and_then(|x| x.iter_mut().find(|m| m.id == update.id));
     let message = match message {
       Some(m) => m,
-      None => return
+      None => return,
     };
 
     let original_content = message.content.clone();
@@ -144,7 +150,7 @@ impl EventHandler for Log {
       message,
       update,
       kind, content, tts, pinned, timestamp, author, mention_everyone, mentions, mention_roles,
-      attachments
+      attachments,
     );
     message.edited_timestamp = update.edited_timestamp;
 
@@ -171,12 +177,12 @@ impl EventHandler for Log {
       Err(e) => {
         warn!("could not download channel {} for message history: {}", channel_id, e);
         return;
-      }
+      },
     };
 
     let guild_channel = match channel.guild() {
       Some(g) => g,
-      None => return
+      None => return,
     };
     let reader = guild_channel.read();
 
@@ -184,7 +190,7 @@ impl EventHandler for Log {
 
     let guild = match reader.guild_id.to_guild_cached(&ctx) {
       Some(g) => g,
-      None => return
+      None => return,
     };
 
     let guild_reader = guild.read();
@@ -197,7 +203,7 @@ impl EventHandler for Log {
       .and_then(|x| x.iter_mut().find(|m| m.id == message_id));
     let message = match message {
       Some(m) => m.clone(),
-      None => return
+      None => return,
     };
 
     let deletee = some_or!(guild_reader.members.get(&message.author.id).cloned().or_else(|| guild_reader.member(&ctx, message.author.id).ok()), return);
@@ -233,12 +239,12 @@ impl EventHandler for Log {
       Err(e) => {
         warn!("could not download channel {} for message history: {}", message.channel_id, e);
         return;
-      }
+      },
     };
 
     let guild_channel = match channel.guild() {
       Some(g) => g,
-      None => return
+      None => return,
     };
 
     let reader = guild_channel.read();

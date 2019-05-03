@@ -1,12 +1,19 @@
-use crate::bot::BotEnv;
-use crate::tasks::RunsTask;
-use crate::database::models::{Presence, PresenceKind};
+use crate::{
+  bot::BotEnv,
+  database::models::{Presence, PresenceKind},
+  tasks::RunsTask,
+};
 
-use serenity::prelude::Mutex;
-use serenity::model::gateway::Activity;
-use serenity::client::bridge::gateway::{ShardClientMessage, ShardRunnerMessage};
-use serenity::gateway::InterMessage;
-use serenity::client::bridge::gateway::ShardManager;
+use serenity::{
+  client::bridge::gateway::{
+    ShardClientMessage,
+    ShardManager,
+    ShardRunnerMessage,
+  },
+  gateway::InterMessage,
+  model::gateway::Activity,
+  prelude::Mutex,
+};
 
 use diesel::prelude::*;
 
@@ -14,20 +21,22 @@ use chrono::Duration;
 
 use rand::{thread_rng, seq::SliceRandom};
 
-use std::sync::Arc;
-use std::thread;
+use std::{
+  sync::Arc,
+  thread,
+};
 
 #[derive(Debug)]
 pub struct RandomPresenceTask {
   next_sleep: i64,
-  shard_manager: Arc<Mutex<ShardManager>>
+  shard_manager: Arc<Mutex<ShardManager>>,
 }
 
 impl RandomPresenceTask {
   pub fn new(shard_manager: Arc<Mutex<ShardManager>>) -> Self {
     RandomPresenceTask {
       next_sleep: 0,
-      shard_manager
+      shard_manager,
     }
   }
 }
@@ -36,7 +45,7 @@ impl RunsTask for RandomPresenceTask {
   fn start(mut self, env: Arc<BotEnv>) {
     loop {
       if self.next_sleep == 0 {
-        self.next_sleep = ::std::cmp::max(12, env.config.read().presence.change_frequency);
+        self.next_sleep = std::cmp::max(12, env.config.read().presence.change_frequency);
       }
       thread::sleep(Duration::seconds(self.next_sleep).to_std().unwrap());
       info!("Changing presence");
@@ -45,7 +54,7 @@ impl RunsTask for RandomPresenceTask {
         None => {
           info!("No presence");
           continue;
-        }
+        },
       };
       let manager = self.shard_manager.lock();
       let runners = manager.runners.lock();

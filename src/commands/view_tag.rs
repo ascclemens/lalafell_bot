@@ -1,8 +1,12 @@
-use crate::commands::*;
-use crate::database::models::{ToU64, Tag};
+use crate::{
+  commands::*,
+  database::models::{ToU64, Tag},
+};
 
-use lalafell::commands::prelude::*;
-use lalafell::error::*;
+use lalafell::{
+  commands::prelude::*,
+  error::*,
+};
 
 use serenity::prelude::Mentionable;
 
@@ -17,7 +21,7 @@ pub struct ViewTagCommand;
 #[structopt(about = "View the FFXIV character tag of a member")]
 pub struct Params {
   #[structopt(help = "Who to view the tag of")]
-  who: MentionOrId
+  who: MentionOrId,
 }
 
 impl HasParams for ViewTagCommand {
@@ -39,7 +43,7 @@ impl<'a> PublicChannelCommand<'a> for ViewTagCommand {
 
     let msg = match tag {
       Some(u) => format!("{} is {} on {}.", who.mention(), u.character, u.server),
-      None => format!("{} is not tagged.", who.mention())
+      None => format!("{} is not tagged.", who.mention()),
     };
     Ok(msg.into())
   }

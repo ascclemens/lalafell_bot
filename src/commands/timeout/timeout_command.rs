@@ -91,8 +91,8 @@ impl<'a> PublicChannelCommand<'a> for TimeoutCommand {
     // spawn a task if the duration is less than the check task period
     if duration < 300 {
       let env = Arc::clone(&self.env);
-      ::std::thread::spawn(move || {
-        ::std::thread::sleep(Duration::seconds(duration as i64).to_std().unwrap());
+      std::thread::spawn(move || {
+        std::thread::sleep(Duration::seconds(duration as i64).to_std().unwrap());
         crate::tasks::timeout_check::remove_timeout(&env, &timeout);
       });
     }

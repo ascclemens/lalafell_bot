@@ -1,5 +1,7 @@
-use crate::database::schema::*;
-use crate::database::models::U64;
+use crate::database::{
+  schema::*,
+  models::U64,
+};
 
 insertable! {
   #[derive(Debug, Queryable, Identifiable)]
@@ -11,6 +13,6 @@ insertable! {
     pub channel_id: U64,
     pub message_id: U64,
     pub emoji: String,
-    pub role_id: U64
+    pub role_id: U64,
   }
 }

@@ -1,5 +1,7 @@
-use crate::database::schema::*;
-use crate::database::models::U64;
+use crate::database::{
+  schema::*,
+  models::U64,
+};
 
 use chrono::Utc;
 
@@ -14,7 +16,7 @@ insertable! {
     pub character_id: U64,
     pub character: String,
     pub server: String,
-    pub last_updated: i64
+    pub last_updated: i64,
   }
 }
 
@@ -26,7 +28,7 @@ impl NewTag {
       character_id: character_id.into(),
       character: character.to_owned(),
       server: server.to_owned(),
-      last_updated: Utc::now().timestamp()
+      last_updated: Utc::now().timestamp(),
     }
   }
 }

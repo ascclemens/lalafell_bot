@@ -1,5 +1,7 @@
-use crate::database::schema::*;
-use crate::database::models::U64;
+use crate::database::{
+  schema::*,
+  models::U64,
+};
 
 insertable! {
   #[derive(Debug, Queryable, Identifiable, AsChangeset)]
@@ -11,7 +13,7 @@ insertable! {
     pub server_id: U64,
     pub user_id: U64,
     pub server: String,
-    pub character: String
+    pub character: String,
   }
 }
 
@@ -21,7 +23,7 @@ impl NewTagQueue {
       user_id: user_id.into(),
       server_id: server_id.into(),
       server: server.to_owned(),
-      character: character.to_owned()
+      character: character.to_owned(),
     }
   }
 }

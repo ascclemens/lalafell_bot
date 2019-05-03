@@ -1,6 +1,6 @@
 macro_rules! insertable {
   ($(#[$($meta:meta),+])* pub struct $name:ident, $(#[$($new_meta:meta),+])* pub struct $new_name:ident {
-    $(pub $field_name:ident: $kind:ty),+
+    $(pub $field_name:ident: $kind:ty),+ $(,)?
   }) => {
     $(#[$($meta),+])*
     pub struct $name {

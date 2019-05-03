@@ -1,8 +1,12 @@
-use crate::lodestone::Lodestone;
-use crate::database::models::{ToU64, Tag, Verification};
+use crate::{
+  lodestone::Lodestone,
+  database::models::{ToU64, Tag, Verification},
+};
 
-use lalafell::error::*;
-use lalafell::commands::prelude::*;
+use lalafell::{
+  commands::prelude::*,
+  error::*,
+};
 
 use diesel::prelude::*;
 
@@ -26,7 +30,7 @@ impl<'a> PublicChannelCommand<'a> for VerifyCommand {
         .message(|e: &mut CreateEmbed| e
           .title("Not tagged.")
           .description("Please tag yourself with an account before verifying it."))
-        .wrap())
+        .wrap()),
     };
     let mut verification: Verification = crate::bot::with_connection(|c| {
       Verification::belonging_to(&user)
@@ -52,7 +56,7 @@ impl<'a> PublicChannelCommand<'a> for VerifyCommand {
           .description(&msg)
           .url("http://na.finalfantasyxiv.com/lodestone/my/setting/profile/"))).ok();
         return Ok(CommandSuccess::default());
-      }
+      },
     };
     let profile = Lodestone::new().character_profile(*user.character_id)?;
     if profile.contains(verification_string) {

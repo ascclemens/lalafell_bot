@@ -1,10 +1,14 @@
-use serenity::model::channel::ReactionType;
-use serenity::model::misc::EmojiIdentifier;
+use serenity::{
+  model::channel::ReactionType,
+  model::misc::EmojiIdentifier,
+};
 
-use std::str::FromStr;
-use std::num::ParseIntError;
-use std::fmt::{Display, Formatter, Result as FmtResult};
-use std::ops::Deref;
+use std::{
+  fmt::{Display, Formatter, Result as FmtResult},
+  num::ParseIntError,
+  ops::Deref,
+  str::FromStr,
+};
 
 #[derive(Debug, Default)]
 pub struct ParsedDuration(pub u64);
@@ -20,14 +24,14 @@ impl Deref for ParsedDuration {
 #[derive(Debug)]
 pub enum ParsedDurationError {
   Int(ParseIntError),
-  Format(String)
+  Format(String),
 }
 
 impl Display for ParsedDurationError {
   fn fmt(&self, f: &mut Formatter) -> FmtResult {
     match *self {
       ParsedDurationError::Int(ref e) => write!(f, "invalid number: {}", e),
-      ParsedDurationError::Format(ref s) => write!(f, "invalid duration format: {}", s)
+      ParsedDurationError::Format(ref s) => write!(f, "invalid duration format: {}", s),
     }
   }
 }

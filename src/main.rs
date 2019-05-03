@@ -3,42 +3,21 @@
 #![allow(proc_macro_derive_resolution_fallback, clippy::unreadable_literal)]
 #![recursion_limit = "1024"]
 
-extern crate ansi_term;
 #[macro_use]
 extern crate bot_command_derive;
-extern crate byteorder;
-extern crate chrono;
-extern crate ctrlc;
 #[macro_use]
 extern crate diesel;
-extern crate dotenv;
-extern crate envy;
 #[macro_use]
 extern crate error_chain;
-extern crate failure;
-extern crate fern;
-extern crate fflogs;
 extern crate ffxiv_types as ffxiv;
-extern crate itertools;
-extern crate lalafell;
 #[macro_use]
 extern crate lazy_static;
-extern crate lodestone_api_client;
 #[macro_use]
 extern crate log;
-extern crate rand;
-extern crate reqwest;
-extern crate scraper;
 #[macro_use]
 extern crate serde_derive;
-extern crate serde_json;
-extern crate serenity;
 #[macro_use]
 extern crate structopt;
-extern crate typemap;
-extern crate unicase;
-extern crate url;
-extern crate uuid;
 
 // TODO: Efficiency. Every time a command is called, it creates a new App and calls the methods on
 //       it. Storing just one App per command would be ideal.
@@ -72,8 +51,10 @@ mod logging;
 mod tasks;
 mod util;
 
-use crate::error::*;
-use crate::bot::LalafellBot;
+use crate::{
+  bot::LalafellBot,
+  error::*,
+};
 
 use std::sync::{Arc, Mutex};
 
@@ -87,9 +68,9 @@ fn main() {
 
 fn inner() -> Result<()> {
   if let Err(e) = logging::init_logger() {
-    println!("Could not set up logger.");
+    eprintln!("Could not set up logger.");
     for err in e.iter() {
-      println!("{}", err);
+      eprintln!("{}", err);
     }
     return Ok(());
   }
@@ -104,7 +85,7 @@ fn inner() -> Result<()> {
 
   let bot = match bot::create_bot(environment) {
     Ok(b) => b,
-    Err(e) => bail!("could not create bot: {}", e)
+    Err(e) => bail!("could not create bot: {}", e),
   };
 
   let shard_manager = Arc::clone(&bot.discord.shard_manager);

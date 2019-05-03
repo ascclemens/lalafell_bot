@@ -1,28 +1,34 @@
-use crate::bot::BotEnv;
-use crate::tasks::RunsTask;
-use crate::database::models::DeleteAllMessages;
+use crate::{
+  bot::BotEnv,
+  database::models::DeleteAllMessages,
+  tasks::RunsTask,
+};
 
 use serenity::model::id::ChannelId;
 
-use chrono::prelude::*;
-use chrono::Duration;
+use chrono::{
+  Duration,
+  prelude::*,
+};
 
 use crate::error::*;
 
 use diesel::prelude::*;
 
-use std::sync::Arc;
-use std::thread;
+use std::{
+  sync::Arc,
+  thread,
+};
 
 #[derive(Debug)]
 pub struct DeleteAllMessagesTask {
-  next_sleep: i64
+  next_sleep: i64,
 }
 
 impl DeleteAllMessagesTask {
   pub fn new() -> Self {
     DeleteAllMessagesTask {
-      next_sleep: 30
+      next_sleep: 30,
     }
   }
 }
@@ -41,7 +47,7 @@ impl RunsTask for DeleteAllMessagesTask {
         Err(e) => {
           warn!("could not load delete_all_messages: {}", e);
           continue;
-        }
+        },
       };
       for dam in dams {
         let channel = ChannelId(*dam.channel_id);
@@ -50,7 +56,7 @@ impl RunsTask for DeleteAllMessagesTask {
           Err(e) => {
             warn!("Could not get messages for channel {}: {}", channel, e);
             continue;
-          }
+          },
         };
         let mut to_delete = Vec::new();
         let exclude = dam.exclude();

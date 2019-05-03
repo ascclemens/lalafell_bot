@@ -1,7 +1,9 @@
-use crate::tasks::RunsTask;
-use crate::bot::BotEnv;
-use crate::commands::tag::Tagger;
-use crate::database::models::TagQueue;
+use crate::{
+  tasks::RunsTask,
+  bot::BotEnv,
+  commands::tag::Tagger,
+  database::models::TagQueue,
+};
 
 use chrono::Duration;
 
@@ -9,12 +11,14 @@ use ffxiv::World;
 
 use diesel::prelude::*;
 
-use std::str::FromStr;
-use std::sync::Arc;
-use std::thread;
+use std::{
+  str::FromStr,
+  sync::Arc,
+  thread,
+};
 
 pub struct TagQueueTask {
-  pub next_sleep: i64
+  pub next_sleep: i64,
 }
 
 impl Default for TagQueueTask {
@@ -37,7 +41,7 @@ impl RunsTask for TagQueueTask {
         Err(e) => {
           warn!("could not load tag queue: {}", e);
           continue;
-        }
+        },
       };
       let len = queue.len();
       if len == 0 {
@@ -58,10 +62,10 @@ impl RunsTask for TagQueueTask {
           (*item.server_id).into(),
           world,
           &item.character,
-          false
+          false,
         ) {
           Ok(None) => true,
-          _ => false
+          _ => false,
         }
       });
       info!("Successfully tagged {}/{} queued tags", queue.len(), len);

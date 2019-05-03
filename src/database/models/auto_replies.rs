@@ -1,5 +1,7 @@
-use crate::database::schema::*;
-use crate::database::models::U64;
+use crate::database::{
+  schema::*,
+  models::U64,
+};
 
 insertable! {
   #[derive(Debug, Queryable, Identifiable)]
@@ -13,6 +15,6 @@ insertable! {
     pub message: String,
     pub on_join: bool,
     pub delay: i32,
-    pub filters: Option<String>
+    pub filters: Option<String>,
   }
 }

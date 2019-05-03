@@ -1,5 +1,7 @@
-use crate::database::schema::*;
-use crate::database::models::U64;
+use crate::database::{
+  schema::*,
+  models::U64,
+};
 
 use chrono::{Utc, TimeZone, Duration};
 
@@ -13,7 +15,7 @@ insertable! {
     pub server_id: U64,
     pub role_id: U64,
     pub seconds: i32,
-    pub start: i64
+    pub start: i64,
   }
 }
 
@@ -30,7 +32,7 @@ impl NewTimeout {
       server_id: server_id.into(),
       role_id: role_id.into(),
       seconds,
-      start
+      start,
     }
   }
 }

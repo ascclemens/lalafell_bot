@@ -1,27 +1,31 @@
-use crate::tasks::RunsTask;
-use crate::bot::BotEnv;
-use crate::commands::tag::Tagger;
-use lalafell::error::*;
-use crate::database::models::Tag;
+use crate::{
+  bot::BotEnv,
+  commands::tag::Tagger,
+  database::models::Tag,
+  tasks::RunsTask,
+};
 
-use serenity::model::id::{UserId, GuildId};
-
-use chrono::Duration;
-use chrono::Utc;
+use chrono::{Duration, Utc};
 
 use diesel::prelude::*;
 
-use std::sync::Arc;
-use std::thread;
+use lalafell::error::*;
+
+use serenity::model::id::{UserId, GuildId};
+
+use std::{
+  sync::Arc,
+  thread,
+};
 
 pub struct AutoTagTask {
-  pub next_sleep: i64
+  pub next_sleep: i64,
 }
 
 impl AutoTagTask {
   pub fn new() -> AutoTagTask {
     AutoTagTask {
-      next_sleep: 30
+      next_sleep: 30,
     }
   }
 
@@ -61,7 +65,7 @@ impl AutoTagTask {
           _ => {},
         }
         tag.last_updated = Utc::now().timestamp();
-        let res: ::std::result::Result<Tag, _> = crate::bot::with_connection(|c| tag.save_changes(c));
+        let res: std::result::Result<Tag, _> = crate::bot::with_connection(|c| tag.save_changes(c));
         if let Err(e) = res {
           warn!("could not update tag last_updated: {}", e);
         }

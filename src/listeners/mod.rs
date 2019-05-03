@@ -30,11 +30,13 @@ pub mod reaction_authorize;
 pub mod temporary_roles;
 pub mod timeouts;
 
-pub use self::auto_reply::AutoReplyListener;
-pub use self::guilds_ext::GuildsExt;
-pub use self::log::Log;
-pub use self::poll_tagger::PollTagger;
-pub use self::random_presence::RandomPresenceListener;
-pub use self::reaction_authorize::ReactionAuthorize;
-pub use self::temporary_roles::TemporaryRolesListener;
-pub use self::timeouts::Timeouts;
+pub use self::{
+  auto_reply::AutoReplyListener,
+  guilds_ext::GuildsExt,
+  log::Log,
+  poll_tagger::PollTagger,
+  random_presence::RandomPresenceListener,
+  reaction_authorize::ReactionAuthorize,
+  temporary_roles::TemporaryRolesListener,
+  timeouts::Timeouts,
+};

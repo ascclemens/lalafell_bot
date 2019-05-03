@@ -17,7 +17,7 @@ impl EventHandler for TemporaryRolesListener {
     fn message(&self, ctx: Context, message: Message) -> Result<()> {
       let guild_channel = match message.channel(&ctx).and_then(Channel::guild) {
         Some(g) => g,
-        None => return Ok(())
+        None => return Ok(()),
       };
       let channel_id = guild_channel.read().id;
       let guild_id = guild_channel.read().guild_id;

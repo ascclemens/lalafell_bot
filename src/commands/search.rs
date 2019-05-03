@@ -1,10 +1,14 @@
 use crate::filters::Filter;
 
-use lalafell::error::*;
-use lalafell::commands::prelude::*;
+use lalafell::{
+  commands::prelude::*,
+  error::*,
+};
 
-use serenity::prelude::Mentionable;
-use serenity::model::guild::Role;
+use serenity::{
+  model::guild::Role,
+  prelude::Mentionable,
+};
 
 use itertools::Itertools;
 
@@ -17,7 +21,7 @@ pub struct SearchCommand;
 #[structopt(about = "Search the members of the server with filters")]
 pub struct Params {
   #[structopt(name = "filters", help = "A list of filters to apply when searching")]
-  filter_strings: Vec<String>
+  filter_strings: Vec<String>,
 }
 
 impl HasParams for SearchCommand {
@@ -30,7 +34,7 @@ impl<'a> PublicChannelCommand<'a> for SearchCommand {
 
     let filters = match Filter::all_filters(&params.filter_strings.join(" ")) {
       Some(f) => f,
-      None => return Err("Invalid filters.".into())
+      None => return Err("Invalid filters.".into()),
     };
     let guild = guild.to_guild_cached(&ctx).chain_err(|| "could not find guild")?;
     let reader = guild.read();
@@ -39,7 +43,8 @@ impl<'a> PublicChannelCommand<'a> for SearchCommand {
     let matches: Vec<String> = guild.read().members.values()
       .filter(|m| filters.iter().all(|f| f.matches(m, &roles)))
       .sorted_by(|a, b| a.display_name().cmp(&b.display_name()))
-      .map(|m| format!("{} - {}",
+      .map(|m| format!(
+        "{} - {}",
         m.mention(),
         m.joined_at
           .map(|d| now.signed_duration_since(d))
@@ -63,7 +68,8 @@ impl<'a> PublicChannelCommand<'a> for SearchCommand {
             }
             res
           })
-          .unwrap_or_else(|| String::from("unknown"))))
+          .unwrap_or_else(|| String::from("unknown")),
+      ))
       .collect();
     let to_send = matches.join("\n");
     if to_send.len() > 2000 {

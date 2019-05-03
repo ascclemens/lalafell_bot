@@ -1,7 +1,9 @@
 use crate::error::*;
 
-use serenity::client::{Context, EventHandler};
-use serenity::model::channel::Message;
+use serenity::{
+  client::{Context, EventHandler},
+  model::channel::Message,
+};
 
 pub struct PollTagger;
 
@@ -15,15 +17,15 @@ impl EventHandler for PollTagger {
       let first_embed = message.embeds[0].clone();
       let footer = match first_embed.footer.map(|f| f.text) {
         Some(f) => f,
-        None => return Ok(())
+        None => return Ok(()),
       };
       let title = match first_embed.title {
         Some(t) => t,
-        None => return Ok(())
+        None => return Ok(()),
       };
       let description = match first_embed.description {
         Some(d) => d,
-        None => return Ok(())
+        None => return Ok(()),
       };
       if footer != "Loading poll ID..." {
         return Ok(());

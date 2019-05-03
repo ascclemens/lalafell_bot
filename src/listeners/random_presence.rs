@@ -1,5 +1,7 @@
-use serenity::client::{Context, EventHandler};
-use serenity::model::gateway::Ready;
+use serenity::{
+  client::{Context, EventHandler},
+  model::gateway::Ready,
+};
 
 pub struct RandomPresenceListener;
 

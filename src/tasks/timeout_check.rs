@@ -1,13 +1,20 @@
-use crate::bot::BotEnv;
-use crate::tasks::{RunsTask, Wait};
-use chrono::prelude::*;
-use chrono::Duration;
-use crate::database::models::Timeout;
+use crate::{
+  bot::BotEnv,
+  tasks::{RunsTask, Wait},
+  database::models::Timeout,
+};
+
+use chrono::{
+  Duration,
+  prelude::*,
+};
 
 use diesel::prelude::*;
 
-use std::sync::Arc;
-use std::thread;
+use std::{
+  sync::Arc,
+  thread,
+};
 
 #[derive(Default)]
 pub struct TimeoutCheckTask {
@@ -48,7 +55,7 @@ impl RunsTask for TimeoutCheckTask {
         Err(e) => {
           warn!("could not load timeouts: {}", e);
           continue;
-        }
+        },
       };
       timeouts.retain(|t| t.ends() <= next_five_minutes);
 
@@ -57,9 +64,9 @@ impl RunsTask for TimeoutCheckTask {
       }
 
       let thread_env = Arc::clone(&env);
-      ::std::thread::spawn(move || {
+      std::thread::spawn(move || {
         for (wait, timeout) in Wait::new(timeouts.into_iter().map(|t| (t.ends(), t))) {
-          ::std::thread::sleep(Duration::seconds(wait).to_std().unwrap());
+          std::thread::sleep(Duration::seconds(wait).to_std().unwrap());
           remove_timeout(&thread_env, &timeout);
         }
       });

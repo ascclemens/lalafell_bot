@@ -9,7 +9,7 @@ use std::str::FromStr;
 
 pub enum Filter {
   Include(FilterKind),
-  Exclude(FilterKind)
+  Exclude(FilterKind),
 }
 
 impl Filter {
@@ -103,11 +103,11 @@ impl Filter {
         let role_name = UniCase::new(role_name);
         let role = match roles.iter().find(|r| UniCase::new(&r.name) == role_name) {
           Some(r) => r,
-          None => return !include
+          None => return !include,
         };
         member.roles.iter().any(|r| *r == role.id) == include
-      }
-      FilterKind::User(id) => (member.user.read().id.0 == id) == include
+      },
+      FilterKind::User(id) => (member.user.read().id.0 == id) == include,
     }
   }
 }
@@ -116,14 +116,14 @@ impl ToString for Filter {
   fn to_string(&self) -> String {
     match *self {
       Filter::Include(ref fk) => fk.to_string(),
-      Filter::Exclude(ref fk) => format!("!{}", fk.to_string())
+      Filter::Exclude(ref fk) => format!("!{}", fk.to_string()),
     }
   }
 }
 
 pub enum FilterKind {
   Role(String),
-  User(u64)
+  User(u64),
 }
 
 impl FilterKind {
@@ -138,8 +138,8 @@ impl FilterKind {
       "user" | "member" => {
         let id = MentionOrId::from_str(value).ok()?;
         Some(FilterKind::User(id.0))
-      }
-      _ => None
+      },
+      _ => None,
     }
   }
 }
@@ -149,7 +149,7 @@ impl ToString for FilterKind {
     match *self {
       FilterKind::Role(ref role) if role.contains(' ') => format!("role:`{}`", role),
       FilterKind::Role(ref role) => format!("role:{}", role),
-      FilterKind::User(id) => format!("user:{}", id)
+      FilterKind::User(id) => format!("user:{}", id),
     }
   }
 }

@@ -1,21 +1,24 @@
-use crate::bot::BotEnv;
-use crate::database::models::EphemeralMessage;
-use crate::error::*;
-use crate::tasks::{RunsTask, Wait};
+use crate::{
+  bot::BotEnv,
+  database::models::EphemeralMessage,
+  error::*,
+  tasks::{RunsTask, Wait},
+};
 
 use chrono::{Utc, Duration};
 
-use diesel;
 use diesel::prelude::*;
 
 use serenity::model::id::ChannelId;
 
-use std::sync::Arc;
-use std::thread;
+use std::{
+  sync::Arc,
+  thread,
+};
 
 #[derive(Debug, Default)]
 pub struct EphemeralMessageTask {
-  next_sleep: i64
+  next_sleep: i64,
 }
 
 impl RunsTask for EphemeralMessageTask {
@@ -38,7 +41,7 @@ impl RunsTask for EphemeralMessageTask {
         Err(e) => {
           warn!("error loading ephemeral messages: {}", e);
           continue;
-        }
+        },
       };
 
       if msgs.is_empty() {
@@ -48,9 +51,9 @@ impl RunsTask for EphemeralMessageTask {
       msgs.sort_by_key(|m| m.expires_on);
 
       let thread_env = Arc::clone(&env);
-      ::std::thread::spawn(move || {
+      std::thread::spawn(move || {
         for (wait, eph) in Wait::new(msgs.into_iter().map(|m| (m.expires_on, m))) {
-          ::std::thread::sleep(Duration::seconds(wait).to_std().unwrap());
+          std::thread::sleep(Duration::seconds(wait).to_std().unwrap());
 
           let channel = ChannelId(*eph.channel_id);
           match channel.delete_message(thread_env.http(), *eph.message_id) {
@@ -59,7 +62,7 @@ impl RunsTask for EphemeralMessageTask {
                 warn!("could not delete ephemeral message (id: {}) from database: {}", eph.id, e);
               }
             },
-            Err(e) => warn!("could not delete ephemeral message (id: {}): {}", eph.id, e)
+            Err(e) => warn!("could not delete ephemeral message (id: {}): {}", eph.id, e),
           }
         }
       });

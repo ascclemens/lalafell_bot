@@ -7,13 +7,13 @@ use scraper::{Html, Selector};
 use std::io::Read;
 
 pub struct Lodestone {
-  client: Client
+  client: Client,
 }
 
 impl Lodestone {
   pub fn new() -> Lodestone {
     Lodestone {
-      client: Client::new()
+      client: Client::new(),
     }
   }
 
@@ -28,7 +28,7 @@ impl Lodestone {
     let selector = Selector::parse("div.character__selfintroduction").unwrap();
     let profile = match html.select(&selector).next() {
       Some(p) => p,
-      None => bail!("could not find character__selfintroduction")
+      None => bail!("could not find character__selfintroduction"),
     };
     Ok(profile.text().collect::<Vec<_>>().join(" ").trim().to_string())
   }

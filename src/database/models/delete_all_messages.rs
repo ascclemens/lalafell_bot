@@ -1,5 +1,7 @@
-use crate::database::schema::*;
-use crate::database::models::U64;
+use crate::database::{
+  schema::*,
+  models::U64,
+};
 
 use byteorder::{ByteOrder, LittleEndian};
 
@@ -13,7 +15,7 @@ insertable! {
     pub server_id: U64,
     pub channel_id: U64,
     pub after: i32,
-    pub exclude: Vec<u8>
+    pub exclude: Vec<u8>,
   }
 }
 
@@ -33,7 +35,7 @@ impl NewDeleteAllMessages {
       server_id: server_id.into(),
       channel_id: channel_id.into(),
       after,
-      exclude: bytes
+      exclude: bytes,
     }
   }
 }

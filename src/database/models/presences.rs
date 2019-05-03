@@ -11,7 +11,7 @@ insertable! {
   #[table_name = "presences"]
   pub struct NewPresence {
     pub kind: i16,
-    pub content: String
+    pub content: String,
   }
 }
 
@@ -19,7 +19,7 @@ impl NewPresence {
   pub fn new(kind: i16, content: &str) -> Self {
     NewPresence {
       kind,
-      content: content.to_owned()
+      content: content.to_owned(),
     }
   }
 }
@@ -28,14 +28,14 @@ impl NewPresence {
 #[repr(i16)]
 pub enum PresenceKind {
   Playing,
-  Listening
+  Listening,
 }
 
 impl PresenceKind {
   pub fn as_discord(&self) -> ActivityType {
     match *self {
       PresenceKind::Playing => ActivityType::Playing,
-      PresenceKind::Listening => ActivityType::Listening
+      PresenceKind::Listening => ActivityType::Listening,
     }
   }
 
@@ -52,7 +52,7 @@ impl ToString for PresenceKind {
   fn to_string(&self) -> String {
     match *self {
       PresenceKind::Playing => "Playing",
-      PresenceKind::Listening => "Listening to"
+      PresenceKind::Listening => "Listening to",
     }.to_string()
   }
 }

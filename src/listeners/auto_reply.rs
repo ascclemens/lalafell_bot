@@ -1,18 +1,25 @@
-use crate::database::models::{ToU64, AutoReply};
-use crate::filters::Filter;
-use crate::error::*;
+use crate::{
+  database::models::{ToU64, AutoReply},
+  error::*,
+  filters::Filter,
+};
 
 use diesel::prelude::*;
 
-use serenity::client::{Context, EventHandler};
-use serenity::model::id::{ChannelId, GuildId, UserId};
-use serenity::model::channel::{Channel, Message};
-use serenity::model::guild::{Role, Member};
-use serenity::model::misc::Mentionable;
+use serenity::{
+  client::{Context, EventHandler},
+  model::{
+    channel::{Channel, Message},
+    guild::{Role, Member},
+    id::{ChannelId, GuildId, UserId},
+    misc::Mentionable,
+  },
+};
 
 use chrono::Utc;
 
-use std::sync::Mutex;
+use serenity::prelude::Mutex;
+
 use std::collections::HashMap;
 
 #[derive(Default)]
@@ -78,7 +85,7 @@ impl AutoReplyListener {
     };
     let user_id = member.user.read().id;
     let roles: Vec<Role> = live_server.roles.values().cloned().collect();
-    let mut last_sends = self.last_sends.lock().unwrap();
+    let mut last_sends = self.last_sends.lock();
     for reply in replies {
       if let Some(ref filters_string) = reply.filters {
         match Filter::all_filters(filters_string) {

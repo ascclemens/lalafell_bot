@@ -2,8 +2,10 @@ use crate::bot::BotEnv;
 
 use chrono::{Utc, DateTime};
 
-use std::thread;
-use std::sync::Arc;
+use std::{
+  sync::Arc,
+  thread,
+};
 
 pub trait RunsTask {
   fn start(self, env: Arc<BotEnv>);
@@ -18,14 +20,16 @@ pub mod tag_queue;
 pub mod temporary_roles;
 pub mod timeout_check;
 
-pub use self::autotag::AutoTagTask;
-pub use self::delete_all_messages::DeleteAllMessagesTask;
-pub use self::ephemeral_messages::EphemeralMessageTask;
-pub use self::random_presence::RandomPresenceTask;
-pub use self::role_check::RoleCheckTask;
-pub use self::tag_queue::TagQueueTask;
-pub use self::temporary_roles::TemporaryRolesTask;
-pub use self::timeout_check::TimeoutCheckTask;
+pub use self::{
+  autotag::AutoTagTask,
+  delete_all_messages::DeleteAllMessagesTask,
+  ephemeral_messages::EphemeralMessageTask,
+  random_presence::RandomPresenceTask,
+  role_check::RoleCheckTask,
+  tag_queue::TagQueueTask,
+  temporary_roles::TemporaryRolesTask,
+  timeout_check::TimeoutCheckTask,
+};
 
 pub struct TaskManager {
   env: Arc<BotEnv>,
@@ -47,7 +51,7 @@ impl TaskManager {
 pub struct Wait<T> {
   inner: T,
   now: DateTime<Utc>,
-  last: i64
+  last: i64,
 }
 
 impl<T, R> Wait<T>

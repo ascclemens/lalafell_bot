@@ -1,9 +1,15 @@
-use lalafell::error::*;
-use lalafell::commands::prelude::*;
-use lalafell::commands::MentionOrId;
+use lalafell::{
+  commands::{
+    MentionOrId,
+    prelude::*,
+  },
+  error::*,
+};
 
-use rand::{Rng, thread_rng};
-use rand::distributions::Alphanumeric;
+use rand::{
+  Rng, thread_rng,
+  distributions::Alphanumeric,
+};
 
 use serenity::model::channel::{ChannelType, PermissionOverwrite, PermissionOverwriteType};
 use serenity::model::permissions::Permissions;

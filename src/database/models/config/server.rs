@@ -1,5 +1,7 @@
-use crate::database::schema::*;
-use crate::database::models::U64;
+use crate::database::{
+  schema::*,
+  models::U64,
+};
 
 insertable! {
   #[derive(Debug, Queryable, Identifiable, AsChangeset)]
@@ -8,6 +10,6 @@ insertable! {
   #[table_name = "server_configs"]
   pub struct NewServerConfig {
     pub server_id: U64,
-    pub timeout_role: Option<String>
+    pub timeout_role: Option<String>,
   }
 }

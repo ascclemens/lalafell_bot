@@ -1,5 +1,7 @@
-use crate::database::schema::*;
-use crate::database::models::U64;
+use crate::database::{
+  schema::*,
+  models::U64,
+};
 
 insertable! {
   #[derive(Debug, Queryable, Identifiable, AsChangeset)]
@@ -10,7 +12,7 @@ insertable! {
     pub check_id: i32,
     pub user_id: U64,
     pub reminded_at: i64,
-    pub kick_after: i32
+    pub kick_after: i32,
   }
 }
 
@@ -19,13 +21,13 @@ impl NewRoleCheckTime {
     where A: Into<i32>,
           B: Into<U64>,
           C: Into<i64>,
-          D: Into<i32>
+          D: Into<i32>,
   {
     NewRoleCheckTime {
       check_id: check_id.into(),
       user_id: user_id.into(),
       reminded_at: reminded_at.into(),
-      kick_after: kick_after.into()
+      kick_after: kick_after.into(),
     }
   }
 }

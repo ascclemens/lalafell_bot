@@ -1,5 +1,7 @@
-use serenity::client::{Context, EventHandler};
-use serenity::model::guild::Guild;
+use serenity::{
+  client::{Context, EventHandler},
+  model::guild::Guild,
+};
 
 /// Extra functionality for big boi guilds.
 ///

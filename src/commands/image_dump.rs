@@ -46,7 +46,7 @@ impl<'a> PublicChannelCommand<'a> for ImageDumpCommand {
     let params = self.params_then("imagedump", params, |a| a.setting(::structopt::clap::AppSettings::ArgRequiredElseHelp))?;
     let id = channel.read().id;
     let http = Arc::clone(&ctx.http);
-    ::std::thread::spawn(move || {
+    std::thread::spawn(move || {
       let link = params.link;
       fn get_lines(link: &Url) -> Result<Vec<String>> {
         let client = Client::new();
@@ -76,7 +76,7 @@ impl<'a> PublicChannelCommand<'a> for ImageDumpCommand {
       };
       for chunk in lines.chunks(5) {
         id.send_message(&http, |c| c.content(chunk.join("\n"))).ok();
-        ::std::thread::sleep(Duration::seconds(1).to_std().unwrap());
+        std::thread::sleep(Duration::seconds(1).to_std().unwrap());
       }
     });
     Ok(CommandSuccess::default())
