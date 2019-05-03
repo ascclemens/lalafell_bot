@@ -32,7 +32,7 @@ impl HasParams for QueueTagCommand {
 
 impl<'a> PublicChannelCommand<'a> for QueueTagCommand {
   fn run(&self, ctx: &Context, message: &Message, guild: GuildId, _: Arc<RwLock<GuildChannel>>, params: &[&str]) -> CommandResult<'a> {
-    let params = self.params_then("queuetag", params, |a| a.setting(::structopt::clap::AppSettings::ArgRequiredElseHelp))?;
+    let params = self.params_then("queuetag", params, |a| a.setting(structopt::clap::AppSettings::ArgRequiredElseHelp))?;
     let member = guild.member(&ctx, &message.author).chain_err(|| "could not get member")?;
     if !member.permissions(&ctx).chain_err(|| "could not get permissions")?.manage_roles() {
       return Err(ExternalCommandFailure::default()
@@ -50,7 +50,7 @@ impl<'a> PublicChannelCommand<'a> for QueueTagCommand {
 
     crate::bot::with_connection(|c| {
       use crate::database::schema::tag_queue::dsl;
-      ::diesel::insert_into(dsl::tag_queue)
+      diesel::insert_into(dsl::tag_queue)
         .values(&item)
         .execute(c)
     }).chain_err(|| "could not insert tag queue")?;

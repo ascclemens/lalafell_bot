@@ -47,7 +47,7 @@ impl<'a> PublicChannelCommand<'a> for VerifyCommand {
         let msg = format!("Edit your Lodestone profile to contain `{}`.\nRerun the `!verify` command afterward.", new_verification.create_verification_string());
         crate::bot::with_connection(move |c| {
           use crate::database::schema::verifications;
-          ::diesel::insert_into(verifications::table)
+          diesel::insert_into(verifications::table)
             .values(&new_verification)
             .execute(c)
         }).chain_err(|| "could not insert verification")?;

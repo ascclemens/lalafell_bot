@@ -119,7 +119,7 @@ impl Tagger {
     let existing_tags: i64 = crate::bot::with_connection(|c| {
       use crate::database::schema::tags::dsl;
       dsl::tags
-        .select(::diesel::dsl::count(dsl::id))
+        .select(diesel::dsl::count(dsl::id))
         .filter(dsl::character_id.eq(U64::from(char_id))
           .and(dsl::server_id.eq(on.to_u64()))
           .and(dsl::user_id.ne(who.to_u64())))
@@ -159,7 +159,7 @@ impl Tagger {
       Err(SError::Http(box HttpError::UnsuccessfulRequest(ref r))) if r.status_code == StatusCode::NOT_FOUND => {
         crate::bot::with_connection(|c| {
           use crate::database::schema::tags::dsl;
-          ::diesel::delete(dsl::tags
+          diesel::delete(dsl::tags
             .filter(dsl::user_id.eq(who.to_u64()).and(dsl::server_id.eq(on.to_u64()))))
             .execute(c)
         }).chain_err(|| format!("could not remove tag {} on {}, but it was expected to be in database", who.0, on.0))?;
@@ -206,7 +206,7 @@ impl Tagger {
         );
         crate::bot::with_connection(|c| {
           use crate::database::schema::tags;
-          ::diesel::insert_into(tags::table).values(&new_tag).execute(c)
+          diesel::insert_into(tags::table).values(&new_tag).execute(c)
         }).chain_err(|| "could not insert tag")?;
       }
     }

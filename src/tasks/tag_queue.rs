@@ -70,7 +70,7 @@ impl RunsTask for TagQueueTask {
       });
       info!("Successfully tagged {}/{} queued tags", queue.len(), len);
       for remove in queue {
-        if let Err(e) = crate::bot::with_connection(|c| ::diesel::delete(&remove).execute(c)) {
+        if let Err(e) = crate::bot::with_connection(|c| diesel::delete(&remove).execute(c)) {
           warn!("could not remove item from queue after successful tagging: {}", e);
         }
       }

@@ -26,7 +26,7 @@ impl HasParams for UntimeoutCommand {
 
 impl<'a> PublicChannelCommand<'a> for UntimeoutCommand {
   fn run(&self, ctx: &Context, message: &Message, guild: GuildId, _: Arc<RwLock<GuildChannel>>, params: &[&str]) -> CommandResult<'a> {
-    let params = self.params_then("who", params, |a| a.setting(::structopt::clap::AppSettings::ArgRequiredElseHelp))?;
+    let params = self.params_then("who", params, |a| a.setting(structopt::clap::AppSettings::ArgRequiredElseHelp))?;
     let member = guild.member(&ctx, &message.author).chain_err(|| "could not get member")?;
     if !member.permissions(&ctx).chain_err(|| "could not get permissions")?.manage_roles() {
       return Err(ExternalCommandFailure::default()
@@ -55,7 +55,7 @@ impl<'a> PublicChannelCommand<'a> for UntimeoutCommand {
     }
     let timeout = &timeouts[0];
 
-    crate::bot::with_connection(|c| ::diesel::delete(timeout).execute(c)).chain_err(|| "could not delete timeout")?;
+    crate::bot::with_connection(|c| diesel::delete(timeout).execute(c)).chain_err(|| "could not delete timeout")?;
     timeout_member.remove_role(&ctx, *timeout.role_id).chain_err(|| "could not remove role")?;
 
     Ok(CommandSuccess::default())

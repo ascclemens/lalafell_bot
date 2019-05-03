@@ -37,7 +37,7 @@ impl EventHandler for Timeouts {
       };
 
       if timeout.ends() < Utc::now().timestamp() {
-        if let Err(e) = crate::bot::with_connection(|c| ::diesel::delete(&timeout).execute(c)) {
+        if let Err(e) = crate::bot::with_connection(|c| diesel::delete(&timeout).execute(c)) {
           warn!("could not delete timeout: {}", e);
         }
         return Ok(());

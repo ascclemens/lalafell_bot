@@ -46,7 +46,7 @@ impl HasParams for FfLogsCommand {
 
 impl<'a> Command<'a> for FfLogsCommand {
   fn run(&self, _: &Context, _: &Message, params: &[&str]) -> CommandResult<'a> {
-    let params = self.params_then("fflogs", params, |a| a.setting(::structopt::clap::AppSettings::ArgRequiredElseHelp))?;
+    let params = self.params_then("fflogs", params, |a| a.setting(structopt::clap::AppSettings::ArgRequiredElseHelp))?;
     let server = match Server::from_str(&params.server) {
       Ok(s) => s,
       Err(_) => return Err("Invalid server.".into())

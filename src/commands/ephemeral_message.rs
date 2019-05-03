@@ -53,7 +53,7 @@ impl<'a> PublicChannelCommand<'a> for EphemeralMessageCommand {
         .wrap());
     }
 
-    let params = self.params_then("ephemeralmessage", params, |a| a.setting(::structopt::clap::AppSettings::ArgRequiredElseHelp))?;
+    let params = self.params_then("ephemeralmessage", params, |a| a.setting(structopt::clap::AppSettings::ArgRequiredElseHelp))?;
     if params.time < Utc::now() {
       return Err("Cannot create an ephemeral message with an expiration date in the past.".into());
     }

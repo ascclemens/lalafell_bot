@@ -37,7 +37,7 @@ impl HasParams for TimeoutCommand {
 
 impl<'a> PublicChannelCommand<'a> for TimeoutCommand {
   fn run(&self, ctx: &Context, message: &Message, guild: GuildId, channel: Arc<RwLock<GuildChannel>>, params: &[&str]) -> CommandResult<'a> {
-    let params = self.params_then("timeout", params, |a| a.setting(::structopt::clap::AppSettings::ArgRequiredElseHelp))?;
+    let params = self.params_then("timeout", params, |a| a.setting(structopt::clap::AppSettings::ArgRequiredElseHelp))?;
     let member = guild.member(&ctx, &message.author).chain_err(|| "could not get member")?;
     if !member.permissions(&ctx).chain_err(|| "could not get permissions")?.manage_roles() {
       return Err(ExternalCommandFailure::default()
@@ -86,7 +86,7 @@ impl<'a> PublicChannelCommand<'a> for TimeoutCommand {
     };
 
     let timeout_user = NewTimeout::new(who.0, server_id.0, role_id.0, duration as i32, Utc::now().timestamp());
-    let timeout = crate::bot::with_connection(|c| ::diesel::insert_into(timeouts::table).values(&timeout_user).get_result(c)).chain_err(|| "could not insert timeout")?;
+    let timeout = crate::bot::with_connection(|c| diesel::insert_into(timeouts::table).values(&timeout_user).get_result(c)).chain_err(|| "could not insert timeout")?;
 
     // spawn a task if the duration is less than the check task period
     if duration < 300 {

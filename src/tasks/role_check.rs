@@ -105,7 +105,7 @@ impl RunsTask for RoleCheckTask {
         let (remove, times): (Vec<RoleCheckTime>, Vec<RoleCheckTime>) = times.into_iter()
           .partition(|t| members.iter().find(|&&(id, _)| id.0 == *t.user_id).is_none());
         for r in remove {
-          if let Err(e) = crate::bot::with_connection(|c| ::diesel::delete(&r).execute(c)) {
+          if let Err(e) = crate::bot::with_connection(|c| diesel::delete(&r).execute(c)) {
             warn!("Could not delete old role_check_time {}: {}", r.id, e);
           }
         }
@@ -122,7 +122,7 @@ impl RunsTask for RoleCheckTask {
                   guild.read().id.0,
                   check.id);
                 match guild.read().kick(env.http(), member) {
-                  Ok(_) => if let Err(e) = crate::bot::with_connection(|c| ::diesel::delete(time).execute(c)) {
+                  Ok(_) => if let Err(e) = crate::bot::with_connection(|c| diesel::delete(time).execute(c)) {
                     warn!("Could not remove database entry for check after kick: {}", e);
                   },
                   Err(e) => warn!("Kick was not successful: {}", e),
@@ -135,7 +135,7 @@ impl RunsTask for RoleCheckTask {
                 let new_time = NewRoleCheckTime::new(check.id, user_id.0, now.timestamp(), kick_secs as i32);
                 crate::bot::with_connection(move |c| {
                   use crate::database::schema::role_check_times::dsl;
-                  ::diesel::insert_into(dsl::role_check_times)
+                  diesel::insert_into(dsl::role_check_times)
                     .values(&new_time)
                     .execute(c)
                 }).ok();

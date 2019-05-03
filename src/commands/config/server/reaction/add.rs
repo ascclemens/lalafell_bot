@@ -44,7 +44,7 @@ impl<'a> AddCommand {
       role_id: role_id.into()
     };
     crate::bot::with_connection(|c| {
-      ::diesel::insert_into(crate::database::schema::reactions::table)
+      diesel::insert_into(crate::database::schema::reactions::table)
         .values(&new_reaction)
         .execute(c)
     }).chain_err(|| "could not insert reaction")?;

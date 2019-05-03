@@ -36,7 +36,7 @@ impl<'a> Command<'a> for BotCommand {
           .description("You don't have enough permissions to use this command."))
         .wrap());
     }
-    let params = self.params_then("bot", params, |a| a.setting(::structopt::clap::AppSettings::ArgRequiredElseHelp))?;
+    let params = self.params_then("bot", params, |a| a.setting(structopt::clap::AppSettings::ArgRequiredElseHelp))?;
     let args = params.args;
     match params.subcommand.as_ref() {
       "presence" | "presences" => self.presence(ctx, &args),
@@ -101,7 +101,7 @@ impl BotCommand {
     let id: i32 = args[0].parse().map_err(|_| into!(CommandFailure, "Invalid ID."))?;
     let affected = crate::bot::with_connection(|c| {
       use crate::database::schema::presences::dsl;
-      ::diesel::delete(dsl::presences.find(id)).execute(c)
+      diesel::delete(dsl::presences.find(id)).execute(c)
     }).chain_err(|| "could not delete presence")?;
     if affected > 0 {
       Ok(CommandSuccess::default())
@@ -123,7 +123,7 @@ impl BotCommand {
     let content = args[1..].join(" ");
     crate::bot::with_connection(|c| {
       use crate::database::schema::presences::dsl;
-      ::diesel::insert_into(dsl::presences)
+      diesel::insert_into(dsl::presences)
         .values(&NewPresence::new(kind, &content))
         .execute(c)
     }).chain_err(|| "could not add new presence")?;

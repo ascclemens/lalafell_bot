@@ -33,7 +33,7 @@ pub fn remove_timeout(env: &BotEnv, timeout: &Timeout) {
   if let Err(e) = member.remove_role(env.http(), *timeout.role_id) {
     warn!("could not remove timeout role from {}: {}", *timeout.user_id, e);
   }
-  if let Err(e) = crate::bot::with_connection(|c| ::diesel::delete(timeout).execute(c)) {
+  if let Err(e) = crate::bot::with_connection(|c| diesel::delete(timeout).execute(c)) {
     warn!("could not delete timeout {}: {}", timeout.id, e);
   }
 }

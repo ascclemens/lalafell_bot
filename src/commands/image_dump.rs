@@ -43,7 +43,7 @@ impl<'a> PublicChannelCommand<'a> for ImageDumpCommand {
       return Err("`!imagedump` is not allowed in this channel.".into());
     }
 
-    let params = self.params_then("imagedump", params, |a| a.setting(::structopt::clap::AppSettings::ArgRequiredElseHelp))?;
+    let params = self.params_then("imagedump", params, |a| a.setting(structopt::clap::AppSettings::ArgRequiredElseHelp))?;
     let id = channel.read().id;
     let http = Arc::clone(&ctx.http);
     std::thread::spawn(move || {

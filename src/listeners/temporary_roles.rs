@@ -49,7 +49,7 @@ impl EventHandler for TemporaryRolesListener {
         if temp.messages == Some(0) {
           member.remove_role(&ctx, *temp.role_id).chain_err(|| "could not remove role")?;
           crate::bot::with_connection(|c| {
-            ::diesel::delete(&temp).execute(c)
+            diesel::delete(&temp).execute(c)
           }).chain_err(|| "could not delete temporary role")?;
         } else {
           crate::bot::with_connection(|c| {

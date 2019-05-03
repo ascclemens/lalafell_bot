@@ -74,7 +74,7 @@ impl<'a> PublicChannelCommand<'a> for TemporaryRoleCommand {
     }
 
     let params = self.params_then("temporaryrole", params, |a| a
-      .setting(::structopt::clap::AppSettings::ArgRequiredElseHelp)
+      .setting(structopt::clap::AppSettings::ArgRequiredElseHelp)
       .group(ArgGroup::with_name("m_or_t")
         .args(&["messages", "time"])
         .multiple(true)

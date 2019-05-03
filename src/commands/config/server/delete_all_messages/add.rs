@@ -38,7 +38,7 @@ impl<'a> AddCommand {
     let ndam = NewDeleteAllMessages::new(guild.0, params.channel.0, i32::from(params.after), &params.except);
     crate::bot::with_connection(|c| {
       use crate::database::schema::delete_all_messages;
-      ::diesel::insert_into(delete_all_messages::table)
+      diesel::insert_into(delete_all_messages::table)
         .values(&ndam)
         .execute(c)
     }).chain_err(|| "could not insert new dam")?;

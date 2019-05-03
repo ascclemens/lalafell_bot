@@ -32,7 +32,7 @@ pub fn remove_temporary_role(env: &BotEnv, temp: &TemporaryRole) {
   if let Err(e) = member.remove_role(env.http(), *temp.role_id) {
     warn!("could not remove temp role {}: {}", temp.id, e);
   }
-  if let Err(e) = crate::bot::with_connection(|c| ::diesel::delete(temp).execute(c)) {
+  if let Err(e) = crate::bot::with_connection(|c| diesel::delete(temp).execute(c)) {
     warn!("could not delete temp role {} from database: {}", temp.id, e);
   }
 }

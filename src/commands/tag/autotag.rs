@@ -29,7 +29,7 @@ impl HasParams for AutoTagCommand {
 
 impl<'a> PublicChannelCommand<'a> for AutoTagCommand {
   fn run(&self, _: &Context, message: &Message, guild: GuildId, _: Arc<RwLock<GuildChannel>>, params: &[&str]) -> CommandResult<'a> {
-    let params = self.params_then("autotag", params, |a| a.setting(::structopt::clap::AppSettings::ArgRequiredElseHelp))?;
+    let params = self.params_then("autotag", params, |a| a.setting(structopt::clap::AppSettings::ArgRequiredElseHelp))?;
     let ff_server = params.server;
     let name = format!("{} {}", params.first_name, params.last_name);
 

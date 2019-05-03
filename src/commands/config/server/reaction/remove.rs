@@ -20,7 +20,7 @@ impl<'a> RemoveCommand {
   pub fn run(&self, _: &Context, guild: GuildId, params: Params) -> CommandResult<'a> {
     let affected = crate::bot::with_connection(|c| {
       use crate::database::schema::reactions::dsl;
-      ::diesel::delete(
+      diesel::delete(
         dsl::reactions.filter(dsl::id.eq(params.id).and(dsl::server_id.eq(guild.to_u64())))
       )
         .execute(c)
