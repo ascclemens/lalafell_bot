@@ -1,5 +1,7 @@
-use crate::bot::BotEnv;
-use crate::commands::tag::Tagger;
+use crate::{
+  bot::BotEnv,
+  commands::tag::Tagger,
+};
 
 use ffxiv::World;
 
@@ -9,7 +11,7 @@ use serenity::builder::CreateEmbed;
 
 #[derive(BotCommand)]
 pub struct AutoTagCommand {
-  env: Arc<BotEnv>
+  env: Arc<BotEnv>,
 }
 
 #[derive(Debug, StructOpt)]
@@ -20,7 +22,7 @@ pub struct Params {
   #[structopt(help = "The first name of the character")]
   first_name: String,
   #[structopt(help = "The last name of the character")]
-  last_name: String
+  last_name: String,
 }
 
 impl HasParams for AutoTagCommand {
@@ -37,7 +39,7 @@ impl<'a> PublicChannelCommand<'a> for AutoTagCommand {
       Some(error) => Err(ExternalCommandFailure::default()
         .message(move |e: &mut CreateEmbed| e.description(&error))
         .wrap()),
-      None => Ok(CommandSuccess::default())
+      None => Ok(CommandSuccess::default()),
     }
   }
 }
