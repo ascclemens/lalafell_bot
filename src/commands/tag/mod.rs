@@ -236,16 +236,18 @@ impl Tagger {
     let mut created_roles = Vec::new();
     let mut add_roles = Vec::new();
     let race = match character.race {
-      Race::Hyur => "hyur",
+      Race::AuRa => "au ra",
       Race::Elezen => "elezen",
+      Race::Hrothgar => "hrothgar",
+      Race::Hyur => "hyur",
       Race::Lalafell => "lalafell",
       Race::Miqote => "miqo'te",
       Race::Roegadyn => "roegadyn",
-      Race::AuRa => "au ra",
+      Race::Viera => "viera",
     };
     let gender = match character.gender {
-      Gender::Male => "male",
       Gender::Female => "female",
+      Gender::Male => "male",
     };
     let data_centre = character.world.data_center();
     Tagger::find_or_create_role(env, on, race, &mut add_roles, &mut created_roles)?;
