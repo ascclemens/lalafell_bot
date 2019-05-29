@@ -6,8 +6,6 @@ use serenity::builder::CreateEmbed;
 
 use lalafell::error::*;
 
-use std::boxed::FnBox;
-
 const USAGE: &str = "!poll <poll text>\n<option>\n<option>...";
 
 #[derive(BotCommand)]
@@ -68,7 +66,7 @@ impl Poll {
     }
   }
 
-  fn create_embed(&self) -> Box<FnBox(&mut CreateEmbed) -> &mut CreateEmbed> {
+  fn create_embed(&self) -> Box<Fn(&mut CreateEmbed) -> &mut CreateEmbed> {
     let name = self.author.clone();
     let options = self.options.iter()
       .enumerate()
