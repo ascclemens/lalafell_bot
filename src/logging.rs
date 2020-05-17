@@ -1,9 +1,5 @@
 use ansi_term::Colour;
 
-use chrono;
-
-use fern;
-
 use log::{Level, LevelFilter};
 
 use std::{

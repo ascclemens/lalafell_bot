@@ -18,8 +18,6 @@ use serenity::{
   },
 };
 
-use serde_json;
-
 use unicase::UniCase;
 
 use std::{

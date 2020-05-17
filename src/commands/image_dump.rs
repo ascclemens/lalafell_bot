@@ -5,7 +5,7 @@ use diesel::prelude::*;
 use lalafell::commands::prelude::*;
 use lalafell::error::*;
 
-use reqwest::Client;
+use reqwest::blocking::Client;
 
 use url::Url;
 

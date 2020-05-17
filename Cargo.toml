@@ -5,36 +5,35 @@ authors = ["Anna Clemens <me@kyleclemens.com>"]
 edition = "2018"
 
 [dependencies]
-ansi_term = "0.11"
+ansi_term = "0.12"
 bot_command_derive = { path = "./bot_command_derive" }
 byteorder = "1"
 chrono = { version = "0.4", features = ["serde"] }
 ctrlc = { version = "3.0", features = ["termination"] }
 diesel = { version = "1.0", features = ["postgres"] }
-dotenv = "0.13"
+dotenv = "0.15"
 envy = "0.4"
 error-chain = "0.12"
 failure = "0.1"
-fern = "0.5"
+fern = "0.6"
 fflogs = { version = "*", git = "https://github.com/ascclemens/fflogs_rs" }
-itertools = "0.8"
+itertools = "0.9"
 lalafell = { version = "*", git = "https://github.com/ascclemens/lalafell" }
 lazy_static = "1"
 lodestone_api_client = { version = "*", git = "https://github.com/ascclemens/lodestone_api_client" }
 log = "0.4"
-quote = { version = "0.6", optional = true }
-rand = "0.6"
-reqwest = "0.9"
-scraper = "0.10"
-serde = "1"
-serde_derive = "1"
+quote = { version = "1", optional = true }
+rand = "0.7"
+reqwest = { version = "0.10", features = ["blocking"] }
+scraper = "0.12"
+serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-structopt = { version = "0.2", default-features = false }
-syn = { version = "0.15", optional = true, features = ["full", "derive", "parsing", "printing", "visit", "visit-mut", "fold", "clone-impls", "extra-traits"] }
+structopt = { version = "0.3", default-features = false }
+syn = { version = "1", optional = true, features = ["full", "derive", "parsing", "printing", "visit", "visit-mut", "fold", "clone-impls", "extra-traits"] }
 typemap = "0.3"
 unicase = "2"
-url = "1"
-uuid = { version = "0.7", features = ["v4"] }
+url = "2"
+uuid = { version = "0.8", features = ["v4"] }
 
 [dependencies.serenity]
 version = "0.6.0-rc.1"
@@ -58,7 +57,7 @@ name = "generate_handlers"
 required-features = ["source"]
 
 [build-dependencies]
-git2 = "0.8"
+git2 = "0.13"
 
 [patch.crates-io]
 openssl = { git = "https://github.com/ishitatsuyuki/rust-openssl", branch = "0.9.x" }

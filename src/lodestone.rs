@@ -1,6 +1,6 @@
 use lalafell::error::*;
 
-use reqwest::Client;
+use reqwest::blocking::Client;
 
 use scraper::{Html, Selector};
 

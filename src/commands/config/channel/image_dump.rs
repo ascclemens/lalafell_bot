@@ -4,7 +4,6 @@ use serenity::prelude::Mentionable;
 use serenity::builder::CreateEmbed;
 use serenity::model::id::{GuildId, ChannelId, UserId};
 
-use diesel;
 use diesel::prelude::*;
 
 use lalafell::error::*;

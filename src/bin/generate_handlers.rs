@@ -37,13 +37,13 @@ fn main() {
         }
       }
       let method_ident = m.sig.ident;
-      let method_args = m.sig.decl.inputs;
+      let method_args = m.sig.inputs;
       print!("handler!({}, ", method_ident);
       let num_args = method_args.len();
       for (i, arg) in method_args.into_iter().enumerate() {
         match arg {
-          FnArg::Captured(captured) => print!("param{}: {}", i, captured.ty.into_token_stream()),
-          _ => continue
+          FnArg::Typed(captured) => print!("param{}: {}", i, captured.ty.into_token_stream()),
+          _ => continue,
         }
         if i != num_args - 1 {
           print!(", ");

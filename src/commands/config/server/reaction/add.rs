@@ -23,7 +23,7 @@ pub struct Params {
   #[structopt(help = "The message ID of the message to add the reaction role to")]
   message_id: u64,
   #[structopt(help = "The name of the role to add")]
-  #[structopt(raw(use_delimiter = "false"))]
+  #[structopt(use_delimiter = false)]
   role: String
 }
 

@@ -55,6 +55,7 @@ macro_rules! handler {
 }
 
 impl EventHandler for Handler {
+  handler!(cache_ready, param1: Context, param2: Vec < GuildId >);
   handler!(channel_create, param1: Context, param2: Arc < RwLock < GuildChannel > >);
   handler!(category_create, param1: Context, param2: Arc < RwLock < ChannelCategory > >);
   handler!(category_delete, param1: Context, param2: Arc < RwLock < ChannelCategory > >);

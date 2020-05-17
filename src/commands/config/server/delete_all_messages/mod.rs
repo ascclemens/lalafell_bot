@@ -10,17 +10,17 @@ use serenity::model::id::{GuildId, UserId};
 #[derive(Debug, StructOpt)]
 pub enum Params {
   #[structopt(name = "add", alias = "create", about = "Add DAMs")]
-  #[structopt(raw(template = "::lalafell::commands::TEMPLATE"))]
-  #[structopt(raw(setting = "::structopt::clap::AppSettings::ArgRequiredElseHelp"))]
+  #[structopt(template = ::lalafell::commands::TEMPLATE)]
+  #[structopt(setting = ::structopt::clap::AppSettings::ArgRequiredElseHelp)]
   Add(add::Params),
 
   #[structopt(name = "remove", alias = "delete", about = "Remove DAMs")]
-  #[structopt(raw(template = "::lalafell::commands::TEMPLATE"))]
-  #[structopt(raw(setting = "::structopt::clap::AppSettings::ArgRequiredElseHelp"))]
+  #[structopt(template = ::lalafell::commands::TEMPLATE)]
+  #[structopt(setting = ::structopt::clap::AppSettings::ArgRequiredElseHelp)]
   Remove(remove::Params),
 
   #[structopt(name = "list", alias = "show", about = "List active DAMs")]
-  #[structopt(raw(template = "::lalafell::commands::TEMPLATE"))]
+  #[structopt(template = ::lalafell::commands::TEMPLATE)]
   List
 }
 

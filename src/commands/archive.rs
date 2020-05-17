@@ -9,8 +9,6 @@ use serenity::model::channel::{Message, GuildChannel, Channel};
 
 use chrono::Utc;
 
-use serde_json;
-
 use std::fs::{self, File};
 use std::path::Path;
 

@@ -2,7 +2,6 @@ use crate::database::models::{ToU64, NewEphemeralMessage};
 
 use chrono::{Utc, Duration, DateTime};
 
-use diesel;
 use diesel::prelude::*;
 
 use lalafell::error::*;

@@ -3,8 +3,6 @@ use crate::config::Config;
 
 use crate::error::*;
 
-use serde_json;
-
 mod listeners;
 mod tasks;
 pub mod data;

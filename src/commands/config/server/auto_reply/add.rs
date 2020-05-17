@@ -22,7 +22,7 @@ pub struct Params {
   delay: Option<ParsedDuration>,
 
   #[structopt(short = "f", long = "filter", help = "A filter to add to this auto reply")]
-  #[structopt(raw(number_of_values = "1"))]
+  #[structopt(number_of_values = 1)]
   filters: Vec<String>,
 
   #[structopt(help = "The channel to add the auto reply to")]
@@ -30,7 +30,7 @@ pub struct Params {
 
   // FIXME: Handle newlines. Probably do a party-finder-like interface
   #[structopt(help = "The message to send")]
-  #[structopt(raw(use_delimiter = "false"))]
+  #[structopt(use_delimiter = false)]
   message: Vec<String>
 }
 

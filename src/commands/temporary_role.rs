@@ -4,7 +4,6 @@ use crate::util::ParsedDuration;
 
 use chrono::{Utc, Duration};
 
-use diesel;
 use diesel::prelude::*;
 
 use lalafell::error::*;

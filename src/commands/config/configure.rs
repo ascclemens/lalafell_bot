@@ -10,13 +10,13 @@ pub struct ConfigureCommand;
 #[structopt(about = "Manage server and channel settings.")]
 pub enum Params {
   #[structopt(name = "channel", about = "Manage channel settings")]
-  #[structopt(raw(template = "::lalafell::commands::TEMPLATE"))]
-  #[structopt(raw(setting = "::structopt::clap::AppSettings::ArgRequiredElseHelp"))]
+  #[structopt(template = ::lalafell::commands::TEMPLATE)]
+  #[structopt(setting = ::structopt::clap::AppSettings::ArgRequiredElseHelp)]
   Channel(channel::Params),
 
   #[structopt(name = "server", about = "Manage server settings")]
-  #[structopt(raw(template = "::lalafell::commands::TEMPLATE"))]
-  #[structopt(raw(setting = "::structopt::clap::AppSettings::ArgRequiredElseHelp"))]
+  #[structopt(template = ::lalafell::commands::TEMPLATE)]
+  #[structopt(setting = ::structopt::clap::AppSettings::ArgRequiredElseHelp)]
   Server(server::Params)
 }
 

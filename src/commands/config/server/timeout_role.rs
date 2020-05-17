@@ -3,7 +3,6 @@ use crate::database::models::{ToU64, ServerConfig, NewServerConfig};
 use serenity::builder::CreateEmbed;
 use serenity::model::id::UserId;
 
-use diesel;
 use diesel::prelude::*;
 
 use lalafell::error::*;
@@ -16,7 +15,7 @@ pub struct TimeoutRoleCommand;
 #[derive(Debug, StructOpt)]
 pub struct Params {
   #[structopt(help = "The role to set as the timeout role")]
-  #[structopt(raw(use_delimiter = "false"))]
+  #[structopt(use_delimiter = false)]
   role: Option<String>
 }
 

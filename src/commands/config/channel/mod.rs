@@ -36,6 +36,6 @@ pub struct Params {
 #[derive(Debug, StructOpt)]
 pub enum SubCommand {
   #[structopt(name = "imagedump", alias = "dump", about = "Manage !imagedump settings")]
-  #[structopt(raw(template = "::lalafell::commands::TEMPLATE"))]
+  #[structopt(template = ::lalafell::commands::TEMPLATE)]
   ImageDump(image_dump::Params)
 }
