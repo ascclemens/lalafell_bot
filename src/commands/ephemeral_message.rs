@@ -44,7 +44,7 @@ impl HasParams for EphemeralMessageCommand {
 
 impl<'a> PublicChannelCommand<'a> for EphemeralMessageCommand {
   fn run(&self, ctx: &Context, msg: &Message, guild_id: GuildId, _: Arc<RwLock<GuildChannel>>, params: &[&str]) -> CommandResult<'a> {
-    let member = guild_id.member(&ctx, &msg.author).chain_err(|| "could not get member")?;
+    let member = guild_id.member(ctx, &msg.author).chain_err(|| "could not get member")?;
     if !member.permissions(&ctx).chain_err(|| "could not get permissions")?.manage_messages() {
       return Err(ExternalCommandFailure::default()
         .message(|e: &mut CreateEmbed| e

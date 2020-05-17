@@ -64,7 +64,7 @@ impl HasParams for TemporaryRoleCommand {
 
 impl<'a> PublicChannelCommand<'a> for TemporaryRoleCommand {
   fn run(&self, ctx: &Context, msg: &Message, guild_id: GuildId, _: Arc<RwLock<GuildChannel>>, params: &[&str]) -> CommandResult<'a> {
-    let member = guild_id.member(&ctx, &msg.author).chain_err(|| "could not get member")?;
+    let member = guild_id.member(ctx, &msg.author).chain_err(|| "could not get member")?;
     if !member.permissions(&ctx).chain_err(|| "could not get permissions")?.manage_roles() {
       return Err(ExternalCommandFailure::default()
         .message(|e: &mut CreateEmbed| e
@@ -82,7 +82,7 @@ impl<'a> PublicChannelCommand<'a> for TemporaryRoleCommand {
 
     let guild = guild_id.to_guild_cached(&ctx).chain_err(|| "could not find guild in cache")?;
 
-    let mut target = match guild_id.member(&ctx, *params.who) {
+    let mut target = match guild_id.member(ctx, *params.who) {
       Ok(m) => m,
       Err(_) => return Err("That person is not in this guild.".into())
     };

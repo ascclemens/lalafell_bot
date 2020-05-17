@@ -30,7 +30,7 @@ impl AutoTagTask {
   }
 
   pub fn update_tag(env: &BotEnv, user: UserId, guild: GuildId, character: u64) -> Result<Option<String>> {
-    Tagger::tag(env, user, guild, character, false)
+    Tagger::tag(env, user, guild, character, false, false)
   }
 
   pub fn run_once(&mut self, env: &BotEnv) {

@@ -31,12 +31,12 @@ impl HasParams for ArchiveCommand {
 impl<'a> PublicChannelCommand<'a> for ArchiveCommand {
   fn run(&self, ctx: &Context, message: &Message, _: GuildId, _: Arc<RwLock<GuildChannel>>, params: &[&str]) -> CommandResult<'a> {
     let params = self.params_then("archive", params, |a| a.setting(structopt::clap::AppSettings::ArgRequiredElseHelp))?;
-    let channel = match params.channel.to_channel(&ctx).chain_err(|| "could not get channel")? {
+    let channel = match params.channel.to_channel(ctx).chain_err(|| "could not get channel")? {
       Channel::Guild(g) => g,
       _ => return Err("This channel must be a guild channel.".into())
     };
     let channel = channel.read();
-    let member = match channel.guild_id.member(&ctx, message.author.id) {
+    let member = match channel.guild_id.member(ctx, message.author.id) {
       Ok(m) => m,
       Err(_) => return Err("You must be a member of the guild to archive its channels.".into())
     };

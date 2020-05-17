@@ -34,7 +34,7 @@ impl HasParams for TagCommand {
 impl<'a> PublicChannelCommand<'a> for TagCommand {
   fn run(&self, ctx: &Context, message: &Message, guild: GuildId, _: Arc<RwLock<GuildChannel>>, params: &[&str]) -> CommandResult<'a> {
     let params = self.params_then("tag", params, |a| a.setting(structopt::clap::AppSettings::ArgRequiredElseHelp))?;
-    let member = guild.member(&ctx, &message.author).chain_err(|| "could not get member")?;
+    let member = guild.member(ctx, &message.author).chain_err(|| "could not get member")?;
     if !member.permissions(&ctx).chain_err(|| "could not get permissions")?.manage_roles() {
       return Err(ExternalCommandFailure::default()
         .message(|e: &mut CreateEmbed| e

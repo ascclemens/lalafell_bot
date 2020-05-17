@@ -40,7 +40,7 @@ impl<'a> DeleteAllMessagesCommand {
       list: list::ListCommand
     };
 
-    let member = guild.member(&ctx, author).chain_err(|| "could not get member")?;
+    let member = guild.member(ctx, author).chain_err(|| "could not get member")?;
     if !member.permissions(&ctx).chain_err(|| "could not get permissions")?.manage_messages() {
       return Err(ExternalCommandFailure::default()
         .message(|e: &mut CreateEmbed| e

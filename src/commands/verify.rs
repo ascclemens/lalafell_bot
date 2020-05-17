@@ -51,7 +51,7 @@ impl<'a> PublicChannelCommand<'a> for VerifyCommand {
             .values(&new_verification)
             .execute(c)
         }).chain_err(|| "could not insert verification")?;
-        message.author.direct_message(&ctx, |c| c.embed(|e| e
+        message.author.direct_message(ctx, |c| c.embed(|e| e
           .title("Verification instructions")
           .description(&msg)
           .url("http://na.finalfantasyxiv.com/lodestone/my/setting/profile/"))).ok();
@@ -66,18 +66,18 @@ impl<'a> PublicChannelCommand<'a> for VerifyCommand {
       crate::bot::with_connection(|c| verification.save_changes::<Verification>(c)).chain_err(|| "could not update verification")?;
 
       if let Some(r) = guild.read().roles.values().find(|x| x.name.to_lowercase() == "verified") {
-        let mut member = guild.read().member(&ctx, &message.author).chain_err(|| "could not get member for tagging")?;
+        let mut member = guild.read().member(ctx, &message.author).chain_err(|| "could not get member for tagging")?;
 
         if !member.roles.contains(&r.id) {
           member.add_role(&ctx, r).chain_err(|| "could not add roles")?;
         }
       }
       let char_name = user.character.clone();
-      let serv_name = user.server.clone();
+      let serv_name = user.server;
       Ok(CommandSuccess::default()
-        .message(move |e: &mut CreateEmbed| e
-          .title("Verified!")
-          .description(&format!("You have successfully verified yourself as {} on {}.", char_name, serv_name))))
+         .message(move |e: &mut CreateEmbed| e
+           .title("Verified!")
+           .description(&format!("You have successfully verified yourself as {} on {}.", char_name, serv_name))))
     } else {
       Err(ExternalCommandFailure::default().wrap())
     }

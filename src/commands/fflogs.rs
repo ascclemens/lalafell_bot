@@ -117,7 +117,7 @@ impl<'a> Command<'a> for FfLogsCommand {
         .url(format!("https://www.fflogs.com/character/id/{}", id))
         .field("Job", &job, true)
         .field("Server", server.as_ref(), true);
-      for (name, content) in fields {
+      for (name, content) in &fields {
         e.field(name, content, false);
       }
       e

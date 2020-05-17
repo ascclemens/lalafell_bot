@@ -27,7 +27,7 @@ impl HasParams for UntimeoutCommand {
 impl<'a> PublicChannelCommand<'a> for UntimeoutCommand {
   fn run(&self, ctx: &Context, message: &Message, guild: GuildId, _: Arc<RwLock<GuildChannel>>, params: &[&str]) -> CommandResult<'a> {
     let params = self.params_then("who", params, |a| a.setting(structopt::clap::AppSettings::ArgRequiredElseHelp))?;
-    let member = guild.member(&ctx, &message.author).chain_err(|| "could not get member")?;
+    let member = guild.member(ctx, &message.author).chain_err(|| "could not get member")?;
     if !member.permissions(&ctx).chain_err(|| "could not get permissions")?.manage_roles() {
       return Err(ExternalCommandFailure::default()
         .message(|e: &mut CreateEmbed| e
@@ -39,7 +39,7 @@ impl<'a> PublicChannelCommand<'a> for UntimeoutCommand {
     let guild_id = guild;
     let who = params.who;
 
-    let mut timeout_member = match guild.member(&ctx, *who) {
+    let mut timeout_member = match guild.member(ctx, *who) {
       Ok(m) => m,
       Err(_) => return Err("That user is not in this guild.".into())
     };

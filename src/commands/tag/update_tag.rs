@@ -35,7 +35,7 @@ impl<'a> PublicChannelCommand<'a> for UpdateTagCommand {
     let params = self.params("updatetag", params)?;
     let id = match params.who {
       Some(who) => {
-        let member = guild.member(&ctx, &message.author).chain_err(|| "could not get member")?;
+        let member = guild.member(ctx, &message.author).chain_err(|| "could not get member")?;
         if !member.permissions(&ctx).chain_err(|| "could not get permissions")?.manage_roles() {
           return Err(ExternalCommandFailure::default()
             .message(|e: &mut CreateEmbed| e

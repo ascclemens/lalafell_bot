@@ -11,7 +11,7 @@ use serenity::{
     ShardRunnerMessage,
   },
   gateway::InterMessage,
-  model::gateway::Activity,
+  model::gateway::{Activity, ActivityType},
   prelude::Mutex,
 };
 
@@ -78,19 +78,9 @@ pub fn random_activity() -> Option<Activity> {
   }).ok()?;
   let presence = presences.choose(&mut thread_rng())?;
   let kind = PresenceKind::from_i16(presence.kind)?.as_discord();
-  Some(Activity {
-    kind,
-    name: presence.content.clone(),
-
-    application_id: None,
-    assets: None,
-    details: None,
-    flags: None,
-    instance: None,
-    party: None,
-    secrets: None,
-    state: None,
-    timestamps: None,
-    url: None,
+  Some(match kind {
+    ActivityType::Playing => Activity::playing(&presence.content),
+    ActivityType::Listening => Activity::listening(&presence.content),
+    _ => return None,
   })
 }

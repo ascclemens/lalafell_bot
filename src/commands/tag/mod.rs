@@ -84,7 +84,7 @@ impl Tagger {
       return Ok(Some(format!("Could not find any character by the name {} on {}.", character_name, world)));
     }
 
-    Tagger::tag(env, who, on, character.id as u64, force)
+    Tagger::tag(env, who, on, character.id as u64, force, true)
   }
 
   fn find_or_create_role(env: &BotEnv, guild: GuildId, name: &str, add_roles: &mut Vec<Role>, created_roles: &mut Vec<Role>) -> Result<()> {
@@ -114,7 +114,7 @@ impl Tagger {
     Ok(roles.into_iter().map(|x| x.role_name.to_lowercase()).collect())
   }
 
-  pub fn tag(env: &BotEnv, who: UserId, on: GuildId, char_id: u64, force: bool) -> Result<Option<String>> {
+  pub fn tag(env: &BotEnv, who: UserId, on: GuildId, char_id: u64, force: bool, wait: bool) -> Result<Option<String>> {
     // Trolls always make sure we can't have nice things.
     let existing_tags: i64 = crate::bot::with_connection(|c| {
       use crate::database::schema::tags::dsl;
@@ -176,6 +176,10 @@ impl Tagger {
 
     let character = match res {
       RouteResult::Cached { result, .. } | RouteResult::Success { result, .. } | RouteResult::Scraped { result } => result,
+      RouteResult::Adding { .. } if wait => {
+        std::thread::sleep(std::time::Duration::from_secs(5));
+        return Tagger::tag(env, who, on, char_id, force, false);
+      },
       RouteResult::Adding { .. } => return Ok(Some("That character is not in the database. Try again in one minute.".into())),
       RouteResult::NotFound => return Ok(Some("No such character.".into())),
       RouteResult::Error { error } => return Ok(Some(format!("An error occurred: `{}`. Try again later.", error))),

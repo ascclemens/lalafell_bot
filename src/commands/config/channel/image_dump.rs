@@ -21,7 +21,7 @@ pub struct Params {
 
 impl<'a> ImageDumpCommand {
   pub fn run(&self, ctx: &Context, author: UserId, guild: GuildId, channel: ChannelId, params: Params) -> CommandResult<'a> {
-    let member = guild.member(&ctx, author).chain_err(|| "could not get member")?;
+    let member = guild.member(ctx, author).chain_err(|| "could not get member")?;
     if !member.permissions(&ctx).chain_err(|| "could not get permissions")?.manage_messages() {
       return Err(ExternalCommandFailure::default()
         .message(|e: &mut CreateEmbed| e

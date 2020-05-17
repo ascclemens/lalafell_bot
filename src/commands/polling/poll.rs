@@ -13,7 +13,7 @@ pub struct PollCommand;
 
 impl PollCommand {
   fn nick_or_name(&self, ctx: &Context, guild: GuildId, user: UserId) -> Option<String> {
-    match guild.member(&ctx, user) {
+    match guild.member(ctx, user) {
       Ok(m) => Some(m.display_name().to_string()),
       Err(_) => None
     }
@@ -36,14 +36,14 @@ impl<'a> Command<'a> for PollCommand {
       return Err("No more than nine poll options can be specified.".into());
     }
     let message = params.join(" ");
-    let channel = match msg.channel_id.to_channel(&ctx) {
+    let channel = match msg.channel_id.to_channel(ctx) {
       Ok(Channel::Guild(c)) => c,
       _ => return Err("This command must be used in a guild channel.".into())
     };
-    msg.delete(&ctx).chain_err(|| "could not delete original message")?;
+    msg.delete(ctx).chain_err(|| "could not delete original message")?;
     let name = self.nick_or_name(ctx, channel.read().guild_id, msg.author.id).unwrap_or_else(|| "someone".into());
     let poll = Poll::new(name, &message, options);
-    channel.read().send_message(&ctx, |c| c
+    channel.read().send_message(ctx, |c| c
       .embed(poll.create_embed())
       .reactions((0..poll.options.len()).map(|i| format!("{}⃣", i + 1))))
       .chain_err(|| "could not send embed")?;
@@ -66,7 +66,7 @@ impl Poll {
     }
   }
 
-  fn create_embed(&self) -> Box<Fn(&mut CreateEmbed) -> &mut CreateEmbed> {
+  fn create_embed(&self) -> Box<dyn Fn(&mut CreateEmbed) -> &mut CreateEmbed> {
     let name = self.author.clone();
     let options = self.options.iter()
       .enumerate()

@@ -77,7 +77,7 @@ impl<'a> PublicChannelCommand<'a> for SearchCommand {
     }
     Ok(CommandSuccess::default()
       .message(move |e: &mut CreateEmbed| e
-        .description(to_send)
+        .description(&to_send)
         .footer(|f| f.text(format!("{} member{}", matches.len(), if matches.len() == 1 { "" } else { "s" })))))
   }
 }

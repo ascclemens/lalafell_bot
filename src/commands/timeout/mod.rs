@@ -54,7 +54,7 @@ pub fn set_up_timeouts(ctx: &Context, guild: &Guild) -> Result<RoleId> {
 
   let role_id = match guild.roles.values().find(|r| UniCase::new(&r.name) == uni) {
     Some(r) => r.id,
-    None =>  guild.create_role(&ctx, |e| e
+    None =>  guild.create_role(ctx, |e| e
       .name(&role_name)
       .permissions(*ROLE_PERMISSIONS))
       .chain_err(|| "could not create role")?

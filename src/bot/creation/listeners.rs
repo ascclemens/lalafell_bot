@@ -24,12 +24,12 @@ use std::{
 };
 
 pub struct Handler {
-  listeners: Vec<Box<EventHandler + Send + Sync>>,
+  listeners: Vec<Box<dyn EventHandler + Send + Sync>>,
 }
 
 impl Handler {
   pub fn new(env: &Arc<BotEnv>) -> Self {
-    let listeners: Vec<Box<EventHandler + Send + Sync>> = vec![
+    let listeners: Vec<Box<dyn EventHandler + Send + Sync>> = vec![
       box command_listener(env),
       box GuildsExt,
       box ReactionAuthorize,
@@ -55,7 +55,6 @@ macro_rules! handler {
 }
 
 impl EventHandler for Handler {
-  handler!(cached, param1: Context, param2: Vec < GuildId >);
   handler!(channel_create, param1: Context, param2: Arc < RwLock < GuildChannel > >);
   handler!(category_create, param1: Context, param2: Arc < RwLock < ChannelCategory > >);
   handler!(category_delete, param1: Context, param2: Arc < RwLock < ChannelCategory > >);

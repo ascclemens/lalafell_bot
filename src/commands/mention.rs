@@ -25,7 +25,7 @@ impl HasParams for MentionCommand {
 
 impl<'a> PublicChannelCommand<'a> for MentionCommand {
   fn run(&self, ctx: &Context, msg: &Message, guild_id: GuildId, channel: Arc<RwLock<GuildChannel>>, params: &[&str]) -> CommandResult<'a> {
-    let member = guild_id.member(&ctx, &msg.author).chain_err(|| "could not get member")?;
+    let member = guild_id.member(ctx, &msg.author).chain_err(|| "could not get member")?;
     if !member.permissions(&ctx).chain_err(|| "could not get permissions")?.mention_everyone() {
       return Err(ExternalCommandFailure::default()
         .message(|e: &mut CreateEmbed| e
@@ -44,14 +44,14 @@ impl<'a> PublicChannelCommand<'a> for MentionCommand {
     if !mentionable {
       guild_id.edit_role(&ctx, role.id, |r| r.mentionable(true)).ok();
     }
-    msg.delete(&ctx).ok();
+    msg.delete(ctx).ok();
     let p_message = if params.message.is_empty() {
       Default::default()
     } else {
       format!(" – {}", params.message.join(" "))
     };
     let message = format!("{}{}", role.mention(), p_message);
-    channel.read().send_message(&ctx, |m| m.content(&message)).ok();
+    channel.read().send_message(ctx, |m| m.content(&message)).ok();
     if !mentionable {
       guild_id.edit_role(&ctx, role.id, |r| r.mentionable(false)).ok();
     }

@@ -30,7 +30,7 @@ impl<'a> Command<'a> for BlobCommand {
       .unwrap_or_else(|| msg.author.name.clone());
     let url = format!("https://cdn.discordapp.com/emojis/{}.{}", blob.0, if blob.1 { "gif" } else { "png" });
 
-    if let Err(e) = msg.delete(&ctx) {
+    if let Err(e) = msg.delete(ctx) {
       warn!("could not delete message: {}", e);
     }
 

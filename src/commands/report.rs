@@ -34,7 +34,7 @@ impl HasParams for ReportCommand {
 
 impl<'a> PublicChannelCommand<'a> for ReportCommand {
   fn run(&self, ctx: &Context, msg: &Message, guild_id: GuildId, _: Arc<RwLock<GuildChannel>>, params: &[&str]) -> CommandResult<'a> {
-    let member = guild_id.member(&ctx, &msg.author).chain_err(|| "could not get member")?;
+    let member = guild_id.member(ctx, &msg.author).chain_err(|| "could not get member")?;
     if !member.permissions(&ctx).chain_err(|| "could not get permissions")?.manage_roles() {
       return Err(ExternalCommandFailure::default()
         .message(|e: &mut CreateEmbed| e
@@ -87,7 +87,15 @@ impl<'a> PublicChannelCommand<'a> for ReportCommand {
     let chars: String = thread_rng().sample_iter(&Alphanumeric).take(7).collect();
     let channel_name = format!("report_{}", chars);
     let channel = guild_id
-      .create_channel(&ctx, &channel_name, ChannelType::Text, category)
+      .create_channel(ctx, |mut chan| {
+        chan = chan
+          .name(channel_name)
+          .kind(ChannelType::Text);
+        if let Some(category) = category {
+          chan = chan.category(category);
+        }
+        chan
+      })
       .chain_err(|| "could not create channel")?;
 
     channel.create_permission(&ctx, &deny_everyone).chain_err(|| "could not deny @everyone")?;
