@@ -180,7 +180,7 @@ impl Tagger {
         std::thread::sleep(std::time::Duration::from_secs(5));
         return Tagger::tag(env, who, on, char_id, force, false);
       },
-      RouteResult::Adding { .. } => return Ok(Some("That character is not in the database. Try again in one minute.".into())),
+      RouteResult::Adding { .. } => return Ok(Some("That character is now being added to the database. Try again in one minute.".into())),
       RouteResult::NotFound => return Ok(Some("No such character.".into())),
       RouteResult::Error { error } => return Ok(Some(format!("An error occurred: `{}`. Try again later.", error))),
     };
