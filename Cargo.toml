@@ -36,7 +36,7 @@ url = "2"
 uuid = { version = "0.8", features = ["v4"] }
 
 [dependencies.serenity]
-version = "0.6.0-rc.1"
+version = "0.8"
 default-features = false
 features = ["builder", "cache", "client", "gateway", "model", "utils", "native_tls_backend"]
 
