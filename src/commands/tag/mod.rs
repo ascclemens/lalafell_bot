@@ -48,10 +48,9 @@ use lodestone_api_client::{
   },
 };
 
-use std::{
-  collections::HashSet,
-  sync::Mutex,
-};
+use parking_lot::Mutex;
+
+use std::collections::HashSet;
 
 lazy_static! {
   // Limbo roles are roles that may or may not be added to the Discord bot state.
@@ -223,7 +222,7 @@ impl Tagger {
 
     // Check for existing limbo roles.
     {
-      let limbo = &mut *LIMBO_ROLES.lock().unwrap();
+      let limbo = &mut *LIMBO_ROLES.lock();
       for role in &roles {
         // If the server has updated to contain the limbo role, remove it.
         if let Some(i) = limbo.iter().position(|x| x.id == role.id) {
@@ -232,7 +231,7 @@ impl Tagger {
       }
     }
     // Get a copy of the limbo roles.
-    let limbo = LIMBO_ROLES.lock().unwrap().clone();
+    let limbo = LIMBO_ROLES.lock().clone();
     // Extend the server roles with the limbo roles.
     roles.extend(limbo);
 
@@ -266,7 +265,7 @@ impl Tagger {
     // If we created any roles, the server may or may not update with them fast enough, so store a copy in the limbo
     // roles.
     {
-      let limbo = &mut *LIMBO_ROLES.lock().unwrap();
+      let limbo = &mut *LIMBO_ROLES.lock();
       for created in &created_roles {
         limbo.push(created.clone());
       }

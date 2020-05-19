@@ -56,7 +56,9 @@ use crate::{
   error::*,
 };
 
-use std::sync::{Arc, Mutex};
+use parking_lot::Mutex;
+
+use std::sync::Arc;
 
 fn main() {
   if let Err(e) = inner() {
@@ -99,7 +101,7 @@ fn inner() -> Result<()> {
 
   info!("Spinning up bot");
   std::thread::spawn(move || {
-    let mut bot = bot.lock().unwrap();
+    let mut bot = bot.lock();
     if let Err(e) = bot.discord.start_autosharded() {
       error!("could not start bot: {}", e);
     }
